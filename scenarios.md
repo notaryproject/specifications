@@ -178,9 +178,6 @@ Customers may require multiple signatures for the following scenarios:
 
 - Multiple signatures, including signatures from multiple sources can be associated with a specific artifact.
 
-### Scenarios #10: Base Layer Validation
-
-Customers want to u
 ## Open Discussions
 
 - What is the relationship between a signature, an artifact and a registry?
