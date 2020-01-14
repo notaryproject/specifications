@@ -51,10 +51,11 @@ Prior to doing any deployment, a developer can test the: build, sign, validate s
 
 **Implications of this requirement:**
 
-- The local developer has access to the signing keys
-- The local environment has a policy by which it states the set of signatures it accepts.
+- The local developer has access to signing keys
+- The local environment has a policy by which it states the set of keys it accepts.
 - The signing and validation of artifacts does not require a registry.
 - The signature used for validation may be hosted in a registry, or other accessible location.
+- The lack of a registry name does not infer docker.io as the default registry. This does imply changes to either the docker client, the notary client or both.
 
 ### Scenario #2: Sign, Rename, Push, Validate
 
@@ -70,8 +71,8 @@ Once the developer has locally validated the build, sign, validate scenario, the
 
 **Implications of this requirement:**
 
-- Signatures can be validated based on the tag referenced, however the signature is not tied to a specific name. The tag is a pointer to the signed content.
-- This does not preclude tag locking scenarios. If a tag is updated with another signed artifact, the tag is considered signed and follows the signature validation rules of the new signature. For example, if a base image `fx:1.0` is signed, and rebuilt with a patched version, the updated `fx:1.0` is new content, and a valid scenario.
+- Signatures can be validated based on the tag referenced, however the signature is not tied to a specific name. The artifact can be renamed without invalidating the signature.
+- This does not preclude tag locking scenarios, where a registry can provide users with the ability to lock a tag to a specific manifest. If a tag is updated with another signed artifact, the tag is considered signed and follows the signature validation rules of the new signature. For example, if a base image `fx:1.0` is signed, and rebuilt with a patched version, the updated `fx:1.0` is new content, and a valid scenario.
 - If the tag for `fx:1.0` is redirected to another unsigned manifest, the signature validation of `fx:1.0` will fail as it's no longer signed. This is no different than signed binaries being updated or replaced on a users local computer.
 
 ### Scenario #3: Automate Build, Sign, Push
