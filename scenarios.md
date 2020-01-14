@@ -21,7 +21,7 @@ As we identify the requirements and constraints, a number of key contributors wi
 
 * Registry Cloud Operators
   * [Azure Container Registry (acr)][acr] - Steve Lasker <steve.lasker@microsoft.com> (@stevelasker)
-  * [AWS Container Registry (ecr)][ecr] - Omar Paul <omarpaul@amazon.com>
+  * [Amazon Elastic Container Registry (ecr)][ecr] - Omar Paul <omarpaul@amazon.com>
   * [Docker Hub][docker-hub]
   * [Google Container Registry (gcr)][gcr]
   * [GitHub Package Registry (gpr)][gpr]
@@ -72,7 +72,7 @@ Once the developer has locally validated the build, sign, validate scenario, the
 **Implications of this requirement:**
 
 - Signatures can be validated based on the tag referenced, however the signature is not tied to a specific name. The artifact can be renamed without invalidating the signature.
-- This does not preclude tag locking scenarios, where a registry can provide users with the ability to lock a tag to a specific manifest. If a tag is updated with another signed artifact, the tag is considered signed and follows the signature validation rules of the new signature. For example, if a base image `fx:1.0` is signed, and rebuilt with a patched version, the updated `fx:1.0` is new content, and a valid scenario.
+- This does not preclude tag locking scenarios, where a registry can provide users with the ability to lock a tag to a specific. If a tag is updated with another signed artifact, the tag is considered signed and follows the signature validation rules of the new signature. For example, if a base image `fx:1.0` is signed, and rebuilt with a patched version, the updated `fx:1.0` is new content, and a valid scenario.
 - If the tag for `fx:1.0` is redirected to another unsigned manifest, the signature validation of `fx:1.0` will fail as it's no longer signed. This is no different than signed binaries being updated or replaced on a users local computer.
 
 ### Scenario #3: Automate Build, Sign, Push
