@@ -1,6 +1,10 @@
 # Notary Signing - Scenarios
 
-As containers and cloud native artifacts become the common unit of deployment, users want to know the artifacts in their private registries and the artifacts deployed are the same artifacts that were initially published.
+As containers and cloud native artifacts become the common unit of deployment, users want to know the artifacts in their environments are authentic and un-tampered. 
+
+These Notary v2 scenarios define end-to-end scenarios for signing artifacts, storing and moving them between OCI compliant registries, and validating them by various artifact hosts and tooling. 
+
+## OCI Images & Artifacts
 
 The [OCI TOB][oci-tob] has adopted [OCI Artifacts][artifacts-repo], generalizing container images as one of many types of artifacts that may be stored in a registry. Other artifact types currently include:
 
@@ -12,6 +16,9 @@ The [OCI TOB][oci-tob] has adopted [OCI Artifacts][artifacts-repo], generalizing
 
 This document serves as the requirements and constraints of a generalized signing solution. It focuses on the scenarios and needs, and very specifically avoids any reference to other projects or implementations. As our working group forms a consensus on the requirements, the group will then transition to a spec.
 
+## Non-Goals
+
+- Notary v2 does not account for what the content represents or its lineage. Other efforts may attach additional content, and re-sign the super set of content to account for other scenarios. 
 
 ## Key Stake Holders & Contributors
 
@@ -102,7 +109,8 @@ A CI/CD system promotes validated artifacts from a dev repository to production 
 
 **Implications of this requirement:**
 
-- Artifact movement or copy means the original signature is still available. In this scenario, the signature is saved to the same registry.
+- Renaming does not invalidate the signature
+- Artifact movement, or copy, to a different repository does not invalidate the signature
 
 ### Scenario #5: Acquire Artifacts From Public Repositories, Copying to Private Registries for Deployment
 
@@ -117,7 +125,7 @@ As artifacts evolve from base images developers build upon, to products that cus
 
 **Implications of this requirement:**
 
-- In addition to the above scenario where an artifact is promoted within the same registry, this scenario requires the signature to be avaialble in the new registry. Whether the signature is moved, or referenced from it's original location is a subject for design discussion. In this scenario, ACME Rockets could validate the signature against a wabbit-network signature server.
+- In addition to the above scenario where an artifact is promoted within the same registry, this scenario requires the signature to be available in the new registry. Whether the signature is moved, or referenced from it's original location is a subject for design discussion. In this scenario, ACME Rockets could validate the signature against a wabbit-network signature server.
 
 ### Scenario #6: Validate Artifact Signatures Within Restricted Networks
 
@@ -128,7 +136,7 @@ ACME Rockets runs secure production environments, limiting all external network 
 
 **Implications of this requirement:**
 
-- In this scenario, the wabbit-netowrks signature must be validated within the ACME Rockets network. How this is done is open for design. However, the requirement states the signature must be validated without external access. When the artifact is copied to the private/network restricted registry, the signature may need to be copied, and is assumed to be trusted if available in the trusted server within the private network. 
+- In this scenario, the wabbit-netowrks signature must be validated within the ACME Rockets network. How this is done is open for design. However, the requirement states the signature must be validated without external access. When the artifact is copied to the private/network restricted registry, the signature may need to be copied, and is assumed to be trusted if available in the trusted server within the private network. How ACME Rockets would copy/proxy the signatures is part of the design and UX for a secure, but usable pattern.
 
 ### Scenario #7 Automated Deploy - Success
 
@@ -148,7 +156,7 @@ A CD solution initiates a deployment to a development environment. The developme
 Same as #7, with the exception that the signature is deemed invalid.
 1. A CD solution is triggered to initiate a deployment.
 2. The CD solution uses a deployment template to request an orchestrator to run a specific image. In this case, the CD solution mistakenly attempted to deploy a dev signed artifact to a production environment.
-3. The production orchestrator receives the request, validates the artifact is signed and recognizes the signature is **NOT** one of the production accepted signatures. As the signature is deemed invalid, the deployment fails.
+3. The production orchestrator receives the request, validates the artifact is signed and recognizes the signature is **NOT** produced by a trusted key. As the signature is deemed invalid, the deployment fails.
 
 **Implications of this requirement:**
 - The coordination between a CD and operational environment for how a request and response is managed is not in-scope for artifact signing.
@@ -170,6 +178,9 @@ Customers may require multiple signatures for the following scenarios:
 
 - Multiple signatures, including signatures from multiple sources can be associated with a specific artifact.
 
+### Scenarios #10: Base Layer Validation
+
+Customers want to u
 ## Open Discussions
 
 - What is the relationship between a signature, an artifact and a registry?
