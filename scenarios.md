@@ -140,7 +140,7 @@ ACME Rockets runs secure production environments, limiting all external network 
 
 **Implications of this requirement:**
 
-- In this scenario, the wabbit-netowrks signature must be validated within the ACME Rockets network. How this is done is open for design. However, the requirement states the signature must be validated without external access. When the artifact is copied to the private/network restricted registry, the signature may need to be copied, and is assumed to be trusted if available in the trusted server within the private network. How ACME Rockets would copy/proxy the signatures is part of the design and UX for a secure, but usable pattern.
+- In this scenario, the wabbit-networks signature must be validated within the ACME Rockets network. How this is done is open for design. However, the requirement states the signature must be validated without external access. When the artifact is copied to the private/network restricted registry, the signature may need to be copied, and is assumed to be trusted if available in the trusted server within the private network. How ACME Rockets would copy/proxy the signatures is part of the design and UX for a secure, but usable pattern.
 
 ### Scenario #7 Automated Deploy - Success
 
