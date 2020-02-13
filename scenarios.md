@@ -20,24 +20,32 @@ As we identify the requirements and constraints, a number of key contributors wi
 > Please add companies, projects, products that you believe should be included.
 
 * Registry Cloud Operators
-  * [Azure Container Registry (acr)][acr] - Steve Lasker <steve.lasker@microsoft.com> (@stevelasker)
+  * [Azure Container Registry (acr)][acr] - Steve Lasker <steve.lasker@microsoft.com> ([@stevelasker](http://github.com/stevelasker))
   * [Amazon Elastic Container Registry (ecr)][ecr] - Omar Paul <omarpaul@amazon.com>
-  * [Docker Hub][docker-hub]
+  * [Docker Hub][docker-hub] - Justin Cormack justin.cormack@docker.com
   * [Google Container Registry (gcr)][gcr]
   * [GitHub Package Registry (gpr)][gpr]
-  * [Quay][quay]
+  * [Quay][quay] - Joey Schorr jschorr@redhat.com
   * [IBM Cloud Container Registry (icr)][icr]
 * Registry Vendors, Projects & Products
   * [Docker Trusted Registry][docker-dtr]
   * [Harbor][harbor]
   * [JFrog Artifactory][jfrog]
 * Artifact Types
-  * Container Images - OCI Org
-  * Helm Charts
-  * Singularity
+  * [OCI & Docker Container Images][image-spec]
+  * [Helm Charts][helm-registry]
+  * [Singularity][singularity]
   * Operator Bundles
 
 ## Scenarios
+
+Notary v2 aims to solve the core issue of trusting content within, or across registries are what they claim to be. There are many elements of an end to end scenario that are not implemented by Notary v2, rather enabled becuase the content is verifiable.
+
+### End to End Orchestrator Scenario
+
+To put Notary v2 in context, the following scenario is outlined. 
+![Notary e2e Scenarios](./media/notary-e2e-scenarios.png)
+
 
 ### Scenario #1: Local Build, Sign, Validate
 
@@ -71,8 +79,8 @@ Once the developer has locally validated the build, sign, validate scenario, the
 
 **Implications of this requirement:**
 
-- Signatures can be validated based on the tag referenced, however the signature is not tied to a specific name. The artifact can be renamed without invalidating the signature.
-- This does not preclude tag locking scenarios, where a registry can provide users with the ability to lock a tag to a specific. If a tag is updated with another signed artifact, the tag is considered signed and follows the signature validation rules of the new signature. For example, if a base image `fx:1.0` is signed, and rebuilt with a patched version, the updated `fx:1.0` is new content, and a valid scenario.
+- Signatures can be verified based on the tag referenced, however the signature is not tied to a specific `repo:tag` name. The artifact can be renamed without invalidating the signature.
+- This does not preclude tag locking scenarios, where a registry can provide users with the ability to lock a tag to a specific manifest. If a tag is updated with another signed artifact, the tag is considered signed and follows the signature validation rules of the new signature. For example, if a base image `fx:1.0` is signed, and rebuilt with a patched version, the updated `fx:1.0` is new content, and a valid scenario.
 - If the tag for `fx:1.0` is redirected to another unsigned manifest, the signature validation of `fx:1.0` will fail as it's no longer signed. This is no different than signed binaries being updated or replaced on a users local computer.
 
 ### Scenario #3: Automate Build, Sign, Push
@@ -91,6 +99,14 @@ A CI system is triggered by a git commit. The system can build the artifacts, si
 **Implications of this requirement:**
 
 - nothing additional from previous scenarios.
+
+### Scenario 3.1: Required Signatures
+
+Customers may require content to be signed. They may require specific signatures, or any signatures.
+
+1. A deployment is requested. The host has been configured to require any signature, or specific signatures. 
+1. The host accepts the request, and verifies it's configuration. If a signature is requried, but no specific signatures are specified, any signed content would be permitted. If specific signatures are required, the deployment will only succeed if the signature matches one of the specified signatures. 
+1. The user may specify root signatures, thus any signatures that derive from the root would also considered valid.
 
 ### Scenario #4: Promote Artifacts Within a Registry, Using a Different repo
 
@@ -183,6 +199,7 @@ Customers may require multiple signatures for the following scenarios:
 [ecr]:              https://aws.amazon.com/ecr/
 [docker-hub]:       https://hub.docker.com/
 [docker-dtr]:       https://www.docker.com/products/image-registry
+[image-spec]:       https://github.com/opencontainers/image-spec
 [gcr]:              https://cloud.google.com/container-registry/
 [gpr]:              https://github.com/features/package-registry
 [quay]:             https://quay.io/
