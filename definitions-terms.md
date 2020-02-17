@@ -5,6 +5,7 @@ A collection of definitions and terms used within this repository.
 ## TOC
 
 * [Fingerprint](#fingerprint)
+* [Fully Qualified Artifact Reference](#registry:-fully-qualified-reference)
 * [Multi-Tenant Registry](#multi-tenant-registry)
 * [OCI Annotations](#oci-annotations)
 * [OCI Descriptor](#oci-descriptor)
@@ -15,6 +16,13 @@ A collection of definitions and terms used within this repository.
 * [Subject](#subject)
 * [Tag](#tag)
 
+## Artifact / Image
+
+Artifacts are a generalization of how images are stored in an instance of the [OCI Distribution Spec][oci-distribution-spec]. An [OCI Image][oci-image] is a type of [OCI Artifact][oci-artifact]. When referencing artifacts, within a [fully qualified reference](#registry:-fully-qualified-reference), the artifact is right most element of the namespace, combined with the `:tag`.  
+Reference: [OCI Artifacts][oci-artifact]  
+![](./media/artifact-ref.png)  
+
+
 ## Fingerprint
 
 A short identifier of a given public key.  
@@ -22,10 +30,7 @@ Reference: [Fingerprint][fingerprint]
 
 ## Multi-Tenant Registry
 
-A collection of unique [registries](#registry), stored within an instance of an [OCI Distribution Spec][oci-distribution-spec]. Registry Operators use one of two methods to uniquely identify an org. In either case, information within that org is considered unique to the org, including all key references and authentication.
-
-* domain based orgs: `org.example.com` where a domain is used to uniquely identify the registry.
-* root-namespace based orgs: `example.com/org` where the root namespace is used to uniquely identify the registry.
+A collection of unique [registries](#registry), stored within an instance of an [OCI Distribution Spec][oci-distribution-spec]. Registry operators use one of two methods to uniquely identify an org. In either case, information within that org is considered unique to the org, including all key references and authentication.
 
 ## OCI Annotations
 
@@ -52,19 +57,19 @@ OCI spec reference: [OCI Image Manifest][oci-manifest]
 A registry is a collection of [OCI Indexes][oci-index] and [OCI Manifestes][oci-manifest] for a specific org or entity.  
 A unique registry may be uniquely identified with a domain  
 ![](./media/unique-registry-domain-ref.png)  
- Or a root namespace:
-![](./media/unique-registry-org-ref.png)
+ Or a root namespace:  
+![](./media/unique-registry-namespace-ref.png)
 
 
 ## Registry Namespace
 
 A path, within the [unique registry org](#multi-tenant-registry), up to, but not including the repository (repo) name.  
-![](./media/registry-namespace-repo-tag-ref.png)
+![](./media/registry-namespace-ref.png)
 
 ## Repo/Repository
 
 A repo/repository refers to the unique location, within a registry. When referring to a repo, the registry is assumed, based on the context.  
-![](./media/registry-repo-tag-ref.png)
+![](./media/registry-repo-ref.png)
 
 ## Registry: Fully Qualified Reference
 
@@ -73,7 +78,7 @@ In order to deploy an artifact, a fully qualified reference is required. This in
 
 ## SBoM
 
-Represents a generic, non-project specific, reference to a Software Bill of Materials. Similar to the automotive industry which tracks the components that make up a vehicle. The SBoM may contain the list of packages used within the artifact, the compiler and version used to build the artifact and other relevant information.  
+Represents a generic, non-project specific, reference to a Software Bill of Materials. Similar to the automotive industry which tracks the components that make up a vehicle, the SBoM may contain the list of packages used within the artifact, the compiler and version used to build the artifact and other relevant information.  
 Additional reference: [Software bill of materials][sbom]
 
 ## Subject
@@ -97,6 +102,7 @@ eg:
 [oci-artifact]:          https://github.com/opencontainers/artifacts
 [oci-descriptor]:        https://github.com/opencontainers/image-spec/blob/master/descriptor.md
 [oci-distribution-spec]: https://github.com/opencontainers/distribution-spec
+[oci-image]:             https://github.com/opencontainers/image-spec
 [oci-index]:             https://github.com/opencontainers/image-spec/blob/master/image-index.md
 [oci-manifest]:          https://github.com/opencontainers/image-spec/blob/master/manifest.md
 [sbom]:                  https://en.wikipedia.org/wiki/Software_bill_of_materials
