@@ -5,7 +5,7 @@ A collection of definitions and terms used within this repository.
 ## TOC
 
 * [Fingerprint](#fingerprint)
-* [Fully Qualified Artifact Reference](#registry:-fully-qualified-reference)
+* [Fully Qualified Artifact Reference](#registry-fully-qualified-reference)
 * [Multi-Tenant Registry](#multi-tenant-registry)
 * [OCI Annotations](#oci-annotations)
 * [OCI Descriptor](#oci-descriptor)
@@ -18,7 +18,7 @@ A collection of definitions and terms used within this repository.
 
 ## Artifact / Image
 
-Artifacts are a generalization of how images are stored in an instance of the [OCI Distribution Spec][oci-distribution-spec]. An [OCI Image][oci-image] is a type of [OCI Artifact][oci-artifact]. When referencing artifacts, within a [fully qualified reference](#registry:-fully-qualified-reference), the artifact is right most element of the namespace, combined with the `:tag`.  
+Artifacts are a generalization of how images are stored in an instance of the [OCI Distribution Spec][oci-distribution-spec]. An [OCI Image][oci-image] is a type of [OCI Artifact][oci-artifact]. When referencing artifacts, within a [fully qualified reference](#registry-fully-qualified-reference), the artifact is right most element of the namespace, combined with the `:tag`.  
 Reference: [OCI Artifacts][oci-artifact]  
 ![](./media/artifact-ref.png)  
 
