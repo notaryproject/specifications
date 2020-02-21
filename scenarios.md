@@ -218,7 +218,7 @@ It is discovered that a server used to construct software has potentially been c
 
 **Implications of this requirement:**
 1. There should be auditable metadata to understand when a build was created on this server.  Furthermore, there should be adequate information to understand when and/or what version of the build software was used, as this may be relevant for auditing.
-1. There should be a means to warn about and/or stop future container deployments what were built using this server.
+1. There should be a means to warn about and/or stop future container deployments that were built using this server.
 
 #### Scenario 7.4: A Crypto Algoritm Is Deprecated
 A weakness is discovered in a widely used cryptographic algorithm and a decisions is made to deprecate its use in favor of one or more newer algorithms.  It should be possible to migrate smoothly to the new algorithm(s), despite the fact that adoption by developers will adopt the new signing algorithm(s) piecemeal.
