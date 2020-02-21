@@ -221,7 +221,7 @@ It is discovered that a server used to construct software has potentially been c
 1. There should be a means to warn about and/or stop future container deployments that were built using this server.
 
 #### Scenario 7.4: A Crypto Algorithm Is Deprecated
-A weakness is discovered in a widely used cryptographic algorithm and a decisions is made to deprecate its use in favor of one or more newer algorithms.  It should be possible to migrate smoothly to the new algorithm(s), despite the fact that adoption by developers will adopt the new signing algorithm(s) piecemeal.
+A weakness is discovered in a widely used cryptographic algorithm and a decisions is made to deprecate its use in favor of one or more newer algorithms.  It should be possible to migrate smoothly to the new algorithm(s), despite the fact that developers will adopt the new signing algorithm(s) piecemeal.
 
 **Implications of this requirement:**
 1. There must be a means to support using multiple different cryptographic algorithms of varying types.  The client and server must be able to use them in coordination, without requiring a "flag day" where everyone swaps over.
