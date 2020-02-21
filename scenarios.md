@@ -194,6 +194,42 @@ A deployment requires a mydb image. The mydb image is routinely updated for secu
 1. The release management system deploys the new `mydb:1.0-202002131000` image.
 1. The production orchestrator validates it's signed with the Acme Rockets production key.
 
+
+
+### Scenario #7: Malicious and Erroneous Actions
+
+#### Scenario 7.1: A Repository Compromise Occurs
+An attacker manages to compromise a repository and gain access to the repository as an administrator.   
+**Implications of this requirement:**
+1. The potential damage/risk to users in this case must be limited
+1. There must be a secure way for users to recover to a known, secure state and verify this has occurred even in the face of an attacker that can act as a man-in-the-middle on the network.
+
+#### Scenario 7.2: A Developer Discloses Their Key and/or Credentials
+A developer accidentally discloses the key they use to certify their software is authentic.  For example, the developer may have unintentionally checked their key into a github repository.  
+
+Furthermore, the developer may have scripted the means by which software is added to a repository and this script (and related credentials / secrets) have all been disclosed.
+
+**Implications of this requirement:**
+1. There should be a means to get back to a secure state.  It should not be the case that the first person to notice this action now can irrevocably control the software software distribution mechanism used by the developer.
+1. There should be some means to know what actions have been performed using the developer's key and/or credentials and when those actions occurred.
+
+#### Scenario 7.3: A Step in the Supply Chain Is Compromised
+It is discovered that a server used to construct software has potentially been compromised.  This means that the software coming from this server could be at risk.  For example, a build server may have been compromised and now the container images built there may have been backdoored.
+
+**Implications of this requirement:**
+1. There should be auditable metadata to understand when a build was created on this server.  Furthermore, there should be adequate information to understand when and/or what version of the build software was used, as this may be relevant for auditing.
+1. There should be a means to warn about and/or stop future container deployments what were built using this server.
+
+#### Scenario 7.4: A Crypto Algoritm Is Deprecated
+A weakness is discovered in a widely used cryptographic algorithm and a decisions is made to deprecate its use in favor of one or more newer algorithms.  It should be possible to migrate smoothly to the new algorithm(s), despite the fact that adoption by developers will adopt the new signing algorithm(s) piecemeal.
+
+**Implications of this requirement:**
+1. There must be a means to support using multiple different cryptographic algorithms of varying types.  The client and server must be able to use them in coordination, without requiring a "flag day" where everyone swaps over.
+1. Key revocation, chain of trust, etc. must all work for the expected lifetime of a version of the client software while these changes are made.
+1. The actions that different parties need to perform must be clearly articulated, along with the result of not performing those actions.
+
+
+
 **Implications of this requirement:**
 
 - Multiple signatures, including signatures from multiple sources can be associated with a specific artifact.
