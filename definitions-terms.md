@@ -6,12 +6,13 @@ A collection of definitions and terms used within this repository.
 
 * [Fingerprint](#fingerprint)
 * [Fully Qualified Artifact Reference](#registry-fully-qualified-reference)
-* [Multi-Tenant Registry](#multi-tenant-registry)
 * [OCI Annotations](#oci-annotations)
 * [OCI Descriptor](#oci-descriptor)
 * [OCI Index](#oci-index)
 * [OCI Manifest](#oci-manifest)
 * [Registry](#registry)
+* [Repo/Repository](#repo/repository)
+* [Repository Path](#repository-path)
 * [SBoM](#sbom)
 * [Subject](#subject)
 * [Tag](#tag)
@@ -28,9 +29,6 @@ Reference: [OCI Artifacts][oci-artifact]
 A short identifier of a given public key.  
 Reference: [Fingerprint][fingerprint]
 
-## Multi-Tenant Registry
-
-A collection of unique [registries](#registry), stored within an instance of an [OCI Distribution Spec][oci-distribution-spec]. Registry operators use one of two methods to uniquely identify an org. In either case, information within that org is considered unique to the org, including all key references and authentication.
 
 ## OCI Annotations
 
@@ -49,27 +47,25 @@ OCI spec reference: [OCI Image Index][oci-index]
 
 ## OCI Manifest
 
-A description of an [artifact][oci-artifact] within an instance of an [OCI Distribution][oci-distribution-spec] complaint registry. The manifest references optional configuration and blobs (layers) as content-addressable references ([descriptors][oci-descriptor]).  Artifacts may be container images, helm charts or other artifact types that may be signed and stored in a registry.    
+A description of an [artifact][oci-artifact]. The manifest references optional configuration and blobs (layers) as content-addressable references ([descriptors][oci-descriptor]).  Artifacts may be container images, helm charts or other artifact types that may be signed and stored in a registry.    
 OCI spec reference: [OCI Image Manifest][oci-manifest]
 
 ## Registry
 
-A registry is a collection of [OCI Indexes][oci-index] and [OCI Manifestes][oci-manifest] for a specific org or entity.  
-A unique registry may be uniquely identified with a domain  
+A registry is a collection of [OCI Indexes][oci-index] and [OCI Manifests][oci-manifest] for a specific org or entity.  
+A unique registry may be uniquely identified with a domain or a root namespace:  
 ![](./media/unique-registry-domain-ref.png)  
- Or a root namespace:  
 ![](./media/unique-registry-namespace-ref.png)
-
-
-## Registry Namespace
-
-A path, within the [unique registry org](#multi-tenant-registry), up to, but not including the repository (repo) name.  
-![](./media/registry-namespace-ref.png)
 
 ## Repo/Repository
 
 A repo/repository refers to the unique location, within a registry. When referring to a repo, the registry is assumed, based on the context.  
 ![](./media/registry-repo-ref.png)
+
+## Repository Path
+
+A path, within the [unique registry org](#multi-tenant-registry), up to, but not including the repository (repo) name.  
+![](./media/registry-namespace-ref.png)
 
 ## Registry: Fully Qualified Reference
 
