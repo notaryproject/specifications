@@ -42,7 +42,7 @@ OCI spec reference: [OCI Descriptor][oci-descriptor]
 
 ## OCI Index
 
-A higher-level collection of [image manifests][oci-manifest], or other [oci indexes][oci-index], typically used to describe platform-specific (architecture and operating-system) images that can be identified collectively and referred to together. The specific image manifests are identified by modified [descriptors][oci-descriptor] with additional properties and restrictions. [OCI Artifacts][oci-artifact] takes this a step further and provides for an OCI Index to reference a collection of artifacts, such as an image, a deployment chart, its SBoM and deployment configuration references.  
+A higher-level collection of [image manifests][oci-manifest], or other [oci indexes][oci-index], typically used to describe platform-specific (architecture and operating-system) images that can be identified collectively and referred to together. The specific image manifests are identified by modified [descriptors][oci-descriptor] with additional properties and restrictions. [OCI Artifacts][oci-artifact] are another use-case for indexes where an OCI Index can reference a collection of artifacts, such as an image, a deployment chart, its SBoM and deployment configuration references.
 OCI spec reference: [OCI Image Index][oci-index]
 
 ## OCI Manifest
