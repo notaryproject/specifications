@@ -1,6 +1,6 @@
 # Notary Signing - Scenarios
 
-As containers and cloud native artifacts become the common unit of deployment, users want to know the artifacts in their environments are authentic and unmodified. 
+As containers and cloud native artifacts become the common unit of deployment, users want to know the artifacts in their environments are authentic and unmodified.
 
 These Notary v2 scenarios define end-to-end scenarios for signing artifacts in a generalized way, storing and moving them between OCI compliant registries, validating them with various artifact hosts and tooling. Notary v2 focuses on the signing of content, enabling e2e workflows, without specifying what those workflows must be.
 
@@ -20,7 +20,7 @@ This document serves as the requirements and constraints of a generalized signin
 
 ## Non-Goals
 
-- Notary v2 does not account for what the content represents or its lineage. Other efforts may attach additional content, and re-sign the super set of content to account for other scenarios. 
+- Notary v2 does not account for what the content represents or its lineage. Other efforts may attach additional content, and re-sign the super set of content to account for other scenarios.
 
 ## Key Stake Holders & Contributors
 
@@ -81,8 +81,8 @@ Prior to committing any code, a developer can test the: "build, sign, validate s
 
 1. Locally build a container image using a non-registry specific `name:tag`, such as:  
   `$ docker build net-monitor:dev`
-1. Locally sign `net-monitor:dev` 
-1. Run the image on the developers local machine which is configured to only accept signed images. 
+1. Locally sign `net-monitor:dev`
+1. Run the image on the developers local machine which is configured to only accept signed images.
   `$ docker run net-monitor:dev`
 
 **Implications of this requirement:**
@@ -109,7 +109,7 @@ Once the developer has locally validated the build, sign, validate scenario, the
 
 **Implications of this requirement:**
 
-- Signatures can be verified based on the referenced `:tag`. The signature is linked to a unique manifest, and not tied to a specific `repo:tag` name. 
+- Signatures can be verified based on the referenced `:tag`. The signature is linked to a unique manifest, and not tied to a specific `repo:tag` name.
 - The artifact can be renamed from the unique build id `net-monitor:abc123` to a product versioned tag `wabbitnetworks.example.com/networking/net-monitor:1.0` without invalidating the signature.
 - Users may reference the `sha256` digest directly, or the `:tag`. While tag locking is not part of the [OCI Distribution Spec][oci-distribution], various registries support this capability, allowing users to reference human readable tags, as opposed to long digests. Either reference is supported with Notary v2, however it's the digest that is signed.
 - Notary v2 supports a pattern for signing any type of artifact, from OCI Images, Helm Charts, Singularity to yet unknown types.
@@ -198,6 +198,26 @@ A deployment requires a mydb image. The mydb image is routinely updated for secu
 
 - Multiple signatures, including signatures from multiple sources can be associated with a specific artifact.
 - Original signatures are maintained, even if the artifact is re-tagged.
+
+### Scenario 7: A mirror is compromised
+
+An attacker compromises a server that is hosting a mirror and gains access as an administrator. The attacker is able to alter any files on the mirror and access all keys stored on the mirror.
+
+**Implications of this requirement:**
+
+- There must be a way to check a signature from the original repository/developer when downloading from a mirror.
+- Clients should not trust files that are signed only by the mirror, and not by the original repository.
+- Mirrors should not have permission to edit packages and signatures.
+
+### Scenario 8: An attacker performs a MitM attack
+
+An attacker is able to sniff network traffic between the repository and client and alter packets as they are passed through the network.
+
+**Implications of this requirement:**
+
+- All downloaded files and metadata files must be validated, even if they are downloaded from a known repository.
+- Clients should only download a fixed amount of data for each file to prevent [endless data attacks](https://theupdateframework.io/security/).
+- Any proprietary or sensitive information in packages or metadata should not be sent in cleartext.
 
 ## Open Discussions
 
