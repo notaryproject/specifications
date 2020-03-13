@@ -247,7 +247,7 @@ A developer accidentally discloses the private key they use to certify their sof
 
 ### Scenario #9: A Crypto Algorithm Is Deprecated
 
-A weakness is discovered in a widely used cryptographic algorithm and a decisions is made to deprecate its use in favor of one or more newer algorithms. It should be possible to migrate smoothly to the new algorithm(s), despite the fact that developers will adopt the new signing algorithm(s) piecemeal.
+A weakness is discovered in a widely used cryptographic algorithm and a decision is made to deprecate its use in favor of one or more newer algorithms. It should be possible to migrate smoothly to the new algorithm(s), despite the fact that developers will adopt the new signing algorithm(s) piecemeal.
 
 1. A build system has been using version **n** of a crypto library for the last 3 years, signing thousands of artifacts.
 1. A new version is available and developers migrate to the new library.
