@@ -215,7 +215,7 @@ An attacker is able to sniff network traffic between the repository and client a
 
 **Implications of this requirement:**
 
-- All downloaded files and metadata files must be validated, even if they are downloaded from a known repository.
+- All downloaded files and metadata files should be checked for integrity, even if they are downloaded from a known repository.
 - Clients should only download a fixed amount of data for each file to prevent [endless data attacks](https://theupdateframework.io/security/).
 - Any proprietary or sensitive information in packages or metadata should not be sent in cleartext.
 
