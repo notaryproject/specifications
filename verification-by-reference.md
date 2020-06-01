@@ -33,8 +33,8 @@ To address [Notary v2 Scenario #6: Multiple Signatures](https://github.com/notar
 
 1. A dev team builds a container image. `(web:a2b2)` They sign the image (provide verification).
 1. An artifact scanning solution validates the image, storing an assessment of the current state of known vulnerabilities. It pushes a verification object for `web:a2b2`, stating on May 1, 2020, it was verified.
-1. A test environment validates the image, it passes a set of tests and the image is promoted to staging. The image has a test verification added to the image. However, the deployment document doesn’t change the reference. It’s still referenced as web:a2b2. The additional verification document is associated with the image.
-1. A staging environment is requested to run the web:a2b2 image, but requires scanning verification and test verification before the image can be run. 
+1. A test environment validates the image, it passes a set of tests and the image is promoted to staging. The image has a test verification added to the image. However, the deployment document doesn’t change the reference. It’s still referenced as `web:a2b2`. The additional verification document is associated with the image.
+1. A staging environment is requested to run the `web:a2b2` image, but requires scanning verification and test verification before the image can be run. 
 As the artifacts are approved in staging, another verification object is pushed to the registry, attesting to the images and the deployment documents have passed all tests, as of a given date.
 1. As the collection of artifacts are moved to production, a deployment policy verifies each artifact being requested for deployment has Staging, Test and Scanning verifications. The scanning verification must be within a given date range. Each verification must come from entities the production system trusts. 
 
@@ -95,7 +95,7 @@ The OCI distribution and image specs utilize OCI manifest and OCI index. These a
     }
     ```
 
-We have been largely focusing on the need to support this downward reference model. Some suggestions have focused on using the OCI index to add content, where a new OCI index is the new reference. This implies the user must change the reference to the web:a2b2 image they intend to deploy.
+We have been largely focusing on the need to support this downward reference model. Some suggestions have focused on using the OCI index to add content, where a new OCI index is the new reference. This implies the user must change the reference to the `web:a2b2` image they intend to deploy.
 
 ## OCI index, downward reference of manifest
 
@@ -130,7 +130,7 @@ The artifact can be pulled as `registry.contoso.com/marketing/web:a2b2`
 
 ### `web:a2b2` signature with oci index:
 
-When signing an existing artifact with this model, a new index would either need to be pushed, redirecting the web:a2b2 tag to the new index, or the deployment would have to change to a new tag associated with the new index.
+When signing an existing artifact with this model, a new index would either need to be pushed, redirecting the `web:a2b2` tag to the new index, or the deployment would have to change to a new tag associated with the new index.
 
 `registry.contoso.com/marketing/web:a2b2-verification`
 
@@ -299,7 +299,7 @@ The `nv2 verify` API compares the artifact with local configuration to attest to
 The pros of this approach are:
 
 - Multiple signatures may be added without changing the original artifact digest as no content changes are made to the digest, or even annotations
-- All deployment references remain: web:a2b2 and it’s associated digest do not change.
+- All deployment references remain: `web:a2b2` and it’s associated digest do not change.
 
 The cons of this approach:
 
