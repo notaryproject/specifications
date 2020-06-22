@@ -11,7 +11,7 @@ The first time a developer signs a package, they will need to set up a signing k
 
 ### Scenario #2: A developer is given permission to upload to a registry (for the first time)
 The first time a developer uploads to a registry, they need to establish that they are a trusted developer.
-  1. Add the developer key to delegating party on the registry. There may be a single delegating party on a registry, or multiple that are trusted for different images.
+  1. Add the developer key to delegating party on the registry. There may be a single delegating party on a registry, or multiple that are trusted for different artifacts.
 
 ### Scenario #3: A developer updates their signing key
 In the event of a compromised or lost key, a developer may need to switch to a new signing key.
