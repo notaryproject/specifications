@@ -6,7 +6,7 @@ Key management for container signing can be broadly categorized into three gener
 Personas:
 - Publisher: User who builds and signs containers.
     - Publisher Admin: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Admin users (i.e. security administrator) will be responsible for configuring roots, provide access to use or generate delegate keys, and make decisions for key revocation.
-    - Publisher Builder [TODO: better wording]: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Builders (i.e. developers, build hosts) will be responsible for building contatiner images. 
+    - Publisher Builder [TODO: better wording]: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Builders (i.e. developers, build hosts) will be responsible for building container images. 
     - Publisher Singer [TODO: better wording]: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Signers (i.e. developers, signing hosts) will be responsible for signing container images.
 - Deployer: User who deploys containers.
 
