@@ -25,7 +25,7 @@ The following represent the core goals of Notary v2:
 1. Secure
    * Attesting to its authenticity and/or certification
    * No trust on first use, no implicit permissions on rotated keys, secure private keys and PKI
-1. Multiple & Indepdent Signatures
+1. Multiple & Independent Signatures
    * Enabling originating vendor, aggregator certification, customer validation scenarios
 1. Portable
    * Artifacts move within and across registries supporting provenance, validation and trust
@@ -42,7 +42,7 @@ The following represent the core goals of Notary v2:
 ## Non-Goals
 
 1. Notary v2 does not account for what the content represents or its lineage. Other efforts may attach additional content, and re-sign the super set of content to account for other scenarios.
-2. Backwards compatibiliyt with Notay v1
+2. Backwards compatibility with Notary v1
 
 ## Key Stake Holders & Contributors
 
@@ -96,7 +96,7 @@ In a world of consuming public software, we must account for content that's acqu
       * ACME Rockets only allows content signed by ACME Rockets to be deployed, and only from the registry identified in the ACME Rockets signature.
       * Once validated, the `src` and `SBoM` are no longer needed for deployment allowing the `image` to be deployed separately with it's own signature.
 5. Once the policy manager completes its validation (k8s ingress controller with OPA), the deployment to the hosting environment is initiated.
-      * ACME Rockets runs in an air-gapped environment, requiring all key acces to be resolved within their environment.
+      * ACME Rockets runs in an air-gapped environment, requiring all key access to be resolved within their environment.
 
 **Implications of this requirement:**
 
@@ -165,7 +165,7 @@ A CI system is triggered by a git commit. The system builds the artifacts, signs
 
 **Implications of this requirement:**
 
-* Keys for signing are securely retrieved by build systems that create & destroy the environment each time.
+* Keys for signing are securely retrieved by build systems that create & destroy the environment each time or alternatively the signing is offloaded to an external system, without exposing the private key to the CI system.
 * A specific set of keys may be required to pass validation.
 
 ### Scenario #4: Promote Artifacts Within a Registry
@@ -208,7 +208,7 @@ Customers may require multiple signatures for the following scenarios:
 * Validate the artifact is the same as what the vendor provided.
 * Secondarily sign the artifact by the consuming company, attesting to its validity within their production environment.
 * Signatures represent validations through different dev, staging, production environments.
-* Crypto libraries may be deprecated, requiring new signatures to be added, while maintaining a grace period of both signatures.
+* Crypto algorithms may be deprecated, requiring new signatures to be added, while maintaining a grace period of both signatures.
 * Dev environments support any signature, while integration and production environments require mycompany-prod signatures.
 
 #### Scenario #6.1: Dev and Prod Keys
