@@ -85,14 +85,14 @@ In a world of consuming public software, we must account for content that's acqu
       * In addition to the `image`, `SBoM` and `src` artifacts, the build system produces an [OCI Index][oci-index] that encompassed the three artifacts.
       * Each of the artifacts, and the encompassing `index` are signed with the Notary v2 wabbit-networks key.  
 2. The Wabbit Networks net-monitor index and its signed contents are pushed to a public OCI compliant registry.
-      * Docker can provide an additional Docker hub signature providing an extra level of cerfiication confidence.
+      * Docker can provide an additional Docker hub signature providing an extra level of certification confidence.
 3. ACME Rockets consumes the netmonitor software, importing the index and its referenced artifacts into their private registry.
       * ACME Rockets verifies the content, including additional scanning and functional testing for their environment.
-      * The SBoM is trusted as they trust artifacts signed by wabbit-networks, or possibly defer trust to the Docker Hub certifiaction signature.
+      * The SBoM is trusted as they trust artifacts signed by wabbit-networks, or possibly defer trust to the Docker Hub certification signature.
       * They denote verification of the SBoM and scanning with an ACME Rockets signature.
       * A `deploy` artifact, referencing a specific configuration definition, may also be signed and saved, providing a historical record of what was deployed.
-4. The ACME Rockets environment may enforce various company prior to any deployment:
-      * Evaluating the content in the `SBoM` for company policies on specific packages.
+4. The ACME Rockets environment may enforce various policies prior to deployment:
+      * Evaluating the content in the `SBoM` for policies on specific packages.
       * ACME Rockets only allows content signed by ACME Rockets to be deployed, and only from the registry identified in the ACME Rockets signature.
       * Once validated, the `src` and `SBoM` are no longer needed for deployment allowing the `image` to be deployed separately with it's own signature.
 5. Once the policy manager completes its validation (k8s ingress controller with OPA), the deployment to the hosting environment is initiated.
@@ -209,7 +209,7 @@ Customers may require multiple signatures for the following scenarios:
 * Secondarily sign the artifact by the consuming company, attesting to its validity within their production environment.
 * Signatures represent validations through different dev, staging, production environments.
 * Crypto algorithms may be deprecated, requiring new signatures to be added, while maintaining a grace period of both signatures.
-* Dev environments support any signature, while integration and production environments require mycompany-prod signatures.
+* Dev environments support any signature, while integration and production environments require acme-rockets-prod signatures.
 
 #### Scenario #6.1: Dev and Prod Keys
 
