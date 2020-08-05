@@ -72,19 +72,18 @@ As we identify the requirements and constraints, a number of key contributors wi
 
 Notary v2 aims to solve the core issue of trusting content within, and across registries. There are many elements of an end to end scenario that are not implemented by Notary v2, rather enabled because the content is verifiable.
 
-### End to End Orchestrator Scenario
+### Scenario #0: Build, Publish, Consume, Enforce Policy, Deploy
 
-To put Notary v2 in context, the following end-to-end scenario is outlined. The blue elements are the scope of Notary v2, with the other elements providing generic references to other projects or products that demonstrate how Notary v2 is utilized.
+To put Notary v2 in context, the following end-to-end scenario is outlined. The blue elements are the scope of Notary v2, with the other elements providing generic references to other projects or products that demonstrate how Notary v2 may be utilized.
 
 ![Notary e2e Scenarios](./media/notary-e2e-scenarios.png)
 
-### End to End Scenario: Build, Publish, Consume, Enforce Policy, Deploy
-
 In a world of consuming public software, we must account for content that's acquired from a public source, copied into a trusted environment, then deployed. In this scenario, the consumer is not re-building or adding additional content. However, they do wish to add attestations to the validity of the content.
 
-1. The Wabbit Networks company builds their netmonitor software. As a result of the build, they produce an [OCI Image][oci-image], a Software Bill of Materials (`SBoM`) and to comply with gpl licensing, produce another artifact which contains the source (`src`) to all the gpl licensed projects.  
-In addition to the `image`, `SBoM` and `src` artifacts, the build system produces an [OCI Index][oci-index] that encompassed the three artifacts.  
-Each of the artifacts, and the encompassing `index` are signed with the Notary v2 wabbit-networks key.  
+1. The Wabbit Networks company builds their netmonitor software.
+      * As a result of the build, they produce an [OCI Image][oci-image], a Software Bill of Materials (`SBoM`) and to comply with gpl licensing, produce another artifact which contains the source (`src`) to all the gpl licensed projects.  
+      * In addition to the `image`, `SBoM` and `src` artifacts, the build system produces an [OCI Index][oci-index] that encompassed the three artifacts.
+      * Each of the artifacts, and the encompassing `index` are signed with the Notary v2 wabbit-networks key.  
 2. The Wabbit Networks net-monitor index and its signed contents are pushed to a public OCI compliant registry.
       * Docker can provide an additional Docker hub signature providing an extra level of cerfiication confidence.
 3. ACME Rockets consumes the netmonitor software, importing the index and its referenced artifacts into their private registry.
@@ -190,17 +189,17 @@ Once artifacts are no longer running in production, they are archived for a peri
 
 ### Scenario #5: Validate Artifact Signatures Within Restricted Networks
 
-ACME Rockets runs secure production environments, limiting all external network traffic. To assure the wabbit-networks network monitor software has valid signatures, they will need to trust a resource within their network to proxy key requests.
+ACME Rockets runs secure air-gapped production environments, limiting all external network traffic. To assure the wabbit-networks network monitor software has valid signatures, it must be possible to verify the software without access to wabbit-networks systems.
 
 1. ACME Rockets acquires network monitoring software, copying it to their firewall protected production environment.
-1. As part of the artifact copy, they will copy/proxy the signature validation to trusted resources within their network protected environment.
+1. As part of the artifact copy, ACME Rockets copies all other resources that are required for successful signature validation.
 
 **Implications of this requirement:**
 
 * In this scenario, the wabbit-networks signature must be validated within the ACME Rockets network. How this is done is open for design. However, the requirement states the signature must be validated without external access.
 * When the artifact is copied to the private/network restricted registry, the signature may need to be copied, and is assumed to be trusted if available in the trusted server within the private network.
-* How ACME Rockets would copy/proxy the signatures is part of the design and UX for a secure, but usable pattern.
-* How ACME Rockets handles revoked keys is also part of the design phase.
+* How ACME Rockets would copy the signatures is part of the key management scenarios.
+* How ACME Rockets handles revoked keys is also part of the key management scenarios.
 
 ### Scenario #6: Multiple Signatures
 
