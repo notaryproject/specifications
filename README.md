@@ -5,11 +5,11 @@ A collection of requirements and scenarios, framing the scope of the Notary v2 p
 ## TOC
 
 - [Requirements](#requirements)
-  - [TOC](#toc)
-  - [Goals](#goals)
-  - [Non Goals](#non-goals)
-  - [Key Stake Holders & Contributors](#key-stake-holders--contributors)
-  - [Contributing & Conversations](#contributing--conversations)
+- [TOC](#toc)
+- [Goals](#goals)
+- [Non Goals](#non-goals)
+- [Key Stake Holders & Contributors](#key-stake-holders--contributors)
+- [Contributing & Conversations](#contributing--conversations)
 
 ## Goals
 
