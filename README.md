@@ -9,6 +9,7 @@ A collection of requirements and scenarios, framing the scope of the Notary v2 p
 - [Scenarios](./scenarios.md)
 - [Threat Model](./threatmodel.md)
 - [Key Stake Holders & Contributors](#key-stake-holders--contributors)
+- [Definitions & Terms](./definitions-terms.md)
 - [Contributing & Conversations](#contributing--conversations)
 
 ## Goals
