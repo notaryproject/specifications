@@ -1,72 +1,10 @@
-# Notary Signing - Scenarios
+# Notary v2 Signing Scenarios
 
 As containers and cloud native artifacts become the common unit of deployment, users want to know the artifacts in their environments are authentic and unmodified.
 
 These Notary v2 scenarios define end-to-end scenarios for signing artifacts in a generalized way, storing and moving them between OCI compliant registries, validating them with various artifact hosts and tooling. Notary v2 focuses on the signing of content, enabling e2e workflows, without specifying what those workflows must be.
 
 By developing a generalized solution, artifact authors may develop their unique artifact types, allowing them to leverage Notary for signing and OCI Compliant registries for distribution.
-
-## OCI Images & Artifacts
-
-The [OCI TOB][oci-tob] has adopted [OCI Artifacts][artifacts-repo], generalizing container images as one of many types of artifacts that may be stored in a registry. Other artifact types currently include:
-
-* [Helm Charts][helm-registry]
-* [Singularity][singularity]
-* Car firmware updates, deployed from OCI Artifact registries
-
-## Goals
-
-This document serves as the requirements and constraints of a generalized signing solution. It focuses on the scenarios and needs, and very specifically avoids any reference to other projects or implementations. As our working group forms a consensus on the requirements, the group will then transition to a spec.
-
-The following represent the core goals of Notary v2:
-
-1. Registry Native
-   * Signatures and artifacts co-located for easier and secure management
-1. Secure
-   * Attesting to its authenticity and/or certification
-   * No trust on first use, no implicit permissions on rotated keys, secure private keys and PKI
-1. Multiple & Independent Signatures
-   * Enabling originating vendor, aggregator certification, customer validation scenarios
-1. Portable
-   * Artifacts move within and across registries supporting provenance, validation and trust
-1. Multi-tenant
-   * Enable cloud providers and enterprises to easily support managed services at scale
-1. Offline & Air-gapped
-   * Artifacts can be signed offline
-   * Artifacts and signatures can be moved into air-gapped environments
-1. Usable
-   * Simple commands to integrate with toolchains, supporting key hierarchies
-   * Signing an artifact must not change the tag or digest enabling existing dev through production workflows
-   * Key acquisition must support users from hobbyists, open source projects to large software vendors
-
-## Non-Goals
-
-1. Notary v2 does not account for what the content represents or its lineage. Other efforts may attach additional content, and re-sign the super set of content to account for other scenarios.
-2. Backwards compatibility with Notary v1
-
-## Key Stake Holders & Contributors
-
-As we identify the requirements and constraints, a number of key contributors will be asked to represent their requirements and constraints.
-
-> Please add companies, projects, products that you believe should be included.
-
-* Registry Cloud Operators
-  * [Azure Container Registry (acr)][acr] - Steve Lasker <steve.lasker@microsoft.com> ([@stevelasker](http://github.com/stevelasker))
-  * [Amazon Elastic Container Registry (ecr)][ecr] - Omar Paul <omarpaul@amazon.com>
-  * [Docker Hub][docker-hub] - Justin Cormack justin.cormack@docker.com
-  * [Google Container Registry (gcr)][gcr]
-  * [GitHub Package Registry (gpr)][gpr]
-  * [Quay][quay] - Joey Schorr jschorr@redhat.com
-  * [IBM Cloud Container Registry (icr)][icr]
-* Registry Vendors, Projects & Products
-  * [Docker Trusted Registry][docker-dtr]
-  * [Harbor][harbor]
-  * [JFrog Artifactory][jfrog]
-* Artifact Types
-  * [OCI & Docker Container Images][image-spec]
-  * [Helm Charts][helm-registry]
-  * [Singularity][singularity]
-  * Operator Bundles
 
 ## Scenarios
 
