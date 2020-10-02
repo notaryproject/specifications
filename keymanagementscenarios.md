@@ -6,11 +6,25 @@ Key management for container signing can be broadly categorized into three gener
 Personas:
 - Publisher: User who builds and signs containers.
     - Publisher Admin: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Admin users (i.e. security administrator) will be responsible for configuring roots, provide access to use or generate delegate keys, and make decisions for key revocation.
-    - Publisher Builder [TODO: better wording]: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Builders (i.e. developers, build hosts) will be responsible for building container images. 
-    - Publisher Signer [TODO: better wording]: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Signers (i.e. developers, signing hosts) will be responsible for signing container images.
+    - Publisher Builder: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Builders (i.e. developers, build hosts) will be responsible for creating artifacts. 
+    - Publisher Signer: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Signers (i.e. developers, signing hosts) will be responsible for signing artifacts.
 - Deployer: User who deploys containers.
+    - Deployer Admin: In some scenarios a deployer will include a group of users (i.e. teams or enterprises). Admin users (i.e. security administrators) will be responsible for configuring deployment policies, including potentially a set of trusted roots or required signatures. 
+    - Deployer Operator: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Operators (i.e. developers, deployment hosts) will be responsible for pulling container images from registries, verifying their signatures, and then running them.
+- Repository Owner: In some scenarios a container may be stored in a repository that is managed by the repository owner. The repository may be public or private and could also be air-gapped.
+
+Additional Definitions:
+- Root key: [TODO]
+- Signing key: [TODO]
 
 Signing use cases:
+
+Provisioning Keys for Signing:
+![Notaryv2 Signing Provisioning](./media/nv2-keymgmt-architecture-provisionkeys-v1.png)
+Signing Workflow:
+![Notaryv2 Signing Workflow](./media/nv2-keymgmt-architecture-sign-v1.png)
+
+Detailed Scenarios:
 - Local Key Store
     - Publisher creates new root key on local machine. Keys are stored in key store or plain text on local machine (Need to identify keystores we want to support. We can preclude signing with root keys to improve security posture).
     - Publisher uploads root public key to registry (registry can verify user for container uploads). 
@@ -22,19 +36,19 @@ Signing use cases:
     - Publisher uploads root public key to registry (registry can verify user for container uploads). 
     - Publisher shares root public key (other users can verify containers before running).
     - Publisher creates new delegate keys on USB token that chain to root key (better security posture as key is not exposed in plain text outside of token).
-    - Publisher runs docker build and notary v2 sign on local machine. Notary v2 client generates signatures with key in USB Token (using a PKCS 11 interface will prevent keys from being exposed in memory).
+    - Publisher runs docker build and notary v2 sign on local machine. Notary v2 client generates signature by submitting hash to USB Token (using a PKCS 11 interface will prevent keys from being exposed in memory).
 - Network HSM
     - Publisher creates new root key on Network HSM (better security posture as key is not exposed in plain text outside of HSM). 
     - Publisher uploads root public key to registry (registry can verify user for container uploads). 
     - Publisher shares root public key (other users can verify containers before running).
     - Publisher creates new delegate keys on Network HSM that chain to root key (better security posture as key is not exposed in plain text outside of HSM).
-    - Publisher runs docker build and notary v2 sign on local machine. Notary v2 client generates signatures with key in Network HSM.
+    - Publisher runs docker build and notary v2 sign on local machine. Notary v2 client generates signature by submitting hash to Network HSM.
 - Cloud Key Management Service (KMS)
     - Publisher creates new root key on Cloud KMS (better security posture as key is not exposed in plain text outside of Cloud KMS).
     - Publisher uploads root public key to registry (registry can verify user for container uploads). 
     - Publisher shares root public key (other users can verify containers before running).
     - Publisher creates new delegate keys on Cloud KMS that chain to root key (better security posture as key is not exposed in plain text outside of Cloud KMS).
-    - Publisher runs docker build and notary v2 sign on local machine. Notary v2 client generates signatures with key in Cloud KMS.
+    - Publisher runs docker build and notary v2 sign on local machine. Notary v2 client generates signature by submitting hash to Cloud KMS.
 - Hybrid
     - Publisher Admin creates new root key on USB Token/Network HSM/Cloud Key Management Service (better security posture as key is never exposed in plain text outside of token).
     - Publisher Admin uploads root public key to registry (registry can verify user for container uploads). 
@@ -58,19 +72,30 @@ Signing use cases:
     - Publisher Admin creates new subordinate key in air gapped environment on a host, USB Token, Network HSM, or Cloud Key Management Service chaining to root (one time operation enables the root to be used by runtime environments outside of the air gapped environment to validate signatures generated inside the environment).
     - Publisher Admin configures credentials for Publisher Signers in air gapped environment to use sub-ordinate key for delegate keys instead of root key (users in air gapped environment do not need to get keys from outside of the environment). 
 
-Trust Store Configuration:
+Deployment Use Cases:
+
+Provisioning Truststore for Deployment:
+![Notaryv2 Deployment Provisioning](./media/nv2-nv2-keymgmt-architecture-provisiontruststore-v1.png)
+Deployment Workflow:
+![Notaryv2 Deployment Workflow](./media/nv2-keymgmt-architecture-pull-v1.png)
+
 - Specify trusted public root keys
-    - Deployer gets root public key from publisher.
-    - Deployer adds root public key to runtime configuration.
+    - Deployer Admin gets root public key from publisher.
+    - Deployer Admin adds root public key to runtime configuration.
     - Container pulled from any registry is be validated with listed root public keys before execution.
 - Specify location of trusted public root keys
-    - [TODO]
+    - Deployer Admin gets location of key repository from publisher.
+    - Deployer Admin adds location of key repository to runtime configuration.
+    - Container pulled from any registry is be validated with listed root public keys before execution.
 - Enterprises can restrict users to add/remove their root public keys to the trust store used across a fleet of runtime hosts. The trust store will validate images pulled from any registry.
 - Enterprises can restrict users to add/remove root public keys for trusted third parties to their trust stores. The trust store will validate images pulled from any registry.
 - Trust store also includes subordinate keys
 - Air gapped environments
 
 Key rotation/revocation use cases:
+
+![Notaryv2 Revocation Workflow](./media/nv2-keymgmt-architecture-revokekeys-v1.png)
+
 - Root Revocation (compromised root should not be needed in process to designate itself as revoked, otherwise attacker can use compromised root for a key rotation locking out publisher)
     - Publisher deletes revoked root public key on registry (registry can stop sharing containers with revoked key).
     - [TODO: Discuss if we want this] Registry stops vending containers signed with old root key (will prevent revoked artifacts from being used by developers not checking signature).
