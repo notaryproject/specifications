@@ -19,10 +19,12 @@ Additional Definitions:
 
 Signing use cases:
 
-Provisioning Keys for Signing:
+Provisioning Keys for Signing
+
 ![Notaryv2 Signing Provisioning](./media/nv2-keymgmt-architecture-provisionkeys-v1.png)
 
-Signing Workflow:
+Signing Workflow
+
 ![Notaryv2 Signing Workflow](./media/nv2-keymgmt-architecture-sign-v1.png)
 
 Detailed Scenarios:
@@ -75,10 +77,12 @@ Detailed Scenarios:
 
 Deployment Use Cases:
 
-Provisioning Truststore for Deployment:
+Provisioning Truststore for Deployment
+
 ![Notaryv2 Deployment Provisioning](./media/nv2-keymgmt-architecture-provisiontruststore-v1.png)
 
-Deployment Workflow:
+Deployment Workflow
+
 ![Notaryv2 Deployment Workflow](./media/nv2-keymgmt-architecture-pull-v1.png)
 
 Detailed Usecases:
@@ -97,7 +101,8 @@ Detailed Usecases:
 
 Key rotation/revocation use cases:
 
-Key Revocation Workflow:
+Key Revocation Workflow
+
 ![Notaryv2 Revocation Workflow](./media/nv2-keymgmt-architecture-revokekeys-v1.png)
 
 - Root Revocation (compromised root should not be needed in process to designate itself as revoked, otherwise attacker can use compromised root for a key rotation locking out publisher)
