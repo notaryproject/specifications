@@ -14,8 +14,14 @@ Personas:
 - Repository Owner: In some scenarios a container may be stored in a repository that is managed by the repository owner. The repository may be public or private and could also be air-gapped.
 
 Additional Definitions:
-- Root key: [TODO]
-- Signing key: [TODO]
+- Root key: A self signed key used for the lowest designation of trust. Root keys can be created by developers, organizations, public/private CAs, and registry operators. The root key should be retrieved from a trusted source that can establish the authenticity of the creator's identity.
+- Signing key: A signing key is used to generate artifact signatures. A signing key should be signed with a root key or one of its intermediaries. The certificate chain with a signing key can be used to verify which root it belongs to. While a root key can be used as a signing key, this is not recommended as it creates a large blast radius and increases the risk of compromising a root key. 
+- Trust Store: The trust store defines the relationship between signing keys and artifacts that are used at validation time to determine whether to trust an artifact with a crytptographically valid signature. The trust store will relate a source (any source, specific registry, specific repository, or specific target) with a certificate (for root key, intermediate, or signing key) or key repository (for automated key distribtuion). It is not recommended to use a signing key as this will cause signature validation to fail if the signing key is rotated. 
+- Trust Store Certificate: The certificate in the trust store will contain:
+    - Public Key: Will be matched against CRL and signature artifact.
+    - Signed CRL URL: Location to retrieve CRL from.
+    - Signed Identity: Identity of creator of the signed certificate.
+    - (Optional) Issuer: If the certificate is an intermediate this will describe the issuer of the certificate.
 
 Signing use cases:
 
@@ -96,8 +102,17 @@ Detailed Usecases:
     - Container pulled from any registry is be validated with listed root public keys before execution.
 - Enterprises can restrict users to add/remove their root public keys to the trust store used across a fleet of runtime hosts. The trust store will validate images pulled from any registry.
 - Enterprises can restrict users to add/remove root public keys for trusted third parties to their trust stores. The trust store will validate images pulled from any registry.
-- Trust store also includes subordinate keys
-- Air gapped environments
+- Air gapped environments can either specify the 
+
+Key Distribution Workflows:
+- Manual Configuration
+    - Publisher places their root certificate in a public location. This could be a website similar to what public CAs today provide.
+    - Developer copies certificate from public location and adds it to their trust store. Developer can configure whether they trust this certificate for all their artifacts, individual registries, individual repositories, or individual targets.
+- Automated Configuration
+    - Publisher gets intermediate certificate from a key distriution service i.e public CA or registry operator.
+    - Developer adds root certificate and location of key respoitory to their trust store. Developer can configure whether they trust certificates for all their artifacts, individual registries, individual repositories, or individual targets.
+- Revocation: Note in the event a root certificate is revoked validations will fail, and developers will need to update their root certificate. The publisher will need to pro-actively communicate a rotation out of bands to prevent an outage.    
+
 
 Key rotation/revocation use cases:
 
@@ -126,10 +141,10 @@ Key Revocation Workflow
     - Publisher creates new delegate keys from existing root following any scenario listed earlier in Signing use cases.
 
 In addition we also need to consider the following for cryptographic security:
-- Supported key types
-- Supported signing algorithms
+- Supported key types [TODO: Pull from NIST recommendations]
+- Supported signing algorithms [TODO: Pull from NIST recommendations]
 
-Identify use cases to clarify:
+Additional questions to clarify as part of implementation (need more research but doesn't impact workflow):
 1. Where can keys be stored? What interfaces need to be supported?
 2. Any limitations ok key types/sizes supported?
 3. How will public keys (root of trust) be distributed?
