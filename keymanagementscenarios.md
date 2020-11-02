@@ -25,8 +25,8 @@ Key management for container signing can be broadly categorized into three gener
     - (Optional) Issuer: If the certificate is an intermediate this will describe the issuer of the certificate.
 
 ## Requirements
-- Signing an artifact SHOULD NOT require the publisher to perform additional actions with a registry or registry operator beyond those required to push an unsigned artifact.
-- Validating a signature SHOULD NOT require the deployer to perform additional actions with a registry or registry operator beyond those required to pull an unsigned artifact.
+- Signing an artifact SHOULD NOT require the publisher to perform additional actions with a registry/repository or registry operator beyond those required to push an unsigned artifact.
+- Validating a signature SHOULD NOT require the deployer to perform additional actions with a registry/repository or registry operator beyond those required to pull an unsigned artifact.
 - Moving an artifact from one repository to another SHOULD NOT invalidate the signature on the artifact.
 - A rotation of the root key SHOULD NOT require the use of the existing root key.
 - Publishers SHOULD be able to sign with keys stored on their local machines, secure tokens, Hardware Security Modules (HSMs), or cloud based Key Management Services.
