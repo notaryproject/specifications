@@ -1,9 +1,10 @@
+# Overview
 Key management for container signing can be broadly categorized into three general use cases:
 - Key Setup/Signing (How are keys set up? How are keys accessed by Notary v2 client when signatures are generated?)
 - Trust store configuration (How do runtime environments determine which keys to trust?)
 - Revocation (How do key owners create/revoke keys? How do runtime environments get this information?)
 
-Personas:
+## Personas:
 - Publisher: User who builds and signs containers.
     - Publisher Admin: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Admin users (i.e. security administrator) will be responsible for configuring roots, provide access to use or generate delegate keys, and make decisions for key revocation.
     - Publisher Builder: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Builders (i.e. developers, build hosts) will be responsible for creating artifacts. 
@@ -13,7 +14,7 @@ Personas:
     - Deployer Operator: In some scenarios a publisher will include a group of users (i.e. teams or enterprises). Operators (i.e. developers, deployment hosts) will be responsible for pulling container images from registries, verifying their signatures, and then running them.
 - Repository Owner: In some scenarios a container may be stored in a repository that is managed by the repository owner. The repository may be public or private and could also be air-gapped.
 
-Additional Definitions:
+## Definitions:
 - Root key: A self signed key used for the lowest designation of trust. Root keys can be created by developers, organizations, public/private CAs, and registry operators. The root key should be retrieved from a trusted source that can establish the authenticity of the creator's identity.
 - Signing key: A signing key is used to generate artifact signatures. A signing key should be signed with a root key or one of its intermediaries. The certificate chain with a signing key can be used to verify which root it belongs to. While a root key can be used as a signing key, this is not recommended as it creates a large blast radius and increases the risk of compromising a root key. 
 - Trust Store: The trust store defines the relationship between signing keys and artifacts that are used at validation time to determine whether to trust an artifact with a crytptographically valid signature. The trust store will relate a source (any source, specific registry, specific repository, or specific target) with a certificate (for root key, intermediate, or signing key) or key repository (for automated key distribtuion). It is not recommended to use a signing key as this will cause signature validation to fail if the signing key is rotated. 
@@ -23,17 +24,30 @@ Additional Definitions:
     - Signed Identity: Identity of creator of the signed certificate.
     - (Optional) Issuer: If the certificate is an intermediate this will describe the issuer of the certificate.
 
-Signing use cases:
+## Requirements
+- Signing an artifact SHOULD NOT require the publisher to perform additional actions with a registry or registry operator beyond those required to push an unsigned artifact.
+- Validating a signature SHOULD NOT require the deployer to perform additional actions with a registry or registry operator beyond those required to pull an unsigned artifact.
+- Moving an artifact from one repository to another SHOULD NOT invalidate the signature on the artifact.
+- A rotation of the root key SHOULD NOT require the use of the existing root key.
+- Publishers SHOULD be able to sign with keys stored on their local machines, secure tokens, Hardware Security Modules (HSMs), or cloud based Key Management Services.
+- Publishers SHOULD be able to generate multiple signatures for a single artifact.
+- Publishers MUST have a mechanism to revoke signatures to indicate they are no longer trusted. 
+- Trust stores SHOULD be configurable by the deployer.
+- Deployers MUST be able to configure trusted entities for individual repositories and targets.
+- Deployers MUST be able to validate signatures on any version of an artifact including whether they have been revoked by the publisher.
+- Signature validation MUST be enforceable in air-gapped environments with minimal updates. 
 
-Provisioning Keys for Signing
+# Signing use cases:
+
+## Provisioning Keys for Signing
 
 ![Notaryv2 Signing Provisioning](./media/nv2-keymgmt-architecture-provisionkeys-v1.png)
 
-Signing Workflow
+## Signing Workflow
 
 ![Notaryv2 Signing Workflow](./media/nv2-keymgmt-architecture-sign-v1.png)
 
-Detailed Scenarios:
+## Detailed Scenarios:
 - Local Key Store
     - Publisher creates new root key on local machine. Keys are stored in key store or plain text on local machine (Need to identify keystores we want to support. We can preclude signing with root keys to improve security posture).
     - Publisher uploads root public key to registry (registry can verify user for container uploads). 
@@ -81,17 +95,17 @@ Detailed Scenarios:
     - Publisher Admin creates new subordinate key in air gapped environment on a host, USB Token, Network HSM, or Cloud Key Management Service chaining to root (one time operation enables the root to be used by runtime environments outside of the air gapped environment to validate signatures generated inside the environment).
     - Publisher Admin configures credentials for Publisher Signers in air gapped environment to use sub-ordinate key for delegate keys instead of root key (users in air gapped environment do not need to get keys from outside of the environment). 
 
-Deployment Use Cases:
+# Deployment Use Cases:
 
-Provisioning Truststore for Deployment
+## Provisioning Truststore for Deployment
 
 ![Notaryv2 Deployment Provisioning](./media/nv2-keymgmt-architecture-provisiontruststore-v1.png)
 
-Deployment Workflow
+## Deployment Workflow
 
 ![Notaryv2 Deployment Workflow](./media/nv2-keymgmt-architecture-pull-v1.png)
 
-Detailed Usecases:
+## Detailed Usecases:
 - Specify trusted public root keys
     - Deployer Admin gets root public key from publisher.
     - Deployer Admin adds root public key to runtime configuration.
@@ -102,9 +116,9 @@ Detailed Usecases:
     - Container pulled from any registry is be validated with listed root public keys before execution.
 - Enterprises can restrict users to add/remove their root public keys to the trust store used across a fleet of runtime hosts. The trust store will validate images pulled from any registry.
 - Enterprises can restrict users to add/remove root public keys for trusted third parties to their trust stores. The trust store will validate images pulled from any registry.
-- Air gapped environments can either specify the 
+- Air gapped environments can manually specify the trusted keys in their trust stores. Air-gapped operators will need to either maintain an air-gapped copy of the CRL or re-sign artifacts locally within an air-gapped environment.
 
-Key Distribution Workflows:
+# Key Distribution Workflows:
 - Manual Configuration
     - Publisher places their root certificate in a public location. This could be a website similar to what public CAs today provide.
     - Developer copies certificate from public location and adds it to their trust store. Developer can configure whether they trust this certificate for all their artifacts, individual registries, individual repositories, or individual targets.
@@ -113,10 +127,9 @@ Key Distribution Workflows:
     - Developer adds root certificate and location of key respoitory to their trust store. Developer can configure whether they trust certificates for all their artifacts, individual registries, individual repositories, or individual targets.
 - Revocation: Note in the event a root certificate is revoked validations will fail, and developers will need to update their root certificate. The publisher will need to pro-actively communicate a rotation out of bands to prevent an outage.    
 
+# Key rotation/revocation use cases:
 
-Key rotation/revocation use cases:
-
-Key Revocation Workflow
+## Key Revocation Workflow
 
 ![Notaryv2 Revocation Workflow](./media/nv2-keymgmt-architecture-revokekeys-v1.png)
 
@@ -140,10 +153,7 @@ Key Revocation Workflow
 - Delegate Key Rotation
     - Publisher creates new delegate keys from existing root following any scenario listed earlier in Signing use cases.
 
-In addition we also need to consider the following for cryptographic security:
-- Supported key types [TODO: Pull from NIST recommendations]
-- Supported signing algorithms [TODO: Pull from NIST recommendations]
-
+# Follow ups for Implementation 
 Additional questions to clarify as part of implementation (need more research but doesn't impact workflow):
 1. Where can keys be stored? What interfaces need to be supported?
 2. Any limitations ok key types/sizes supported?
@@ -152,3 +162,7 @@ Additional questions to clarify as part of implementation (need more research bu
 5a. What is the minimum number of keys needed to succesfully sign a container?
 5b. What is the recommended number of keys to sign a container?
 6. Any additional requirements for timestamping?
+
+In addition we also need to consider the following for cryptographic security:
+- Supported key types [TODO: Pull from NIST recommendations]
+- Supported signing algorithms [TODO: Pull from NIST recommendations]
