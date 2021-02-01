@@ -48,7 +48,7 @@ As we identify the requirements and constraints, a number of key contributors wi
   - [Docker Hub][docker-hub] - Justin Cormack justin.cormack@docker.com
   - [Google Container Registry (gcr)][gcr]
   - [GitHub Package Registry (gpr)][gpr]
-  - [Quay][quay] - Joey Schorr jschorr@redhat.com
+  - [Quay][quay] - Hank Donnay <hdonnay@redhat.com>
   - [IBM Cloud Container Registry (icr)][icr]
 - Registry Vendors, Projects & Products
   - [Docker Trusted Registry][docker-dtr]
