@@ -1,8 +1,8 @@
 # Overview
 Key management for container signing can be broadly categorized into three general use cases:
-- Key Setup/Signing (How are keys set up? How are keys accessed by Notary v2 client when signatures are generated?)
-- Trust store configuration (How do runtime environments determine which keys to trust?)
-- Revocation (How do key owners create/revoke keys? How do runtime environments get this information?)
+- Key Setup/Signing (Key managment and integrations with client tooling for generating signatures.)
+- Trust store configuration (Configuring which keys to trust for artifacts from a predefined source.)
+- Signature Validity (Expiry, Revocation and/or Trusted Update List. Mechanism to update information on the validity of signatures.)
 
 ## Personas:
 - Publisher: User who builds and signs containers.
@@ -18,24 +18,36 @@ Key management for container signing can be broadly categorized into three gener
 - Root key: A self signed key used for the lowest designation of trust. Root keys can be created by developers, organizations, public/private CAs, and registry operators. The root key should be retrieved from a trusted source that can establish the authenticity of the creator's identity.
 - Signing key: A signing key is used to generate artifact signatures. A signing key should be signed with a root key or one of its intermediaries. The certificate chain with a signing key can be used to verify which root it belongs to. While a root key can be used as a signing key, this is not recommended as it creates a large blast radius and increases the risk of compromising a root key. 
 - Trust Store: The trust store defines the relationship between signing keys and artifacts that are used at validation time to determine whether to trust an artifact with a crytptographically valid signature. The trust store will relate a source (any source, specific registry, specific repository, or specific target) with a certificate (for root key, intermediate, or signing key) or key repository (for automated key distribtuion). It is not recommended to use a signing key as this will cause signature validation to fail if the signing key is rotated. 
-- Trust Store Certificate: The certificate in the trust store will contain:
-    - Public Key: Will be matched against CRL and signature artifact.
-    - Signed CRL URL: Location to retrieve CRL from.
-    - Signed Identity: Identity of creator of the signed certificate.
-    - (Optional) Issuer: If the certificate is an intermediate this will describe the issuer of the certificate.
+- Trust Store Key Information: The key information configured in the trust store will be cryptographically verifiable and contain:
+    - Public Key: Will be used to verify signed artifacts.
+    - Signed Identity: Identity of creator of the signing key.
+    - (Optional) Issuer: If the key is an intermediate this will describe the owner of the root.
+    - Mechanism to update validity of signatures generated with the signing key.
 
 ## Requirements
 - Signing an artifact SHOULD NOT require the publisher to perform additional actions with a registry/repository or registry operator beyond those required to push an unsigned artifact.
 - Validating a signature SHOULD NOT require the deployer to perform additional actions with a registry/repository or registry operator beyond those required to pull an unsigned artifact.
 - Moving an artifact from one repository to another SHOULD NOT invalidate the signature on the artifact.
-- A rotation of the root key SHOULD NOT require the use of the existing root key.
 - Publishers SHOULD be able to sign with keys stored on their local machines, secure tokens, Hardware Security Modules (HSMs), or cloud based Key Management Services.
 - Publishers SHOULD be able to generate multiple signatures for a single artifact.
 - Publishers MUST have a mechanism to revoke signatures to indicate they are no longer trusted. 
 - Trust stores SHOULD be configurable by the deployer.
 - Deployers MUST be able to configure trusted entities for individual repositories and targets.
 - Deployers MUST be able to validate signatures on any version of an artifact including whether they have been revoked by the publisher.
-- Signature validation MUST be enforceable in air-gapped environments with minimal updates. 
+- Signature validation MUST be enforceable in air-gapped environments. 
+
+## Requirements for discussion
+- Providing a mechanism for rotating a root key: In prior discussions we did not close on whether Notary v2 should provide a mechanism for rotating a root key or not. Tradeoffs are listed below for further discussion.
+    - Adding a mechanism:
+        - Allows for the automatic rotation of keys. Can be used to mass update keys if signing algorithms need to be updated.
+        - Doesn't address the use case of developers losing a root key.
+        - Provides a bad actor mechanism to insert a new root without deployer acknowledgement.
+    - Not adding a mechanism:
+        - Any rotation of root keys will require deployers to acknowledge and make a change.
+        - Doesn't address the use case of developers losing a root key.
+        - Prevents a bad actor from inserting a new root without deployer acknowledgement.
+
+****READ UP TO HERE, SECTIONS BELOW ARE WORK IN PROGRESS****
 
 # Signing use cases:
 
