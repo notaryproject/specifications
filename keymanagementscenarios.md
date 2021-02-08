@@ -40,13 +40,20 @@ Key management for container signing can be broadly categorized into three gener
 - Providing a mechanism for rotating a root key: In prior discussions we did not close on whether Notary v2 should provide a mechanism for rotating a root key or not. Tradeoffs are listed below for further discussion.
     - Adding a mechanism:
         - Allows for the automatic rotation of keys. Can be used to mass update keys if signing algorithms need to be updated.
-        - Doesn't address the use case of developers losing a root key.
+        - Doesn't address the use case of publishers losing a root key.
         - Provides a bad actor mechanism to insert a new root without deployer acknowledgement.
     - Not adding a mechanism:
         - Any rotation of root keys will require deployers to acknowledge and make a change.
-        - Doesn't address the use case of developers losing a root key.
+        - Doesn't address the use case of publishers losing a root key.
         - Prevents a bad actor from inserting a new root without deployer acknowledgement.
-
+    - Scenarios to consider:
+        - Publisher loses key.
+        - Publisher needs to update key for reasons beside unauthorized access to a key.
+        - Publisher's root key access is compromised, and they are aware.
+        - Publisher's root key access is compromised, but they are unaware.
+        - Publisher's root key is compromised, and they are aware.
+        - Publisher's root key is compromised, but they are unaware.
+        
 ****READ UP TO HERE, SECTIONS BELOW ARE WORK IN PROGRESS****
 
 # Signing use cases:
