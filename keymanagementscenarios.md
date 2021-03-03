@@ -37,18 +37,23 @@ Key management for container signing can be broadly categorized into three gener
 - Signature validation MUST be enforceable in air-gapped environments. 
 
 ## Requirements for discussion
-- Providing a mechanism for rotating a root key: In prior discussions we did not close on whether Notary v2 should provide a mechanism for rotating a root key or not. Tradeoffs are listed below for further discussion.
-    - Adding a mechanism:
+- Providing a mechanism for configuring/rotating a root key: In prior discussions we did not close on whether Notary v2 should provide a mechanism for rotating a root key or not. Tradeoffs are listed below for further discussion.
+    - Things to consider for dock:
+        - Who is handling roots? 
+        - How are roots being distributed?
+        - What infrastructure requirements for root management  
+    - Adding a mechanism to configure/rotate keys:
         - Allows for the automatic rotation of keys. Can be used to mass update keys if signing algorithms need to be updated.
         - Doesn't address the use case of publishers losing a root key.
         - Provides a bad actor mechanism to insert a new root without deployer acknowledgement.
+        - Consider whether this mechanism needs to rely on existing root or roots. (Make the distinction for multiple roots)
     - Not adding a mechanism:
         - Any rotation of root keys will require deployers to acknowledge and make a change.
         - Doesn't address the use case of publishers losing a root key.
         - Prevents a bad actor from inserting a new root without deployer acknowledgement.
     - Scenarios to consider:
         - Publisher loses key.
-        - Publisher needs to update key for reasons beside unauthorized access to a key.
+        - Publisher needs to update key for reasons beside unauthorized access to a key (includes expiration, new key types).
         - Publisher's root key access is compromised, and they are aware.
         - Publisher's root key access is compromised, but they are unaware.
         - Publisher's root key is compromised, and they are aware.
