@@ -2,7 +2,7 @@
 
 One of the goals of Notary v2 is to build in solutions for key revocation that are easy to use and ensure that users will always use non-compromised keys. This document discusses some potential mechanisms for key revocation.
 
-In existing systems, there are three main approaches to key revocation: automatic revocation through key expiration, key revocation lists, and distribution of trusted keys. I discuss some of the benefits and pitfalls of each of these techniques, and how some of these techniques are combined to provide a holistic approach to key revocation in TUF.
+In existing systems, there are three main approaches to key revocation: automatic revocation through key expiration, key revocation lists, and providing a list of trusted keys. This document discusses some of the benefits and pitfalls of each of these techniques, and how some of these techniques are combined to provide a holistic approach to key revocation in TUF.
 
 
 ## Key Expiration
@@ -10,6 +10,14 @@ In existing systems, there are three main approaches to key revocation: automati
 Adding an expiration time to every key allows keys to automatically be revoked after a certain period of time. The expiration time is usually included with the key so that it is easy for users to find. This technique does not require any action from the key holder, and ensures that users will have to refresh their trusted keys before those keys expire.
 
 However, if a key is compromised before it expires, key expiration alone does not protect users. An attacker with the compromised key could sign arbitrary images or metadata until the key's expiration time.
+
+Pros:
+* No action required from key holder
+* Simple: only requires a timestamp
+
+Cons:
+* Keys can't be revoked before expiration
+* Artifacts must be re-signed after expiration
 
 
 ## Key revocation lists (Deny lists)
@@ -20,6 +28,15 @@ However, the user must be able to ensure that the key revocation list is accurat
 
 Also, for security reasons, keys cannot be removed from a key revocation list, so the list will grow larger and larger over time and may eventually have a noticeable bandwidth impact, although this can be mitigated by combining key revocation lists with keys that expire.
 
+Pros:
+* Allows key revocation at any time
+* Anyone can add a key to the revocation list
+
+Cons:
+* Distribution of the key revocation list needs to be secured and verified for timeliness to prevent replays
+* Additional maintenance overhead
+* What to do when the revocation list query fails?
+
 
 ## List of trusted keys (Allow lists)
 
@@ -27,9 +44,22 @@ Instead of distributing untrusted keys, this method distributes a list of curren
 
 Similar to revocation lists, the list of trusted keys must be securely distributed and include mechanisms for the user to verify timeliness.
 
+Pros:
+* Allows key revocation at any time
+* Can be combined with key distribution
+* Does not require an additional query
+
+Cons:
+* Distribution of trusted key list needs to be secured and verified for timeliness to prevent replays
+* Additional maintenance overhead
+
 
 ## Key revocation in TUF
 
-TUF, and the [Notary TUF prototype](https://github.com/notaryproject/nv2/pull/38) use a combination of the first and third techniques to achieve both implicit and explicit key revocation. All keys have an expiration time, but may be replaced before that expiration time by replacing the key listed in the delegation for a given role. TUF ensures timeliness of delegations through the use of the snapshot and timestamp roles. All delegations are protected by signatures of more trusted entities, tracing back to the root keys.
+TUF, and the [Notary TUF prototype](https://github.com/notaryproject/nv2/pull/38), use a combination of the first and third techniques to achieve both implicit and explicit key revocation. All keys have an expiration time, but may be revoked before that expiration time by replacing the key listed in the delegation for a given role. TUF ensures timeliness of delegations through the use of the snapshot and timestamp roles. All delegations are protected by signatures of more trusted entities, tracing back to the root keys.
 
-The TUF model combines key distribution with revocation through the use of delegations. The user verifies delegations through the root role on every update, and so receives the most up-to-date list of trusted keys, as well as which keys should be used for each piece of metadata.
+TUF simplifies re-signing after keys expire by combining multiple artifacts into each targets metadata file. This means that only the targets metadata file needs to be signed instead of each individual artifact.
+
+The TUF model combines key distribution with revocation through the use of delegations. The user verifies delegations using key listed in the root metadata or a delegating targets metadata file on every update, and so receives the most up-to-date list of trusted keys, as well as which keys should be used to sign each piece of metadata.
+
+Root keys in TUF can be rotated in-band when they expire without a compromise. However, if a key is compromised, an out-of-band process using one of the above revocation techniques may be necessary.
