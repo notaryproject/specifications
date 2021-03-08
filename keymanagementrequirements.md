@@ -47,5 +47,5 @@ Key management for container signing can be broadly categorized into three gener
 1. Signature generation for each of the key storage scenarios. A succesful prototype should enable signing with keys on each of the following: local host, secure tokens, Hardware Security Modules (HSMs), and cloud based Key Management Services.
 2. Trust store configuration and signature source validation in runtime environments. A succesful prototype should enable configuring a trust store in a runtime environment. The prototype should validate signatures from a trusted source and reject signatures from a source that is not listed. The prototype will not check for other aspects of signature validity (expiry/revocation).
 3. Key rotation. A succesful prototype should meet all requirements from the key rotation document.
-4. Signature/Key Expiration. A succesful prototype should meet all requirements from the signature/key expiration document.
+4. Signature/Key Expiration. A succesful prototype should meet all requirements from the signature/key expiry document.
 5. Signature allowlist/denylist. A succesful prototype should meet all requirements from the signatur allowlist/denylist document.
