@@ -194,6 +194,27 @@ In this scenario, the attacker didn't have the private keys to sign the new cont
 1. How a registry implements the rollback to the previously secured state is a differentiating capability. The scenario simply calls out a compromise that must be discoverable through forensic logging of who, when and what was pushed. The logged updates must include previous digests that represented updated tags allowing a registry, or external tools, to reset its original state.
 1. A registry may choose to make repos, or the entire registry, restricted to pushing only signed content, and potentially only signed content with one or more keys. Notary v2 doesn't require this capability, rather highlights the scenario for registry operators to innovate means to secure from this scenario.
 
+#### Scenario #7.1: Repository Compromise - Mutable Tags Modified
+
+An attacker gains access to a registry and/or repository within a registry, changing the tag reference to a different digest. This different digest may be either a less-secure image (downgrading from a hardened image to one with more features that may be attacked), or a replay to an older vulnerable version of the same tag.
+
+In this scenario, the attacker didn't have the private keys to sign the new content. Instead, they modified tags to point to previously signed content and either reused the signatures already on the registry for the digest, or pushed stale signatures from a previous state of the registry.
+
+1. An attacker gains access to the credentials, allowing them to push new content.
+1. The attacker pushes an old artifact with compatible behavior, either with an old exploit or additional capabilities that exposes vulnerabilities.
+1. The current tag is updated to reference the vulnerable artifact.
+1. The digest for the vulnerable artifact is either already signed, or a stale signature is available from when it was previously signed.
+1. Consumers of the artifact that do not verify the tag points to the current digest from the original signer may run vulnerable containers.
+1. Consumers that verify tag signatures are current should detect the invalid content, and reject the tag reference to the vulnerable digest.
+
+**Implications of this requirement:**
+
+1. There must be a secure way for users to verify the tag currently points to a specific digest, preventing rollback attacks.
+1. It should be possible for the signer to revoke trust in a signed artifact, such as when a CVE is discovered, without revoking their signing keys.
+1. If signed data does not expire, there's a potential for stale signed data to be replayed, particularly to ephemeral clients.
+1. The solution should resist attackers acting as a man-in-the-middle on the network.
+1. The solution should support artifacts being copied to different repositories, registries, and even a disconnected network.
+
 ### Scenario #8: A Developer Discloses Their Key and/or Credentials
 
 A developer accidentally discloses the private key they use to certify their software is authentic.
