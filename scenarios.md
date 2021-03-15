@@ -250,7 +250,6 @@ A weakness is discovered in a widely used cryptographic algorithm and a decision
 1. Key revocation, chain of trust, etc. must all work for the expected lifetime of a version of the client software while these changes are made.
 1. The actions that different parties need to perform must be clearly articulated, along with the result of not performing those actions.
 
-
 ### Scenario #10: Specifying a trusted key
 
 A user may want to trust an artifact only if it is signed by a specific key. Maybe this is an internally created artifact with a known signing key. This key may be distributed using a trusted third party mechanism.
@@ -261,6 +260,20 @@ A user may want to trust an artifact only if it is signed by a specific key. May
 **Implications of this requirement**
 
 1. Users must be allowed to configure specific trusted keys for specific artifacts or collections of artifacts.
+
+### Scenario #11: Revoking a Signature
+
+A signer determines that a signed artifact is no longer trusted. This could be a result of accidentally signing the wrong artifact, or a CVE discovered in the image and patched in a newer release. It should be possible for the signer to revoke the trust in that vulnerable artifact.
+
+1. A CVE is discovered in a signed artifact.
+1. The signature on the vulnerable artifact is revoked.
+1. Consumers that pulled the vulnerable artifact and verify the signature will be notified the signer no longer trusts the artifact.
+
+**Implications of this requirement:**
+
+1. Users that wish to still run artifacts that have their signatures revoked may need to take additional steps. Possible resolutions include configuring their client to ignore the revocation failure, disabling verification on the vulnerable artifact, or resigning the artifacts with a key they control and trust.
+1. Attackers attempting to replay old signatures to vulnerable artifacts should be blocked by the verification.
+1. Revoking the signature for a single artifact should not require revoking the signer's key or signatures for all other artifacts by the same signer.
 
 ## Open Discussions
 
