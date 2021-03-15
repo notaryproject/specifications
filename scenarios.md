@@ -210,7 +210,6 @@ In this scenario, the attacker didn't have the private keys to sign the new cont
 **Implications of this requirement:**
 
 1. There must be a secure way for users to verify the tag currently points to a specific digest, preventing rollback attacks.
-1. It should be possible for the signer to revoke trust in a signed artifact, such as when a CVE is discovered, without revoking their signing keys.
 1. If signed data does not expire, there's a potential for stale signed data to be replayed, particularly to ephemeral clients.
 1. The solution should resist attackers acting as a man-in-the-middle on the network.
 1. The solution should support artifacts being copied to different repositories, registries, and even a disconnected network.
