@@ -112,7 +112,7 @@ The following goals are set for 2021:
 [kickoff-attendees]:            https://github.com/notaryproject/meeting-notes/blob/main/meeting-notes-2019.md#attendees
 [moby]:                         https://github.com/moby
 [notaryv2-kickoff]:             https://github.com/notaryproject/meeting-notes/blob/main/meeting-notes-2019.md#notary-v2-kickoff-meeting
-[non-requirements]:             ../requirements#non-goals
+    [non-requirements]:             ../requirements#non-goals
 [nv2-notes]:                    https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw
 [nv2-requirements]:             ../requirements.md
 [nv2-scenarios]:                ../scenarios.md
