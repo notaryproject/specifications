@@ -112,10 +112,10 @@ The following goals are set for 2021:
 [kickoff-attendees]:            https://github.com/notaryproject/meeting-notes/blob/main/meeting-notes-2019.md#attendees
 [moby]:                         https://github.com/moby
 [notaryv2-kickoff]:             https://github.com/notaryproject/meeting-notes/blob/main/meeting-notes-2019.md#notary-v2-kickoff-meeting
-[non-requirements]:             https://github.com/notaryproject/requirements#non-goals
+[non-requirements]:             ../requirements#non-goals
 [nv2-notes]:                    https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw
-[nv2-requirements]:             https://github.com/notaryproject/requirements
-[nv2-scenarios]:                https://github.com/notaryproject/requirements/blob/main/scenarios.md
+[nv2-requirements]:             ../requirements.md
+[nv2-scenarios]:                ../scenarios.md
 [nv2-prototype]:                https://github.com/notaryproject/nv2/tree/prototype-1/docs/nv2
 [nv2-signature-spec]:           https://github.com/notaryproject/nv2/tree/prototype-1/docs/signature
 [nv2-key-management]:           https://github.com/notaryproject/requirements/pull/38/
