@@ -54,12 +54,20 @@ Cons:
 * Additional maintenance overhead
 
 
-## Key revocation in TUF
+## Combining explicit and implicit revocation
 
-TUF, and the [Notary TUF prototype](https://github.com/notaryproject/nv2/pull/38), use a combination of the first and third techniques to achieve both implicit and explicit key revocation. All keys have an expiration time, but may be revoked before that expiration time by replacing the key listed in the delegation for a given role. TUF ensures timeliness of delegations through the use of the snapshot and timestamp roles. All delegations are protected by signatures of more trusted entities, tracing back to the root keys.
+TUF, and the [Notary TUF prototype](https://github.com/notaryproject/nv2/pull/38), use a combination of the first and third techniques to achieve both implicit and explicit key revocation. All keys have an expiration time, but may be revoked before that expiration time by replacing the key listed in the delegation for a given role. This must be done using a notion of timeliness for delegations, such as the snapshot and timestamp roles in TUF. All delegations are protected by signatures of more trusted entities, tracing back to the root keys.
 
-TUF simplifies re-signing after keys expire by combining multiple artifacts into each targets metadata file. This means that only the targets metadata file needs to be signed instead of each individual artifact.
+This model for key revocation combines key distribution with revocation through the use of delegations. The user verifies delegations using key listed in the root metadata or a delegating targets metadata file on every update, and so receives the most up-to-date list of trusted keys, as well as which keys should be used to sign each piece of metadata.
 
-The TUF model combines key distribution with revocation through the use of delegations. The user verifies delegations using key listed in the root metadata or a delegating targets metadata file on every update, and so receives the most up-to-date list of trusted keys, as well as which keys should be used to sign each piece of metadata.
+Root keys in this system can be rotated in-band when they expire without a compromise. However, if a root key is compromised, an out-of-band process using one of the above revocation techniques may be necessary.
 
-Root keys in TUF can be rotated in-band when they expire without a compromise. However, if a key is compromised, an out-of-band process using one of the above revocation techniques may be necessary.
+Pros:
+* Allows key revocation at any time
+* Keys will expire and so will not be used forever
+* Can be combined with key distribution
+* Does not require an additional query
+* Also supports revocation of metadata
+
+Cons:
+* Distribution of trusted key list needs to be secured and verified for timeliness to prevent replays
