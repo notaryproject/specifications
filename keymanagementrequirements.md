@@ -40,7 +40,7 @@ Key management for container signing can be broadly categorized into three gener
 
 ## Requirements that need further discussion
 ### Signing Key Expiry
-In public key cryptography, a pair of private key a.k.a. signing key and public key a.k.a. verification key is generated, and later the public key is certified by a . The cerificate expiry time does not imply the expiry time of the key pair since the public key can be certified by a CA for multiple times. Moreover, a new key pair is always generated before generating a new certificate in the real world. Therefore, we can consider the key expiry is equivilant to certificate expiry.
+In public key cryptography, a pair of private key a.k.a. signing key and public key a.k.a. verification key is generated, and later the public key is certified by a higher key in the hierarchy. The certification of the signing key has a validity period to designate how long it is valid for. This section will discuss tradeoff and recommendations for expiry times and signing key rotation.
 
 ### External Timestamp Server
 Time Stamping Authorities (TSAs) defined by RFC3161 provide signed timestamp for a signature in order to prove that the signature was generated during the validity period of a certificate.
