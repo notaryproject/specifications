@@ -201,13 +201,13 @@ A deployment requires a mydb image. The mydb image is routinely updated for secu
 
 ### Scenario 7: A mirror is compromised
 
-An attacker compromises a server that is hosting a mirror and gains access as an administrator. The attacker is able to alter any files on the mirror and access all keys stored on the mirror.
+An attacker compromises a server that is hosting a mirror and gains access as an administrator. The attacker is able to alter any artifacts on the mirror and access all keys stored on the mirror. In this scenario, the mirror is an exact copy of the registry that uses the same root of trust as the registry. If a registry contains a copy of some, but not all artifacts, or has a separate root of trust, this registry is not a mirror.
 
 **Implications of this requirement:**
 
 - There must be a way to check a signature from the original repository/developer when downloading from a mirror.
-- Clients should not trust files that are signed only by the mirror, and not by the original repository.
-- Mirrors should not have permission to edit packages and signatures.
+- Clients should not trust artifacts that are signed only by the mirror, and not by the original repository.
+- Mirrors should not have permission to edit artifacts and signatures.
 
 ### Scenario 8: An attacker performs a MitM attack
 
@@ -215,9 +215,10 @@ An attacker is able to sniff network traffic between the repository and client a
 
 **Implications of this requirement:**
 
-- All downloaded files and metadata files should be checked for integrity, even if they are downloaded from a known repository.
-- Clients should only download a fixed amount of data for each file to prevent [endless data attacks](https://theupdateframework.io/security/).
-- Any proprietary or sensitive information in packages or metadata should not be sent in cleartext.
+- The first node in the digest tree should be checked for integrity, even if it is downloaded from a known registry. Using this first node, the runtime should check all manifest and blob digests.
+- Clients should only download a fixed amount of data for each artifact, including metadata and signatures, to prevent [endless data attacks](https://theupdateframework.io/security/).
+- Notary must not store proprietary or sensitive information, such as private keys, in cleartext.
+- A client must be able to detect when a MitM attacker is replaying old metadata, signatures, or artifacts.
 
 ## Open Discussions
 
