@@ -215,7 +215,7 @@ An attacker is able to sniff network traffic between the repository and client a
 
 **Implications of this requirement:**
 
-- The first node in the digest tree should be checked for integrity, even if it is downloaded from a known registry. Using this first node, the runtime should check all manifest and blob digests.
+- The first node in the digest tree should be checked for integrity, even if it is downloaded from a known registry. Using the verified digest, the runtime should validate the manifest and included blobs match their respective digests.
 - Clients should only download a fixed amount of data for each artifact, including metadata and signatures, to prevent [endless data attacks](https://theupdateframework.io/security/).
 - Notary must not store proprietary or sensitive information, such as private keys, in cleartext.
 - A client must be able to detect when a MitM attacker is replaying old metadata, signatures, or artifacts.
