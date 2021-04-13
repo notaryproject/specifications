@@ -16,4 +16,9 @@ Attacker Goals:
 3. Making images unavailable for installation.
 4. Prevent a party from learning about updates to currently installed artifacts.
 5. Convincing a party to download large amounts of data that interfere with the party's system.
-6. Enabling future attacks of the above types to be carried out more easily.  For example, by causing a party to trust the attacker's key.
+6. Enable future attacks of the above types to be carried out more easily.  For example, by causing a party to trust the attacker's key.
+
+## Out of Scope
+The following attacks are considered out of scope for Notary v2:
+1. Denial of Service (DoS) attacks.
+2. Registry validation. A registry may choose to do validation when artifacts are uploaded, but this validation is out of scope of Notary v2.
