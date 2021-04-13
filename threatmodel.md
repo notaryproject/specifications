@@ -11,7 +11,7 @@ It is assumed that an attacker may perform one or more the following actions:
 While it is not always possible to protect against all scenarios, the system should to the extent possible mitigate and/or reduce the damage caused by a successful attack, detect the occurrence of an attack and notify appropriate parties, yet remain usable for parties operating the system.  Furthermore, the system should recover from successful attacks in a way that presents low operational overhead and risk to users.
 
 Attacker Goals:
-1. Trying to have a party install a malicious image under the attackers control.
+1. To have a party deploy a malicious artifact under the attacker's control.
 2. Trying to have a party install an outdated image.  For example, one with known security vulnerabilities.
 3. Making images unavailable for installation.
 4. Preventing a party from learning about updates to currently installed images.
