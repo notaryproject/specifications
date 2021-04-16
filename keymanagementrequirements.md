@@ -78,8 +78,8 @@ Implications of not using a signed timestamp for a signature
 
 Signatures can expire if
 
-    The certificate of the signing key or the timestamp key (whichever is longer) expires
-    The signed content indicates a expiry time
+1. The certificate of the signing key expires
+2. The signed content indicates a expiry time
 
 In this section, the #2 scenario is focused.
 Scenarios
