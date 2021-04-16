@@ -29,7 +29,7 @@ Key management for container signing can be broadly categorized into three gener
 - Retrieving a signature MUST NOT require the deployer to perform additional actions with a registry/repository or registry operator beyond those required to pull an unsigned artifact.
 - Artifact integrity, source, and signature expiry MUST be verifiable from the signature AND NOT require additional calls to the registry/repository.
 - Signature allow list/deny list MAY require additional calls that will be defined in a separate document.
-- Moving an artifact from one repository to another SHOULD NOT invalidate the signature on the artifact.
+- Copying an artifact from one repository to another SHOULD NOT invalidate the signature on the artifact.
 - Publishers SHOULD be able to sign with keys stored on their local machines, secure tokens, Hardware Security Modules (HSMs), or cloud based Key Management Services.
 - Publishers SHOULD be able to generate multiple signatures for a single artifact.
 - Publisher admins MUST have a mechanism to revoke signatures to indicate they are no longer trusted. 
