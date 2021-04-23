@@ -18,6 +18,7 @@ Key management for container signing can be broadly categorized into three gener
 - Root key: A self signed key used for the lowest designation of trust. Root keys can be created by developers, organizations, public/private CAs, and registry operators. The root key should be retrieved from a trusted source that can establish the authenticity of the creator's identity.
 - Signing key: A signing key is used to generate artifact signatures. A signing key should be signed with a root key or one of its intermediaries. The certificate chain with a signing key can be used to verify which root it belongs to. While a root key can be used as a signing key, this is not recommended as it creates a large blast radius and increases the risk of compromising a root key. 
 - Trust Policy: The trust policy defines whether to enable signature validation and which checks need to be run. An example trust policy:
+```
             {
                 trustPolicy: {
                     signatureCheck: true,
@@ -28,7 +29,9 @@ Key management for container signing can be broadly categorized into three gener
                     trustStore: "truststore.json"
                 }
             }
+```
 - Trust Store: The trust store defines the relationship between signing keys and artifacts that are used at validation time to determine whether to trust an artifact with a crytptographically valid signature. The trust store will relate a scope (any source, specific registry, specific repository, or specific target) with a certificate (for root key, intermediate, or signing key) or key repository (for automated key distribtuion). It is not recommended to use a signing key as this will cause signature validation to fail if the signing key is rotated. An example trustStore where the first root is trusted for artifacts from any registry and the second root is only trusted for artifacts from "registry.wabbit-networks.io" :
+```
             {
                 trustedRoots: [
                     {
@@ -89,6 +92,7 @@ Key management for container signing can be broadly categorized into three gener
                     }
                 ]
             }
+```
 - Trust Store Key Information: The key information configured in the trust store will be cryptographically verifiable and contain:
     - Public Key: Will be used to verify signed artifacts.
     - Signed Identity: Identity of creator of the signing key.
