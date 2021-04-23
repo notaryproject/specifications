@@ -20,22 +20,32 @@ Key management for container signing can be broadly categorized into three gener
 - Trust Policy: The trust policy defines whether to enable signature validation and which checks need to be run. An example trust policy:
 ```
             {
-                trustPolicy: {
-                    signatureCheck: true,
-                    optionalChecks: {
-                        signatureExpiry: true,
-                        signatureRescinded: false
+                "trustPolicy": {
+                    "signatureCheck": true,
+                    "optionalChecks": {
+                        "signatureExpiry": true,
+                        "signatureRescinded": false
                     },
-                    trustStore: "truststore.json"
+                    "trustStore": [
+                        "truststore.json",
+                        {
+                            "trustedRoots": [
+                                {
+                                    "root": "test.crt"
+                                }
+                            ]
+                        }
+                    ],
+                    "trustedArtifacts": []
                 }
             }
 ```
 - Trust Store: The trust store defines the relationship between signing keys and artifacts that are used at validation time to determine whether to trust an artifact with a crytptographically valid signature. The trust store will relate a scope (any source, specific registry, specific repository, or specific target) with a certificate (for root key, intermediate, or signing key) or key repository (for automated key distribtuion). It is not recommended to use a signing key as this will cause signature validation to fail if the signing key is rotated. An example trustStore where the first root is trusted for artifacts from any registry and the second root is only trusted for artifacts from "registry.wabbit-networks.io" :
 ```
             {
-                trustedRoots: [
+                "trustedRoots": [
                     {
-                        root: "-----BEGIN CERTIFICATE-----
+                        "root": "-----BEGIN CERTIFICATE-----
                             MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF
                             ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6
                             b24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL
@@ -57,7 +67,7 @@ Key management for container signing can be broadly categorized into three gener
                             -----END CERTIFICATE-----"
                     },
                     {
-                        root: "-----BEGIN CERTIFICATE-----
+                        "root": "-----BEGIN CERTIFICATE-----
                             MIIFQTCCAymgAwIBAgITBmyf0pY1hp8KD+WGePhbJruKNzANBgkqhkiG9w0BAQwF
                             ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6
                             b24gUm9vdCBDQSAyMB4XDTE1MDUyNjAwMDAwMFoXDTQwMDUyNjAwMDAwMFowOTEL
@@ -88,7 +98,7 @@ Key management for container signing can be broadly categorized into three gener
                             9jVlpNMKVv/1F2Rs76giJUmTtt8AF9pYfl3uxRuw0dFfIRDH+fO6AgonB8Xx1sfT
                             4PsJYGw=
                             -----END CERTIFICATE-----",
-                        scope: "registry.wabbit-networks.io"
+                        "scope": "registry.wabbit-networks.io"
                     }
                 ]
             }
@@ -114,15 +124,12 @@ Key management for container signing can be broadly categorized into three gener
 - Signature validation MUST be enforceable in air-gapped environments. 
 
 ## Requirements that need further discussion
-### Signing Key Expiry
-
-### External Timestamp Server
-
-### Signature Expiry
-
-### Trust Policy Management and Trust Store Updates
-
-### Rescinding Signature Validity
+### Signing Key Expiry - https://hackmd.io/n82ZTBv3TK2Y4rujlnW3ng
+### External Timestamp Server - https://hackmd.io/WvoBFNg2TR-ooTe14a6pfw
+### Signature Expiry - https://hackmd.io/pT4IicsQRlGhR9szlrIUWQ
+### Trust Policy Management and Trust Store Updates - Trust Policy Management and Trust Store Updates
+### Rescinding Signature Validity - https://hackmd.io/TnX8l31CQnGPRujZ_gLGJA
+### Multiple Signatures 
 
 
 ## Prototype Stages
