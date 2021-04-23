@@ -1,7 +1,7 @@
 # Overview
 Key management for container signing can be broadly categorized into three general use cases:
 - Key Setup/Signing (Key managment and integrations with client tooling for generating signatures.)
-- Trust store configuration (Configuring which keys to trust for artifacts from a predefined source.)
+- Deployment configurations (Configuring trust policies and which keys to trust for artifacts.)
 - Signature Validity (Expiry, Revocation and/or Trusted Update List. Mechanism to update information on the validity of signatures.)
 
 ## Personas:
@@ -17,7 +17,92 @@ Key management for container signing can be broadly categorized into three gener
 ## Definitions:
 - Root key: A self signed key used for the lowest designation of trust. Root keys can be created by developers, organizations, public/private CAs, and registry operators. The root key should be retrieved from a trusted source that can establish the authenticity of the creator's identity.
 - Signing key: A signing key is used to generate artifact signatures. A signing key should be signed with a root key or one of its intermediaries. The certificate chain with a signing key can be used to verify which root it belongs to. While a root key can be used as a signing key, this is not recommended as it creates a large blast radius and increases the risk of compromising a root key. 
-- Trust Store: The trust store defines the relationship between signing keys and artifacts that are used at validation time to determine whether to trust an artifact with a crytptographically valid signature. The trust store will relate a source (any source, specific registry, specific repository, or specific target) with a certificate (for root key, intermediate, or signing key) or key repository (for automated key distribtuion). It is not recommended to use a signing key as this will cause signature validation to fail if the signing key is rotated. 
+- Trust Policy: The trust policy defines whether to enable signature validation and which checks need to be run. An example trust policy:
+```
+            {
+                "trustPolicy": {
+                    "signatureCheck": true,
+                    "optionalChecks": {
+                        "signatureExpiry": true,
+                        "signatureRescinded": false
+                    },
+                    "trustStore": [
+                        "truststore.json",
+                        {
+                            "trustedRoots": [
+                                {
+                                    "root": "test.crt"
+                                }
+                            ]
+                        }
+                    ],
+                    "trustedArtifacts": []
+                }
+            }
+```
+- Trust Store: The trust store defines the relationship between signing keys and artifacts that are used at validation time to determine whether to trust an artifact with a crytptographically valid signature. The trust store will relate a scope (any source, specific registry, specific repository, or specific target) with a certificate (for root key, intermediate, or signing key) or key repository (for automated key distribtuion). It is not recommended to use a signing key as this will cause signature validation to fail if the signing key is rotated. An example trustStore where the first root is trusted for artifacts from any registry and the second root is only trusted for artifacts from "registry.wabbit-networks.io" :
+```
+            {
+                "trustedRoots": [
+                    {
+                        "root": "-----BEGIN CERTIFICATE-----
+                            MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF
+                            ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6
+                            b24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL
+                            MAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv
+                            b3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj
+                            ca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM
+                            9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw
+                            IFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6
+                            VOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L
+                            93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm
+                            jgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC
+                            AYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA
+                            A4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI
+                            U5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs
+                            N+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv
+                            o/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU
+                            5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy
+                            rqXRfboQnoZsG4q5WTP468SQvvG5
+                            -----END CERTIFICATE-----"
+                    },
+                    {
+                        "root": "-----BEGIN CERTIFICATE-----
+                            MIIFQTCCAymgAwIBAgITBmyf0pY1hp8KD+WGePhbJruKNzANBgkqhkiG9w0BAQwF
+                            ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6
+                            b24gUm9vdCBDQSAyMB4XDTE1MDUyNjAwMDAwMFoXDTQwMDUyNjAwMDAwMFowOTEL
+                            MAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv
+                            b3QgQ0EgMjCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAK2Wny2cSkxK
+                            gXlRmeyKy2tgURO8TW0G/LAIjd0ZEGrHJgw12MBvIITplLGbhQPDW9tK6Mj4kHbZ
+                            W0/jTOgGNk3Mmqw9DJArktQGGWCsN0R5hYGCrVo34A3MnaZMUnbqQ523BNFQ9lXg
+                            1dKmSYXpN+nKfq5clU1Imj+uIFptiJXZNLhSGkOQsL9sBbm2eLfq0OQ6PBJTYv9K
+                            8nu+NQWpEjTj82R0Yiw9AElaKP4yRLuH3WUnAnE72kr3H9rN9yFVkE8P7K6C4Z9r
+                            2UXTu/Bfh+08LDmG2j/e7HJV63mjrdvdfLC6HM783k81ds8P+HgfajZRRidhW+me
+                            z/CiVX18JYpvL7TFz4QuK/0NURBs+18bvBt+xa47mAExkv8LV/SasrlX6avvDXbR
+                            8O70zoan4G7ptGmh32n2M8ZpLpcTnqWHsFcQgTfJU7O7f/aS0ZzQGPSSbtqDT6Zj
+                            mUyl+17vIWR6IF9sZIUVyzfpYgwLKhbcAS4y2j5L9Z469hdAlO+ekQiG+r5jqFoz
+                            7Mt0Q5X5bGlSNscpb/xVA1wf+5+9R+vnSUeVC06JIglJ4PVhHvG/LopyboBZ/1c6
+                            +XUyo05f7O0oYtlNc/LMgRdg7c3r3NunysV+Ar3yVAhU/bQtCSwXVEqY0VThUWcI
+                            0u1ufm8/0i2BWSlmy5A5lREedCf+3euvAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMB
+                            Af8wDgYDVR0PAQH/BAQDAgGGMB0GA1UdDgQWBBSwDPBMMPQFWAJI/TPlUq9LhONm
+                            UjANBgkqhkiG9w0BAQwFAAOCAgEAqqiAjw54o+Ci1M3m9Zh6O+oAA7CXDpO8Wqj2
+                            LIxyh6mx/H9z/WNxeKWHWc8w4Q0QshNabYL1auaAn6AFC2jkR2vHat+2/XcycuUY
+                            +gn0oJMsXdKMdYV2ZZAMA3m3MSNjrXiDCYZohMr/+c8mmpJ5581LxedhpxfL86kS
+                            k5Nrp+gvU5LEYFiwzAJRGFuFjWJZY7attN6a+yb3ACfAXVU3dJnJUH/jWS5E4ywl
+                            7uxMMne0nxrpS10gxdr9HIcWxkPo1LsmmkVwXqkLN1PiRnsn/eBG8om3zEK2yygm
+                            btmlyTrIQRNg91CMFa6ybRoVGld45pIq2WWQgj9sAq+uEjonljYE1x2igGOpm/Hl
+                            urR8FLBOybEfdF849lHqm/osohHUqS0nGkWxr7JOcQ3AWEbWaQbLU8uz/mtBzUF+
+                            fUwPfHJ5elnNXkoOrJupmHN5fLT0zLm4BwyydFy4x2+IoZCn9Kr5v2c69BoVYh63
+                            n749sSmvZ6ES8lgQGVMDMBu4Gon2nL2XA46jCfMdiyHxtN/kHNGfZQIG6lzWE7OE
+                            76KlXIx3KadowGuuQNKotOrN8I1LOJwZmhsoVLiJkO/KdYE+HvJkJMcYr07/R54H
+                            9jVlpNMKVv/1F2Rs76giJUmTtt8AF9pYfl3uxRuw0dFfIRDH+fO6AgonB8Xx1sfT
+                            4PsJYGw=
+                            -----END CERTIFICATE-----",
+                        "scope": "registry.wabbit-networks.io"
+                    }
+                ]
+            }
+```
 - Trust Store Key Information: The key information configured in the trust store will be cryptographically verifiable and contain:
     - Public Key: Will be used to verify signed artifacts.
     - Signed Identity: Identity of creator of the signing key.
@@ -39,119 +124,12 @@ Key management for container signing can be broadly categorized into three gener
 - Signature validation MUST be enforceable in air-gapped environments. 
 
 ## Requirements that need further discussion
-### Signing Key Expiry
-In public key cryptography, a pair of private key a.k.a. signing key and public key a.k.a. verification key is generated, and later the public key is certified by a higher key in the hierarchy. The certification of the signing key has a validity period to designate how long it is valid for. This section will discuss tradeoff and recommendations for expiry times and signing key rotation.
-
-### External Timestamp Server
-Time Stamping Authorities (TSAs) defined by RFC3161 provide signed timestamp for a signature in order to prove that the signature was generated during the validity period of a certificate.
-
-#### Scenarios
-With TSA, signature can be considered valid even if the signing cerificate is expired. This technique is widely used by Authenticode with SignTool, NuGet, Adobe Acrobat, and many other industrial products.
-
-In the world of artifacts, including container images, scenarios are
-- Developers sign their artifacts or images with certificates. The certificates MAY have a configurable expiry time.
-- Developers publish their artifacts or images and at a later date stop maintaining them. Content consumers SHOULD be able to verify signatures until they expire and use the artifacts or images
-- Attackers with compromised keys try to sign artifacts or images with timestamps before the key compromise event.
-
-#### Pros and Cons
-
-There are many public TSA servers available on the Internet. The advantages of public timestamp servers are obvious:
-    Public
-    Free
-
-However, those public TSAs also come with disadvantages:
-    Require Internet access for signing
-        It is not really a disadvantage since public TSAs are online services. Devices in the air-gapped environment SHALL access the Internet for timestamp signing services.
-    Out of the control of the signer
-        External dependency
-        Availability is not assured. No SLA on signing.
-            Not all TSAs are available in all regions.
-            Some regions may have high latency.
-        The certificates of TSAs MAY be revoked at any time without notices.
-            The removal of trust of VeriSign broke .NET 5+ NuGet. Thus Microsoft has to disable the package verification with a new release to unblock customers.
-
-Implications of not using a signed timestamp for a signature
-    In the absense of additional timestamp signature, the signature is only considered valid till key expiry. This may limit the use of short lived keys.
-    In case of key compromise it’s not possible to revoke signatures from a point in time where the time of compromise is known, as an attacker can create signatures with any signature time (by changing local time)
-
-### Signature Expiry
-
-Signatures can expire if
-
-1. The certificate of the signing key expires
-2. The signed content indicates a expiry time
-
-In this section, the #2 scenario is focused.
-Scenarios
-
-The main scenario for using a configurable signature expiry is for the publisher to indicate how long they plan to maintain the signature on the artifact for. For example if a publisher signs an artifact with an expiry for 6 months, they are indicating that if within 6 months they identfy a reason that deployers should no longer trust the artifact they will rescind the signature.
-
-An added benefit is to defend against freeze attack. Since the signature expires in a short time although the signing key can live longer, the verifiers have to obtain the latest signature to verify, which implies that the verifies have access to the latest content.
-
-    Freeze Attack Similar to a replay attack, a freeze attack works by providing metadata that is not current. However, in a freeze attack, the attacker freezes the information a client sees at the current point in time to prevent the client from seeing updates, rather than providing the client older versions than the client has already seen. As with replay attacks, the attacker’s goal is ultimately to compromise a client who has vulnerable versions of packages installed. A freeze attack may be used to prevent updates in addition to having an installed package be out of date.
-
-### Trust Policy Management and Trust Store Updates
-
-Deployers who consume signed artifacts from a registry require that only artifacts from trusted parties are deployed and executed. The trusted parties are specified in some form of a trust policy against which the signed artifacts are validated. The trust policy can include a trust store with trusted root and leaf keys/certificates which represent the Publisher identities the Deployer trusts. This section covers where the trust policies should be stored, and how they are distributed/updated.
-
-Root keys form the basis of hierarchical trust systems, where intermediate and leaf keys chain back to a root key, and leaf keys are used to generate signatures. Consumers of signed artifacts associate a baseline level of trust with signatures that chain to roots they trust. In the scenario that a root key is no longer trusted, all signed artifacts chaining back to the root are no longer trusted. The conditions which render the root keys to be no longer trusted, are disclosed to the customer through some other channel (CVE, internal security audit, etc.). Safe rotation of keys require a overlap period where both new and old root keys are trusted. This is always not possible, such as when a root key is compromised.
-
-#### Scenarios
-1. A Deployer consumes artifacts from a third party Publisher and wants to configure the trusted publishers in a policy. The Deployer is not the same user/organization as Publisher and wants to independently define the trusted publishers.
-2. A Publisher’s repository may contain a mix of artifacts, published by different teams using different keys. The Deployer wants to trust only artifacts signed by specific keys.
-    - E.g. A group may include the MySQL image from docker hub, and the MySQL Helm chart from another group in the same registry/repo. These are signed by different entities, and valid to be placed in the same repository.
-    
-#### Scenarios for Trust Store Updates
-1. A Deployer updates their dependencies and no longer consumes artifacts from particular Publisher
-2. A public root associated with a signing key a Publisher uses to sign artifacts is compromised.
-3. An root key used by a Publisher is close to expiry. A new key is created and rotated before the existing root expires.
-4. An root key used by a Publisher is not stored securely and the private key is lost. A new key pair is created to continue operations.
-5. A cryptographic algorithm is deprecated, or a compliance standard requires a Publisher to upgrade their key strength.
-
-#### Approaches
-1. Storage and distribution of trust policies from registry
-Pros
-- Trust policies need not be stored in another location
-- Allows in band/automated distribution and update of trust policies to consumers.
-Cons
-- Automated update of trust policies can be disruptive to Deployers that consume artifacts. Deployers should be able to control when trust policies are updated.
-- Only allows Publishers to define the trust policy. It works well when Publisher and Deployer are the same user/organization.
-    - This model does not allow Deployers to independently define trust policies. Furthermore, it may be required that Deployer Admins define trusted publishers, and Deployer Operators only specify/configure which artifacts (from repositories) are deployed.
-
-#### Recommendation
-- Trust policies SHOULD NOT be stored in the registry. Multiple Deployers can consume artifacts from the same repository, and may need to define trust policies independently.
-- Trust policies SHOULD be configured, distributed/updated out of band from artifact updates from registry.
-
-
-### Rescinding Signature Validity
-Artifact Publishers need mechanisms to indicate that a signature they generated is still trustworthy. 
-
-#### Scenarios
-- A Publisher vends a new version of an artifact, and wants to indicate the new version as trusted in addition to older versions already published.
-
-#### Discussion Areas
-- Code signing is a mechanism for Publishers to explicitly indicate trust which is implicitly trusted by Consumer given some conditions are satisfied (based on trust policy, signature being valid and unrevoked)
-    - An explicit allowlist is not required
-    - A denylist is required in addition to indicate which artifacts are no longer trusted
-
-- Signature Allowlist explicitly specifies the list of trusted artifacts.
-    - Pros
-        - Anything not in the list is implicitly untrusted, no separate revocation mechanism is required
-        - If signed allowlist are used, the artifacts themselves may not need to be signed.
-    - Cons
-        - The allowlist needs to be updated for every version of artifact being published
-        - May need to maintain a large allowlist which may be an overhead to distribute
-- Signature Denylist
-    - For Consumers, denylist allows explicitly indicating that an artifact or dependency is untrusted
-    - For Publishers, this allows communicating to Consumers that specific versions of artifact are untrusted.
-
-- Centralized/local public/private lists
-    - The list can be local to repository, requiring update to the list in each repository, and requires keeping track of all repositories where the artifact needs to be published/revoked.
-    - The list can be centralized
-        - Centralized deny list (e.g. CRL maintaned by public CAs) can be used. The endpoint infomation is included in the signature, and signature verification step checks against this list.
-            - Customers can define network topology with restricted network access, where these endpoints may not be accesible for hosts where signature verification occurs.
-            - These endpoints may not be available in air-gapped environments.
-    - Public lists (e.g. transparency logs) may not be suitable for enterprise customers who don’t want their artifact updates to be disclosed publicly.
+### Signing Key Expiry - https://hackmd.io/n82ZTBv3TK2Y4rujlnW3ng
+### External Timestamp Server - https://hackmd.io/WvoBFNg2TR-ooTe14a6pfw
+### Signature Expiry - https://hackmd.io/pT4IicsQRlGhR9szlrIUWQ
+### Trust Policy Management and Trust Store Updates - Trust Policy Management and Trust Store Updates
+### Rescinding Signature Validity - https://hackmd.io/TnX8l31CQnGPRujZ_gLGJA
+### Multiple Signatures 
 
 
 ## Prototype Stages
