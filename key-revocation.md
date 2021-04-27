@@ -56,18 +56,20 @@ Cons:
 
 ## Combining explicit and implicit revocation
 
-TUF, and the [Notary TUF prototype](https://github.com/notaryproject/nv2/pull/38), use a combination of the first and third techniques to achieve both implicit and explicit key revocation. All keys have an expiration time, but may be revoked before that expiration time by replacing the key listed in the delegation for a given role. This must be done using a notion of timeliness for delegations, such as the snapshot and timestamp roles in TUF. All delegations are protected by signatures of more trusted entities, tracing back to the root keys.
+A final option is to use a combination of the first and third techniques to achieve both implicit and explicit key revocation. By using a hierarchical combination of keys, a trusted root key can delegate signing to various keys that expire. These keys may be revoked before that expiration time by replacing the key listed in the delegation. Additionally, artifacts may be signed by more than one key, allowing automated tooling to provide short lived signatures that verify the signer and artifact have not been revoked. Clients then verify the necessary collection of signatures is found on the artifact.
 
-This model for key revocation combines key distribution with revocation through the use of delegations. The user verifies delegations using key listed in the root metadata or a delegating targets metadata file on every update, and so receives the most up-to-date list of trusted keys, as well as which keys should be used to sign each piece of metadata.
+This method allows signers to have relatively long lived keys, to simplify their workflow and avoid needing to resign the artifacts themselves, while enabling timely revoking of the signing key or a single artifact signature.
 
-Root keys in this system can be rotated in-band when they expire without a compromise. However, if a root key is compromised, an out-of-band process using one of the above revocation techniques may be necessary.
+For efficiency, a meta-artifact can be created and maintained, containing references to a collection currently signed artifacts. And the short lived signature can be created for this single artifact, rather than every artifact individually.
 
 Pros:
 * Allows key revocation at any time
 * Keys will expire and so will not be used forever
-* Can be combined with key distribution
-* Does not require an additional query
-* Also supports revocation of metadata
+* Individual artifact signatures may be quickly revoked
+* Signers do not need to frequently resign all artifacts
+* Can be combined with key distribution, so verifiers only need to trust the root key, all delegated keys can be verified against this
 
 Cons:
-* Distribution of trusted key list needs to be secured and verified for timeliness to prevent replays
+* Requires maintenance of an automated system to refresh short lived signatures
+* A root key compromise requires updating all signers, clients, and signatures on the artifacts
+* Updating short lived signatures on a large number of artifacts may encounter scaling challenges and loses some of the caching efficiencies of content addressable storage in registries
