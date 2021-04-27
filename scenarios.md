@@ -250,6 +250,40 @@ A weakness is discovered in a widely used cryptographic algorithm and a decision
 1. Key revocation, chain of trust, etc. must all work for the expected lifetime of a version of the client software while these changes are made.
 1. The actions that different parties need to perform must be clearly articulated, along with the result of not performing those actions.
 
+### Scenario #10: Specifying a trusted key
+
+A user may want to trust an artifact only if it is signed by a specific key. Maybe this is an internally created artifact with a known signing key. This key may be distributed using a trusted third party mechanism.
+
+1. The user obtains a trusted key for a particular artifact.
+1. The user downloads and verifies the artifact using Notary v2 and their known key.
+
+**Implications of this requirement**
+
+1. Users must be allowed to configure specific trusted keys for specific artifacts.
+
+### Scenario #11: Using a default trusted key
+
+If a user does not have a specific key, verified using a third party system, they will need to determine the trusted signing key(s) for an artifact using a secure default method.
+
+1. The user determines the default trusted key(s) for a specific artifact using information available on the registry.
+1. The user downloads and verifies an artifact using Notary v2 and the default trusted key(s)
+
+**Implications of this requirement**
+
+1. Users must be able to obtain per-package trusted keys.
+
+### Scenario #12: Using multiple registries
+
+A user using multiple registries will want to ensure artifacts are downloaded from the intended registry. For example, if an artifact is supposed to be downloaded from their private registry, they never want to download a version from a public registry. Additionally, they may always want to look in their private registry first, and so want an enforced ordering of registries.
+
+1. The user attempts to download and verify a package from registries in priority order.
+1. Notary v2 verifies that each specific artifact may be downloaded from a given registry during validation using the user's configuration information.
+
+**Implications of this requirement**
+
+1. Users must be able to prioritize each registry that they use.
+1. Users must be able to specify that a particular artifact may only be downloaded from a particular registry or set of registries.
+
 ## Open Discussions
 
 * What is the relationship between a signature, an artifact and a registry?
