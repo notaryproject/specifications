@@ -123,15 +123,6 @@ Key management for container signing can be broadly categorized into three gener
 - Deployers MUST be able to validate signatures on any version of an artifact including whether they have been revoked by the publisher.
 - Signature validation MUST be enforceable in air-gapped environments. 
 
-## Requirements that need further discussion
-### Signing Key Expiry - https://hackmd.io/n82ZTBv3TK2Y4rujlnW3ng
-### External Timestamp Server - https://hackmd.io/WvoBFNg2TR-ooTe14a6pfw
-### Signature Expiry - https://hackmd.io/pT4IicsQRlGhR9szlrIUWQ
-### Trust Policy Management and Trust Store Updates - Trust Policy Management and Trust Store Updates
-### Rescinding Signature Validity - https://hackmd.io/TnX8l31CQnGPRujZ_gLGJA
-### Multiple Signatures 
-
-
 ## Prototype Stages
 1. Signature generation for each of the key storage scenarios. A succesful prototype should enable signing with keys on each of the following: local host, secure tokens, Hardware Security Modules (HSMs), and cloud based Key Management Services.
 2. Trust store configuration and signature source validation in runtime environments. A succesful prototype should enable configuring a trust store in a runtime environment. The prototype should validate signatures from a trusted source and reject signatures from a source that is not listed. The prototype will not check for other aspects of signature validity (expiry/revocation).
