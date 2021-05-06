@@ -263,26 +263,26 @@ A user may want to trust an artifact only if it is signed by a specific key. May
 
 ### Scenario #11: Using a default trusted key
 
-If a user does not have a specific key, verified using a third party system, they will need to determine the trusted signing key(s) for an artifact using a secure default method.
+If a user does not have a specific key for a given artifact, verified using a third party system, they will need to determine the trusted signing key(s) for an artifact using a secure default method.
 
-1. The user determines the default trusted key(s) for a specific artifact using information available on the registry.
+1. The user determines the default trusted key(s) for a specific artifact using information available on the registry, using delegations from a trusted root key.
 1. The user downloads and verifies an artifact using Notary v2 and the default trusted key(s)
 
 **Implications of this requirement**
 
-1. Users must be able to obtain per-package trusted keys.
+1. Users must be able to obtain per-package trusted keys, verified by a trusted root.
 
-### Scenario #12: Using multiple registries
+### Scenario #12: Using multiple roots of trust
 
-A user using multiple registries will want to ensure artifacts are downloaded from the intended registry. For example, if an artifact is supposed to be downloaded from their private registry, they never want to download a version from a public registry. Additionally, they may always want to look in their private registry first, and so want an enforced ordering of registries.
+A user using multiple registries will want to ensure artifacts are verified using the correct root of trust. For example, if an artifact is supposed to be signed by a key delegated to their private registry, they never want to download a version signed by a key from a public registry. Additionally, they may always want to look for artifacts signed by their private registry key first, and so want an enforced ordering of roots of trust.
 
-1. The user attempts to download and verify a package from registries in priority order.
-1. Notary v2 verifies that each specific artifact may be downloaded from a given registry during validation using the user's configuration information.
+1. The user attempts to download and verify a package using roots of trust in priority order.
+1. Notary v2 verifies that each specific artifact may be verified using a given root of trust during validation using the user's configuration information.
 
 **Implications of this requirement**
 
-1. Users must be able to prioritize each registry that they use.
-1. Users must be able to specify that a particular artifact may only be downloaded from a particular registry or set of registries.
+1. Users must be able to prioritize each root of trust that they use.
+1. Users must be able to specify that a particular artifact may only be verified using a key delegated from a given root of trust.
 
 ## Open Discussions
 
