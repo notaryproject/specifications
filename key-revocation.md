@@ -7,7 +7,7 @@ In existing systems, there are three main approaches to key revocation: automati
 
 ## Key Expiration
 
-Adding an expiration time to every key allows keys to automatically be revoked after a certain period of time. The expiration time is usually included with the key so that it is easy for users to find. This technique does not require any action from the key holder, and ensures that users will have to refresh their trusted keys before those keys expire.
+Adding an expiration time to every key allows keys to automatically be revoked after a certain period of time. The expiration time is usually included with the key, and signed by a trusted issuing key, so that it is easy for users to find. This technique does not require any action from the key holder, and ensures that users will have to refresh their trusted keys before those keys expire.
 
 However, if a key is compromised before it expires, key expiration alone does not protect users. An attacker with the compromised key could sign arbitrary images or metadata until the key's expiration time.
 
@@ -17,14 +17,14 @@ Pros:
 
 Cons:
 * Keys can't be revoked before expiration
-* Artifacts must be re-signed after expiration
+* Artifacts must be re-signed after expiration, unless a timestamping service is used.
 
 
 ## Key revocation lists (Deny lists)
 
 Distributing a list of revoked keys allows key holders to notify users quickly if a key is compromised or lost. Users can check against the key revocation list before using a key to verify signatures. This technique is more flexible than key expiration times, and allows for more current information about key security.
 
-However, the user must be able to ensure that the key revocation list is accurate and up to date. If an attacker is able to replay an old revocation list, the user may continue to trust compromised keys. Therefore the distribution of the key revocation list must allow the user to verify authenticity and timeliness.
+However, the user must be able to ensure that the key revocation list is accurate and up to date. If an attacker is able to replay an old revocation list, or show different versions to different registries, the user may continue to trust compromised keys. Therefore the distribution of the key revocation list must allow the user to verify authenticity and timeliness.
 
 Also, for security reasons, keys cannot be removed from a key revocation list, so the list will grow larger and larger over time and may eventually have a noticeable bandwidth impact, although this can be mitigated by combining key revocation lists with keys that expire.
 
@@ -36,6 +36,7 @@ Cons:
 * Distribution of the key revocation list needs to be secured and verified for timeliness to prevent replays
 * Additional maintenance overhead
 * What to do when the revocation list query fails?
+* Revocation lists must be synchronized between registries.
 
 
 ## List of trusted keys (Allow lists)
