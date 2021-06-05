@@ -250,17 +250,6 @@ A weakness is discovered in a widely used cryptographic algorithm and a decision
 1. Key revocation, chain of trust, etc. must all work for the expected lifetime of a version of the client software while these changes are made.
 1. The actions that different parties need to perform must be clearly articulated, along with the result of not performing those actions.
 
-### Scenario #10: Specifying a trusted key
-
-A user may want to trust an artifact only if it is signed by a specific key. Maybe this is an internally created artifact with a known signing key. This key may be distributed using a trusted third party mechanism.
-
-1. The user obtains a trusted key for a particular artifact.
-1. The user downloads and verifies the artifact using Notary v2 and their known key.
-
-**Implications of this requirement**
-
-1. Users must be allowed to configure specific trusted keys for specific artifacts.
-
 ### Scenario #11: Using a default trusted key
 
 If a user does not have a specific key for a given artifact, verified using a third party system, they will need to determine the trusted signing key(s) for an artifact using a secure default method.
