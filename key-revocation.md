@@ -2,7 +2,7 @@
 
 One of the goals of Notary v2 is to build in solutions for key revocation that are easy to use and ensure that users will always use non-compromised keys. This document discusses some potential mechanisms for key revocation.
 
-In existing systems, there are three main approaches to key revocation: automatic revocation through key expiration, key revocation lists, and providing a list of trusted keys. This document discusses some of the benefits and pitfalls of each of these techniques, and how some of these techniques are combined to provide a holistic approach to key revocation in TUF.
+In existing systems, there are three main approaches to key revocation: automatic revocation through key expiration, key revocation lists, and providing a list of trusted keys. This document discusses some of the benefits and pitfalls of each of these techniques, and how some of these techniques are combined to provide a holistic approach to key revocation.
 
 
 ## Key Expiration
