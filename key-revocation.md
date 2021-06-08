@@ -61,7 +61,7 @@ A final option is to use a combination of the first and third techniques to achi
 
 This method allows signers to have relatively long lived keys, to simplify their workflow and avoid needing to resign the artifacts themselves, while enabling timely revoking of the signing key or a single artifact signature.
 
-For efficiency, a meta-artifact can be created and maintained, containing references to a collection currently signed artifacts. And the short lived signature can be created for this single artifact, rather than every artifact individually.
+For efficiency, a meta-artifact can be created and maintained, containing references to a collection currently signed artifacts. And the short lived signature can be created for this single artifact, rather than every artifact individually. This meta-artifact would need to be updated whenever the collection of artifacts changes and parsed when validating any artifact.
 
 Pros:
 * Allows key revocation at any time
