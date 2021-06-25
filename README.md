@@ -149,6 +149,11 @@ Throughout the Notary v2 effort, updates to the stages of development and areas 
 
 - [2021 - February Status Update](./status-updates/notary-status-2021-02.md)
 
+## Governance
+
+See [GOVERNANCE.md](GOVERNANCE.md) for project governance.
+
+
 ## Contributing & Conversations
 
 Regular conversations for Notary v2 occur on the [Cloud Native Computing Slack](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287?) channel.
