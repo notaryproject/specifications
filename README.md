@@ -16,6 +16,7 @@ Additional details for Notary v2 efforts:
 - [Scenarios][nv2-scenarios]
 - [Threat Model][nv2-threat-model]
 - [Definitions & Terms][nv2-definitions]
+- [Governance](#governance)
 - [Contributing](#contributing-&-conversations)
 
 ## Notary v2 Overview
@@ -152,7 +153,6 @@ Throughout the Notary v2 effort, updates to the stages of development and areas 
 ## Governance
 
 See [GOVERNANCE.md](GOVERNANCE.md) for project governance.
-
 
 ## Contributing & Conversations
 

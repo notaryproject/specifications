@@ -18,8 +18,8 @@ New maintainers can be added to the project by a
 [super-majority](https://en.wikipedia.org/wiki/Supermajority#Two-thirds_vote)
 vote of the existing maintainers. A potential maintainer may be nominated by an existing maintainer.
 Submissions for new maintainers can be made by creating an
-[issue](https://github.com/notaryproject/notaryproject/issues/new). The current maintainers will cast
-their vote via a +1 comment on the issue. Once a [super-majority](https://en.wikipedia.org/wiki/Supermajority#Two-thirds_vote)
+[issue](https://github.com/notaryproject/notaryproject/issues/new). The current maintainers will be able to cast
+a single vote each via a +1 comment on the issue. Once a [super-majority](https://en.wikipedia.org/wiki/Supermajority#Two-thirds_vote)
 has been reached a pull request is made on the repo adding the new
 maintainer to the [CODEOWNERS](CODEOWNERS) file.
 
