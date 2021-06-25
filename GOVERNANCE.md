@@ -16,10 +16,11 @@ months.
 
 New maintainers can be added to the project by a
 [super-majority](https://en.wikipedia.org/wiki/Supermajority#Two-thirds_vote)
-vote of the existing maintainers. A potential maintainer may be nominated by an
-existing maintainer. A vote is conducted in private between the current
-maintainers over the course of a one week voting period. At the end of the week,
-votes are counted and a pull request is made on the repo adding the new
+vote of the existing maintainers. A potential maintainer may be nominated by an existing maintainer.
+Submissions for new maintainers can be made by creating an
+[issue](https://github.com/notaryproject/notaryproject/issues/new). The current maintainers will cast
+their vote via a +1 comment on the issue. Once a [super-majority](https://en.wikipedia.org/wiki/Supermajority#Two-thirds_vote)
+has been reached a pull request is made on the repo adding the new
 maintainer to the [CODEOWNERS](CODEOWNERS) file.
 
 All changes to the main branch require approval by two active maintainers prior to merge.
