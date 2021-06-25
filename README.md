@@ -2,6 +2,10 @@
 
 A current overview of Notary v2, including a collection of requirements & scenarios, framing the scope of the Notary v2 project.
 
+## Project Status
+
+The Notary v2 project is in early development. Please refer to the [milestones](https://github.com/notaryproject/notaryproject/milestones) or [attend](#contributing-&-conversations) the weekly meetings for details on the roadmap.
+
 ## TOC
 
 - [Overview](#notary-v2-overview)
