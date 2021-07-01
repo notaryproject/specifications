@@ -272,7 +272,7 @@ A signer determines that a signed artifact is no longer trusted. This could be a
 **Implications of this requirement:**
 
 1. Users that wish to still run artifacts that have their signatures revoked may need to take additional steps. Possible resolutions include configuring their client to ignore the revocation failure, disabling verification on the vulnerable artifact, or resigning the artifacts with a key they control and trust.
-1. Attackers attempting to replay old signatures to vulnerable artifacts should be blocked by the verification.
+1. Attackers attempting to replay revoked signatures should be detected by the verification.
 1. Revoking the signature for a single artifact should not require revoking the signer's key or signatures for all other artifacts by the same signer.
 
 ## Open Discussions
