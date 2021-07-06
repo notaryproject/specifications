@@ -14,17 +14,17 @@ Notary v2 aims to solve the core issue of trusting content within, and across re
 
 To put Notary v2 in context, the following end-to-end scenario is outlined. The blue elements are the scope of Notary v2, with the other elements providing generic references to other projects or products that demonstrate how Notary v2 may be utilized.
 
-![Notary e2e Scenarios](./media/notary-e2e-scenarios.png)
+![Notary e2e Scenarios](./media/notary-e2e-scenarios.svg)
 
 In a world of consuming public software, we must account for content that's acquired from a public source, copied into a trusted environment, then deployed. In this scenario, the consumer is not re-building or adding additional content. However, they do wish to add attestations to the validity of the content.
 
-1. The Wabbit Networks company builds their netmonitor software.
+1. The Wabbit Networks company builds their `net-monitor` software.
       * As a result of the build, they produce an [OCI Image][oci-image], a Software Bill of Materials (`SBoM`) and to comply with gpl licensing, produce another artifact which contains the source (`src`) to all the gpl licensed projects.  
-      * In addition to the `image`, `SBoM` and `src` artifacts, the build system produces an [OCI Index][oci-index] that encompassed the three artifacts.
-      * Each of the artifacts, and the encompassing `index` are signed with the Notary v2 wabbit-networks key.  
-2. The Wabbit Networks net-monitor index and its signed contents are pushed to a public OCI compliant registry.
+      * In addition to the `image` the `SBoM` and `src` artifacts are created as reference types to the image, creating a graph of artifacts.
+      * Each of the artifacts are signed with the Notary v2 wabbit-networks key.
+2. The Wabbit Networks signed contents are pushed to a public OCI compliant registry.
       * Docker can provide an additional Docker hub signature providing an extra level of certification confidence.
-3. ACME Rockets consumes the netmonitor software, importing the index and its referenced artifacts into their private registry.
+3. ACME Rockets consumes the `net-monitor` software, importing the referenced artifacts into their private registry.
       * ACME Rockets verifies the content, including additional scanning and functional testing for their environment.
       * The SBoM is trusted as they trust artifacts signed by wabbit-networks, or possibly defer trust to the Docker Hub certification signature.
       * They denote verification of the SBoM and scanning with an ACME Rockets signature.
@@ -39,7 +39,7 @@ In a world of consuming public software, we must account for content that's acqu
 **Implications of this requirement:**
 
 * Signatures can be placed on any type of [artifact](artifacts-repo) stored in an OCI compliant registry using an [OCI Manifest][oci-manifest]
-* Signatures can be placed on an [OCI Index][oci-index], allowing a entity to define a collection of artifacts.
+* Signatures can be persisted as references to the [OCI Manifest][oci-manifest], allowing a entity to define a collection of artifacts.
 * Signatures and their public keys can be moved within, and across OCI compliant registries which support Notary v2.
 * Because content is trusted, an ecosystem of other projects and products can leverage information in various formats.
 
@@ -91,10 +91,10 @@ A CI system is triggered by a git commit. The system builds the artifacts, signs
 1. The CI system clones the git repo and builds the artifacts, with fully qualified names:  
   **image**: `wabbitnetworks.example.com/networking/net-monitor:1.0-alpine`
   **deployment chart**: `wabbitnetworks.example.com/networking/net-monitor:1.0-deploy`
-1. The CI system signs the artifact with private keys.
-1. The CI system creates a signed OCI Index, referencing the image and deployment charts:  
+1. The CI system signs each artifact with private keys.
+2. The CI system creates reference between the signatures and the image and deployment chart:  
   `wabbitnetworks.example.com/networking/net-monitor:1.0`
-1. The index, and its contents are pushed to a registry:  
+3. The graph of artifacts and references are pushed to a registry:  
   `$ oci-tool push wabbitnetworks.example.com/networking/net-monitor:1.0-alpine`  
   `$ deploy-tool push wabbitnetworks.example.com/networking/net-monitor:1.0-deploy`  
   `$ oci-tool push wabbitnetworks.example.com/networking/net-monitor:1.0`
@@ -269,7 +269,6 @@ A weakness is discovered in a widely used cryptographic algorithm and a decision
 [jfrog]:            https://jfrog.com/integration/docker-registry/
 [oci-distribution]: https://github.com/opencontainers/distribution-spec
 [oci-image]:        https://github.com/opencontainers/image-spec
-[oci-index]:        https://github.com/opencontainers/image-spec/blob/master/image-index.md
 [oci-manifest]:     https://github.com/opencontainers/image-spec/blob/master/manifest.md
 [oci-tob]:          https://github.com/opencontainers/tob
 [singularity]:      https://github.com/sylabs/singularity
