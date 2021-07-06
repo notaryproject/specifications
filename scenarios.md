@@ -20,7 +20,7 @@ In a world of consuming public software, we must account for content that's acqu
 
 1. The Wabbit Networks company builds their `net-monitor` software.
       * As a result of the build, they produce an [OCI Image][oci-image], a Software Bill of Materials (`SBoM`) and to comply with gpl licensing, produce another artifact which contains the source (`src`) to all the gpl licensed projects.  
-      * In addition to the `image` the `SBoM` and `src` artifacts are created as reference types to the image, creating a graph of artifacts.
+      * The `SBoM` and `src` artifacts are created as reference types to the image, creating a graph of artifacts.
       * Each of the artifacts are signed with the Notary v2 wabbit-networks key.
 2. The Wabbit Networks signed contents are pushed to a public OCI compliant registry.
       * Docker can provide an additional Docker hub signature providing an extra level of certification confidence.
