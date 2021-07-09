@@ -26,7 +26,7 @@ Additional details for Notary v2 efforts:
 
 ![Notary v2 scenarios](./media/notary-e2e-scenarios.svg)
 
-Notary v2 provides for multiple signatures of an [OCI Artifact][oci-artifacts] (including container images) to be persisted in an [OCI conformant][oci-distribution-conformance] registry. Artifacts are signed (`nv2 sign ...`) with private keys, and validated with public keys (`nv2 verify ...`). To support user deployment flows, signing an OCI Artifact will not change the `@digest` or `artifact:tag` reference. To support content movement across multiple certification boundaries, artifacts and their signatures will be easily copied within and across [OCI conformant][oci-distribution-conformance] registries.
+Notary v2 provides for multiple signatures of an [OCI Artifact][oci-artifacts] (including container images) to be persisted in an [OCI conformant][oci-distribution-conformance] registry. Artifacts are signed (`nv2 sign`) with private keys, and validated with public keys (`nv2 verify`). To support user deployment flows, signing an OCI Artifact will not change the `@digest` or `artifact:tag` reference. To support content movement across multiple certification boundaries, artifacts and their signatures will be easily copied within and across [OCI conformant][oci-distribution-conformance] registries.
 
 ![Notary v2 dependent projects](./media/oss-project-sequence.svg)
 
