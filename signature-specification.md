@@ -2,6 +2,7 @@
 
 This document specifies the signature format and its protocol.
 
+
 ## Definition 
 
 A complete signature ![\Sigma = (m, \mu, \hat\mu, \sigma) \gets \mathbf{Sign}(sk, m)](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+%5CSigma+%3D+%28m%2C+%5Cmu%2C+%5Chat%5Cmu%2C+%5Csigma%29+%5Cgets+%5Cmathbf%7BSign%7D%28sk%2C+m%29) is a tuple of
@@ -17,6 +18,7 @@ where `sk` stands for signing key.
 A signature envelope ![\varepsilon_n = \{ m, (\mu_0, \hat\mu_0, \sigma_0), \dots, (\mu_{n-1}, \hat\mu_{n-1}, \sigma_{n-1}) \}](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+%5Cvarepsilon_n+%3D+%5C%7B+m%2C+%28%5Cmu_0%2C+%5Chat%5Cmu_0%2C+%5Csigma_0%29%2C+%5Cdots%2C+%28%5Cmu_%7Bn-1%7D%2C+%5Chat%5Cmu_%7Bn-1%7D%2C+%5Csigma_%7Bn-1%7D%29+%5C%7D) is a compact form of `n` signatures signing the same payload `m`. It can be expanded to ![\Sigma_i = (m, \mu_i, \hat\mu_i, \sigma_i),\ \forall i \in \mathbb{Z}_n](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+%5CSigma_i+%3D+%28m%2C+%5Cmu_i%2C+%5Chat%5Cmu_i%2C+%5Csigma_i%29%2C%5C+%5Cforall+i+%5Cin+%5Cmathbb%7BZ%7D_n).
 
 A complete signature ![\Sigma](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+%5CSigma) can be viewed as a signature envelope ![\varepsilon_1](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+%5Cvarepsilon_1).
+
 
 ## Requirements
 
@@ -60,6 +62,6 @@ Since payload is about the metadata of the artifact manifest to be signed and it
 - A signature format MAY be able to store signed signature metadata.
     - In case of a signature format candidate being unable to store signed signature metadata, the signed signature metadata can be combined with the payload before signing. Since the payload contains the signature specific metadata, the signature format loses the ability to store multiple signatures.
 - Signature format MUST support referencing and inlining of different identity types such as key(s) and certificate(s).
-- Signature format SHOULD be easy to implement using existing Go libraries(Docker CLIs are developed in Go).
-- Signature format MAY be able to store multiple signatures generated using same or different cryptographicmaterials(identity types and signing algoritms).
+- Signature format SHOULD be easy to implement using existing Go libraries (Docker CLIs are developed in Go).
+- Signature format MAY be able to store multiple signatures generated using same or different cryptographic materials (identity types and signing algorithms).
 - Signature format MAY support counter signature.
