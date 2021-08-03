@@ -16,10 +16,9 @@ Attacker Goals:
 3. To have a party deploy a different artifact than the one requested, including an older version when the latest is requested.
 4. Disrupt the verification of artifact signatures, for example by making the current version of metadata unavailable.
 5. Prevent a party from learning about updates to currently installed artifacts.
-6. Convince a party to download large amounts of data, such as signatures or metadata, that interfere with the party's system.
-7. Enable future attacks of the above types to be carried out more easily.  For example, by causing a party to trust the attacker's key.
+6. Enable future attacks of the above types to be carried out more easily.  For example, by causing a party to trust the attacker's key.
 
 ## Out of Scope
 The following attacks are considered out of scope for Notary v2:
-1. Denial of Service (DoS) attacks.
+1. Denial of Service (DoS) attacks, including endless data attacks. These should be considered at the registry level.
 2. Registry validation. A registry may choose to do validation when artifacts are uploaded, but this validation is out of scope of Notary v2.
