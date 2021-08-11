@@ -249,8 +249,8 @@ Cons:
 
 - No published RFC (or draft) and not commonly used. Only known usage is [in-toto](https://in-toto.io) and that [implementation also diverges from specification](https://github.com/secure-systems-lab/dsse/issues/40#issuecomment-882771124).
 - No native support for signed attributes but we can add them to the payload, by creating a wrapped payload that includes original payload and other attributes to be signed.
-- No native support for inlining of certificate(s). See [secure-systems-lab/dsse#42](https://github.com/secure-systems-lab/dsse/issues/42)
-- Support for timestamp is under consideration. See [secure-systems-lab/dsse#33](https://github.com/secure-systems-lab/dsse/issues/33)
+- No native support for inlining of certificate(s). See [secure-systems-lab/dsse#42](https://github.com/secure-systems-lab/dsse/issues/42).
+- Support for timestamp is under consideration. See [secure-systems-lab/dsse#33](https://github.com/secure-systems-lab/dsse/issues/33).
 
 <details><summary>Example (Click to show details)</summary>
 
@@ -283,7 +283,7 @@ Cons:
 
 `SignatureEnvelope`:
 
-```json
+```jsonc
 {
     "payload": "<Base64(Payload)>",
     "payloadType": "application/<TBD>",
