@@ -55,7 +55,7 @@ Recommendation is to **use JWS JSON Serialization** because of following reasons
 
 - Specifications are parts of [RFC](https://datatracker.ietf.org/doc/html/rfc7515#section-3.2) standards.
 - Native support for certificate(s), key id, signed and unsigned attributes.
-- Signing libraries available in Go: [square/go-jose](https://github.com/square/go-jose), [lestrrat-go/jwx](https://github.com/lestrrat-go/jwx), [golang-jwt/jwt](github.com/golang-jwt/jwt) library to produce/consume a JWS with compact serialization and convert it to/from JSON serialization by custom code.
+- Signing libraries available in Go: [square/go-jose](https://github.com/square/go-jose), [lestrrat-go/jwx](https://github.com/lestrrat-go/jwx), [golang-jwt/jwt](github.com/golang-jwt/jwt) or general JWT libraries to produce / consume a JWS in compact serialization and convert it to / from JSON serialization by custom code.
 - Security related concerns can be addressed with proper implementations.
 
 Concerns with DSSE:
