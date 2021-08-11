@@ -5,15 +5,15 @@ This document specifies the signature format and its protocol.
 
 ## Terminology
 
-`SignatureEnvelope` (![\varepsilon](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+%5Cvarepsilon)): The standard data structure for storing a signed message. Signature envelope consist of following components:
+SignatureEnvelope `e` : The standard data structure for storing a signed message. Signature envelope consist of following components:
 
-- Payload (![m](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+m)): The data that is integrity protected - e.g. container image descriptor.
-- Signed attributes (![\mu](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+%5Cmu)): The signature metadata that is integrity protected - e.g. signature expiration time, signing time, etc.
-- Unsigned attributes (![\hat\mu](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+%5Chat%5Cmu).): The signature metadata that is not integrity protected - e.g. keyid, publickey, etc.
-- Cryptographic signatures (![s](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+s)): The digital signatures computed on payload and signed attributes.
+- Payload `m`: The data that is integrity protected - e.g. container image descriptor.
+- Signed attributes `v`: The signature metadata that is integrity protected - e.g. signature expiration time, signing time, etc.
+- Unsigned attributes `u`: The signature metadata that is not integrity protected - e.g. keyid, publickey, etc.
+- Cryptographic signatures `s`: The digital signatures computed on payload and signed attributes.
 
-A signature ![s = \mathbf{Sign}(K_\text{priv}, m, \mu)](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+s+%3D+%5Cmathbf%7BSign%7D%28K_%5Ctext%7Bpriv%7D%2C+m%2C+%5Cmu%29) where ![K_\text{priv}](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+K_%5Ctext%7Bpriv%7D) stands for signing key.
-A signature envelope ![\varepsilon_n = \{ m, (\mu_0, \hat\mu_0, s_0), \dots, (\mu_{n-1}, \hat\mu_{n-1}, s_{n-1}) \}](https://render.githubusercontent.com/render/math?math=%5Ctextstyle+%5Cvarepsilon_n+%3D+%5C%7B+m%2C+%28%5Cmu_0%2C+%5Chat%5Cmu_0%2C+s_0%29%2C+%5Cdots%2C+%28%5Cmu_%7Bn-1%7D%2C+%5Chat%5Cmu_%7Bn-1%7D%2C+s_%7Bn-1%7D%29+%5C%7D) is a compact form of `n` signatures signing the same payload `m`.
+A signature `s = Sign(sk, m, v)` where `sk` stands for signing key.
+A signature envelope `e_n = { m, (v_0, u_0, s_0), ..., (v_{n-1}, u_{n-1}, s_{n-1})}` is a compact form of `n` signatures signing the same payload `m`.
 
 ![A complete signature in OCI registry](media/signature-structure.svg)
 
