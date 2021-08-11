@@ -49,8 +49,23 @@ A signature envelope `e_n = { m, (v_0, u_0, s_0), ..., (v_{n-1}, u_{n-1}, s_{n-1
 
 ## Recommendation
 
-Recommendation is to **use extended version of [DSSE](#Dead-Simple-Signature-Envelope-DSSE)** by adding support for timestamp and certificate(s). 
- 
-Adopting JWS (the second choice) requires writing an implementation that compensates for the flexibility and lack of specificity in the format, which makes it difficult to maintain and potentially error prone in the long run
-- Requires a strict set of validations for supported headers and algorithm values so that the fomat cannot be used in unintended ways.
-- Workarounds for determining signing algorithm from cert chain or key store instead of from the required `alg` header.
+### Signature format
+
+Recommendation is to **use JWS JSON Serialization** because of following reasons:
+
+- Specifications are parts of [RFC](https://datatracker.ietf.org/doc/html/rfc7515#section-3.2) standards.
+- Native support for certificate(s), key id, signed and unsigned attributes.
+- Signing libraries available in Go: [square/go-jose](https://github.com/square/go-jose), [lestrrat-go/jwx](https://github.com/lestrrat-go/jwx), [golang-jwt/jwt](github.com/golang-jwt/jwt) library to produce/consume a JWS with compact serialization and convert it to/from JSON serialization by custom code.
+- Security related concerns can be addressed with proper implementations.
+
+Concerns with DSSE:
+
+- No published RFC (or draft).
+- New format that is used in few projects.
+- Does not currently support TSA signature and certificate(s) chain as part of the envelope. See [secure-systems-lab/dsse#42](https://github.com/secure-systems-lab/dsse/issues/42),  [secure-systems-lab/dsse#33](https://github.com/secure-systems-lab/dsse/issues/33).
+- Additional effort required to certify implementations with security groups of cloud service providers before adoption.
+- Being a new format, additional effort is involved to get the implementations reviewed and certified by the compliance & security boards of cloud service providers before its usage. This is a part of component governance which is considered as a strict requirement to adopt technologies and implementations in cloud environments.
+
+### Payload
+
+Recommendation for payload is TBD.
