@@ -252,14 +252,17 @@ A weakness is discovered in a widely used cryptographic algorithm and a decision
 
 ### Scenario #12: Using multiple roots of trust
 
-A user using multiple registries will want to ensure artifacts are verified using the correct root of trust. For example, if an artifact is supposed to be signed by a key delegated to their private registry, they never want to download a version signed by a key from a public registry. Additionally, they may always want to look for artifacts signed by their private registry key first, and so want an enforced ordering of roots of trust.
+A user using multiple registries will want to ensure artifacts are verified using the correct root of trust. For example, if an artifact is supposed to be signed by a key delegated to by the root of trust for their private registry, they never want to download a version signed by a key delegated from from a public root of trust for a public registry. Additionally, if there are multiple roots of trust that are trusted for a particular package, they want to ensure that these are priortized to ensure a consistent resolution.
 
-1. The user attempts to download and verify a package using roots of trust in priority order.
+1. The user defines a policy that sets the scope of each root of trust.
+1. The user attempts to download and verify a package using roots of trust that is scoped for that package.
+1. If the scopes of multiple roots of trust overlap, the user checks the roots in priority order.
 1. Notary v2 verifies that each specific artifact may be verified using a given root of trust during validation using the user's configuration information.
 
 **Implications of this requirement**
 
-1. Users must be able to prioritize each root of trust that they use.
+1. Users must be able to set a scope for each root of trust that they use.
+1. The user may need to additionally set a priority if these scopes overlap.
 1. Users must be able to specify that a particular artifact may only be verified using a key delegated from a given root of trust.
 
 ## Open Discussions
