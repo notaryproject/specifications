@@ -275,6 +275,19 @@ A signer determines that a signed artifact is no longer trusted. This could be a
 1. Attackers attempting to replay revoked signatures should be detected by the verification.
 1. Revoking the signature for a single artifact should not require revoking the signer's key or signatures for all other artifacts by the same signer.
 
+### Scenario #12: Chaining from a trusted key
+
+If a user does not have a specific key for a given artifact, verified using a third party system, they will need to determine the trusted signing key(s) for an artifact by chaining from a trusted key.
+
+1. The user determines the trusted key(s) for a specific artifact using delegations from a trusted root.
+1. The user downloads and verifies an artifact using Notary v2 and the trusted key(s) discovered in the previous step.
+
+**Implications of this requirement**
+
+1. Users must be able to use the chain of trust to obtain per-package trusted keys, verified by a trusted root.
+1. Users must be able to access the chain of delegations.
+1. Users must be able to configure roots of trust.
+
 ## Open Discussions
 
 * What is the relationship between a signature, an artifact and a registry?
