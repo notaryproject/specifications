@@ -284,8 +284,7 @@ If a user does not have a specific key for a given artifact, verified using a th
 
 **Implications of this requirement**
 
-1. Users must be able to use the chain of trust to obtain per-package trusted keys, verified by a trusted root.
-1. Users must be able to access the chain of delegations.
+1. 1. Users must be able to to access a chain of trust that links the signing key for a particular artifact to a trusted root.
 1. Users must be able to configure roots of trust.
 
 ## Open Discussions
