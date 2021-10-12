@@ -9,16 +9,14 @@ The document consists of following sections:
 ## Storage
 This section describes how Notary v2 signatures are stored in the OCI Distribution conformant registry.
 Notary v2 uses [ORAS artifact manifest](https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md) to store the signature in the repository. The signature artifact manifest consists of a signature type, a reference to the manifest of the artifact being signed, a blob referencing to the signature, and a collection of annotations.
-
--<img src="media/signature-specification.jpg" width="550" height="450">
+<img src="media/signature-specification.jpg" width="550" height="450">
 
 - **`artifactType`**: Used to identify the Notary signature artifact. The supported value is `application/vnd.cncf.notary.v2`.
 - **`blobs`**: A collection consisting of only one [artifact descriptor](https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md) that refers to a signature envelope.
    - **`mediaType`**: Defines the media type of signature envelope blob. The supported value is `application/jose+json`
 - **`subject`**: An artifact descriptor referencing to image manifest that is signed.
 - **`annotations`**: This OPTIONAL property contains arbitrary metadata for the artifact manifest. It can be used to store information about the signature.
-
-```
+```json
 {
  "artifactType": "application/vnd.cncf.notary.v2",
  "blobs": [
@@ -58,7 +56,7 @@ Notary v2 supports [JWS JSON Serialization](https://datatracker.ietf.org/doc/htm
 Notary v2 requires Payload to be the [descriptor](https://github.com/opencontainers/image-spec/blob/master/descriptor.md#properties) of the target manifest that is being signed.  
 1. Descriptor MUST contain `mediaType`, `digest`, `size` fields.
 1. Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests or annotations.
-```
+```json
 {
    "mediaType": "application/vnd.oci.image.manifest.v1+json",
    "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
@@ -95,17 +93,17 @@ Notary v2 is using one private claim(notary) and two public claims(iat and exp).
        "attributes": {
            "reserved": {
                "key1": "value1",
-               "key2": "value2"
+               "key2": "value2",
                ...
            },
            "custom" : {
                "customKey1": "customValue1",
-               "customKey2": "customValue2"
+               "customKey2": "customValue2",
                ...
            }
        }
    },
-   "iat": 0123456789101,
+   "iat": 1234567891000,
    "exp": 1234567891011
 }
 ```
@@ -176,7 +174,7 @@ If a JWS contains only one signature as above, the JWS can be flattened as
 ```json
 {
    "payload": "<Base64Url(JWSPayload)>",
-   "protected": "<Base64Url(ProtectedHeaders)>"
+   "protected": "<Base64Url(ProtectedHeaders)>",
    "header": {
      "timestamp": "<Base64Url(TimeStampToken)>",
      "x5c": ["<Base64(DER(leafCert))>", "<Base64(DER(intermediateCACert))>", "<Base64(DER(rootCert))>"]
