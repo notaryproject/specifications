@@ -124,7 +124,7 @@ Notary v2 uses only 3 protected headers: alg, cty, and crit.
 ```json
 {
    "alg": "RS256",
-   "cty": "application/vnd.cncf.notary.v2.jws.v0",
+   "cty": "application/vnd.cncf.notary.v2.jws.v1",
    "crit":["cty"]
 }
 ```
