@@ -8,14 +8,14 @@ The document consists of following sections:
 
 ## Storage
 This section describes how Notary v2 signatures are stored in the OCI Distribution conformant registry.
-Notary v2 uses [ORAS artifact manifest](https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md) to store the signature in the repository. The signature artifact manifest consists of a signature type, a reference to the manifest of the artifact being signed, a blob referencing to the signature, and a collection of annotations.
-<img src="media/signature-specification.jpg" width="550" height="450">
+Notary v2 uses [ORAS artifact manifest](https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md) to store the signature in the repository. The manifest that contains the signature is of type `application/vnd.cncf.oras.artifact.manifest.v1+json`. The signature artifact manifest consists of a signature type, a reference to the manifest of the artifact being signed, a blob referencing to the signature, and a collection of annotations.
+![Signature storage inside registry](media/signature-specification.svg)
 
-- **`artifactType`**: Used to identify the Notary signature artifact. The supported value is `application/vnd.cncf.notary.v2`.
-- **`blobs`**: A collection consisting of only one [artifact descriptor](https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md) that refers to a signature envelope.
-   - **`mediaType`**: Defines the media type of signature envelope blob. The supported value is `application/jose+json`
-- **`subject`**: An artifact descriptor referencing to image manifest that is signed.
-- **`annotations`**: This OPTIONAL property contains arbitrary metadata for the artifact manifest. It can be used to store information about the signature.
+- **`artifactType`**(*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.v2`.
+- **`blobs`**(*array of objects*): This REQUIRED property contains collection of only one [artifact descriptor](https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md) referencing signature envelope.
+   - **`mediaType`**(*string*): This REQUIRED property contains media type of signature envelope blob. The supported value is `application/jose+json`
+- **`subject`**(*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
+- **`annotations`**(*string-string map*): This OPTIONAL property contains arbitrary metadata for the artifact manifest. It can be used to store information about the signature.
 ```json
 {
  "artifactType": "application/vnd.cncf.notary.v2",
@@ -38,12 +38,12 @@ Notary v2 uses [ORAS artifact manifest](https://github.com/oras-project/artifact
 ```
 
 ### Signature Discovery
-The client should be able to discover all the signatures belonging to an artifact(such as image manifest) by using [ORAS Manifest Referrers API](https://github.com/oras-project/artifacts-spec/blob/main/manifest-referrers-api.md). ORAS Manifest Referrers API returns a paginated list of all artifacts belonging to a target artifact(such as image manifest). The implementation can filter Notary signature artifacts by either using ORAS Manifest Referrers API or using custom logic on the client. Each Notary signature artifact refers to a signature envelope blob.  
+The client should be able to discover all the signatures belonging to an artifact(such as image manifest) by using [ORAS Manifest Referrers API](https://github.com/oras-project/artifacts-spec/blob/main/manifest-referrers-api.md). ORAS Manifest Referrers API returns a paginated list of all artifacts belonging to a target artifact(such as container images, sboms). The implementation can filter Notary signature artifacts by either using ORAS Manifest Referrers API or using custom logic on the client. Each Notary signature artifact refers to a signature envelope blob.  
 
 
 ## Signature Envelope
 The Signature Envelope is a standard data structure for creating a signed message. A signature envelope consists of the following components:
-* Payload(m): The data that is integrity protected - e.g. container image descriptor.
+* Payload(m): The data that is integrity protected - e.g. descriptor of the artifact being signed.
 * Signed attributes(v): The signature metadata that is integrity protected - e.g. signature expiration time, signing time, etc.
 * Unsigned attributes(u): This OPTIONAL property represents signature metadata that is not integrity protected - e.g. timestamp, certificates, etc.
 * Cryptographic signatures(s): The digital signatures computed on payload and signed attributes.
@@ -53,14 +53,25 @@ A signature envelope is `e = {m, v, u, s}` where `s` is signature.
 Notary v2 supports [JWS JSON Serialization](https://datatracker.ietf.org/doc/html/rfc7515) as signature envelope format with some additional constraints but is extensible to support any other signature envelope format.
 
 ### Payload
-Notary v2 requires Payload to be the [descriptor](https://github.com/opencontainers/image-spec/blob/master/descriptor.md#properties) of the target manifest that is being signed.  
+Notary v2 requires Payload to be the [descriptor](https://github.com/opencontainers/image-spec/blob/master/descriptor.md#properties) of the subject manifest that is being signed.
 1. Descriptor MUST contain `mediaType`, `digest`, `size` fields.
-1. Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests or annotations.
+2. Descriptor MAY contain `annotations`. The `annotations` are being used to store signed attributes.
+3. Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
+
+Examples:
 ```json
 {
    "mediaType": "application/vnd.oci.image.manifest.v1+json",
    "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
    "size": 16724
+}
+```
+
+```json
+{
+   "mediaType": "sbom/example",
+   "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+   "size": 32654
 }
 ```
 
@@ -75,10 +86,9 @@ Notary v2 requires the signature envelope to support the following signed attrib
 
 ### Supported Signature Envelopes
 #### JWS JSON Serialization
-In JWS JSON Serialization([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)), data is stored as either claims or headers(protected and unprotected).  
-Notary v2 uses JWS JSON Serialization for the signature envelope with some additional constraints on the structure of claims and headers.
+In JWS JSON Serialization([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)), data is stored as either claims or headers(protected and unprotected). Notary v2 uses JWS JSON Serialization for the signature envelope with some additional constraints on the structure of claims and headers.
 
-Unless explicitly specified as OPTIONAL, all fields are mandatory. Also, there shouldn’t be any additional fields other than ones specified in JWSPayload, ProtectedHeader, and UnprotectedHeader.
+Unless explicitly specified as OPTIONAL, all fields are required. Also, there shouldn’t be any additional fields other than ones specified in JWSPayload, ProtectedHeader, and UnprotectedHeader.
 
 **JWSPayload a.k.a. Claims**:
 Notary v2 is using one private claim(notary) and two public claims(iat and exp). An example of the claim is described below
@@ -88,17 +98,10 @@ Notary v2 is using one private claim(notary) and two public claims(iat and exp).
        "subject": {
            "mediaType": "application/vnd.oci.image.manifest.v1+json",
            "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-           "size": 16724
-       },
-       "attributes": {
-           "reserved": {
-               "key1": "value1",
-               "key2": "value2",
-               ...
-           },
-           "custom" : {
-               "customKey1": "customValue1",
-               "customKey2": "customValue2",
+           "size": 16724,
+           "annotations": {
+              "key1": "value1",
+              "key2": "value2",
                ...
            }
        }
@@ -109,18 +112,19 @@ Notary v2 is using one private claim(notary) and two public claims(iat and exp).
 ```
 The payload contains the subject manifest and other attributes that have to be integrity protected.
 
-* **`notary`**: The top-level node and a private claim encapsulating the notary v2 data.
-* **`subject`**: The manifest that needs to be integrity protected.
-* **`attributes`**: Contains additional attributes that need to be integrity protected.
-   * **`reserved`**: The collection of attributes reserved for notary v2 use such as artifact revocation list, identity, etc. The attributes MUST be key(string)-value(string) pair. These attributes are yet to be defined.
-   * **`custom`**: The collection of user-defined attributes such as buildId, imageScanned, etc. The attributes MUST be key(string)-value(string) pair. The use of this field is OPTIONAL.
-* **`iat`**: Issued at identifies the time at which the signature was issued.
-* **`exp`**: Expiration time identifies the expiration time on or after which the signature must not be considered valid. The use of this claim is OPTIONAL.
+* **`notary`**(*string-string map*): This is a REQUIRED top-level node and a private claim encapsulating the notary v2 data.
+* **`subject`**(*descriptor*): A REQUIRED manifest that needs to be integrity protected.
+  * **`mediaType`**(*string*): This REQUIRED property contains the media type of the referenced content.
+  * **`size`**(*int64*): This REQUIRED property specifies the size, in bytes, of the raw content.
+  * **`digest`**(*string*): This REQUIRED property is the _digest_ of the targeted content.
+  * **`annotations`**(*string-string map*): This OPTIONAL property contains signed attributes and MUST follow the [annotation rules](https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules). The prefix `org.opencontainers.notary` is reserved for use in Notary v2 and MUST NOT be used outside this specification.
+* **`iat`**(*number*): The REQUIRED property Issued-at(iat) identifies the time at which the signature was issued.
+* **`exp`**(*number*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid. 
 
 To leverage JWS claims validation functionality already provided by libraries, we have defined `iat`, `exp` as top-level nodes.
 
 **ProtectedHeaders**:
-Notary v2 uses only 3 protected headers: alg, cty, and crit.
+Notary v2 supports only three protected headers: alg, cty, and crit.
 ```json
 {
    "alg": "RS256",
@@ -128,49 +132,34 @@ Notary v2 uses only 3 protected headers: alg, cty, and crit.
    "crit":["cty"]
 }
 ```
-* **`alg`**: JWS needs algorithm(alg) to be present in the header, so we have added it as a protected header.
-* **`cty`**: Content type(cty) used to declare the media type of the secured content(the payload). This will be used to version different variotions of JWS signature. The supported value is `application/vnd.cncf.notary.v2.jws.v0`.
-* **`crit`**: Indicates the list of headers that implementation MUST be understood and processed. The value MUST be `["cty"]`.
+* **`alg`**(*string*): This REQUIRED property defines which algorithm was used to generate the signature. JWS needs an algorithm(alg) to be present in the header, so we have added it as a protected header.
+* **`cty`**(*string*): The REQUIRED property content-type(cty) is used to declare the media type of the secured content(the payload). This will be used to version different variotions of JWS signature. The supported value is `application/vnd.cncf.notary.v2.jws.v0`.
+* **`crit`**(*array of strings*): This REQUIRED property lists the headers that implementation MUST understand and process. The value MUST be `["cty"]`.
 
 **UnprotectedHeaders**:
-Notary v2 uses only 2 unprotected headers: timestamp and x5c.
+Notary v2 supports only two unprotected headers: timestamp and x5c.
 ```
 {
    "timestamp": "<Base64Url(TimeStampToken)>",
    "x5c": ["<Base64(DER(leafCert))>", "<Base64(DER(intermediateCACert))>", "<Base64(DER(rootCert))>"]
 }
 ```
-* **`timestamp`**: Used to store time stamp token. Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported. Use of this header is OPTIONAL.
-* **`x5c`**: Contains the X.509 public key certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the JWS.
+* **`timestamp`**(*string*): This OPTIONAL property is used to store time stamp token. Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
+* **`x5c`**(*array of strings*): This REQUIRED property contains the list of X.509 certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the JWS.
 
 **Signature**:
 In JWS signature is calculated by combining JWSPayload and protected headers. The process is described below:
-1. Compute the base64url value of ProtectedHeaders.
-2. Compute the base64url value of JWSPayload.
+1. Compute the Base64Url value of ProtectedHeaders.
+2. Compute the Base64Url value of JWSPayload.
 3. Build message to be signed by concatenating the values generated in step 1 and step 2 using '.'
 `ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
 4. Compute the signature on the message constructed in the previous step by using the signature algorithm defined in the corresponding header element: alg.
-5. Compute the base64url value of the signature produced in the previous step. This is the value of the signature property used in the signature envelope.
+5. Compute the Base64Url value of the signature produced in the previous step. This is the value of the signature property used in the signature envelope.
 
 **Signature Envelope**:
 The final signature envelope comprises of Claims, ProtectedHeaders, UnprotectedHeaders, and signature.
-```json
-{
-   "payload": "<Base64Url(JWSPayload)>",
-   "signatures": [
-       {
-           "protected": "<Base64Url(ProtectedHeaders)>",
-           "header": {
-               "timestamp": "<Base64Url(TimeStampToken)>",
-               "x5c": ["<Base64(DER(leafCert))>", "<Base64(DER(intermediateCACert))>", "<Base64(DER(rootCert))>"]
-           },
-           "signature": "Base64Url( sign( ASCII( <Base64Url(JWSPayload)>.<Base64Url(ProtectedHeader)> )))"  
-       }
-   ]
-}
-```
-If a JWS contains only one signature as above, the JWS can be flattened as
 
+Since Notary v2 restricts one signature per signature envelope, the compliant signature envelope MUST be in flattened JWS JSON format.
 ```json
 {
    "payload": "<Base64Url(JWSPayload)>",
@@ -183,18 +172,19 @@ If a JWS contains only one signature as above, the JWS can be flattened as
 }
 ```
 
-++**Implementation Constraints**++
+**Implementation Constraints**
 Notary v2 implementation MUST enforce the following constraints on signature generation and verification:
-* `alg` header value MUST NOT be `none` or any symmetric-key algorithm such as `HMAC`.
-* `alg` header value MUST be same as that of signature algorithm identified using signing certificate's public key algorithm and size.
-* `alg` header values for various signature algorithms:
+1. `alg` header value MUST NOT be `none` or any symmetric-key algorithm such as `HMAC`.
+2. `alg` header value MUST be same as that of signature algorithm identified using signing certificate's public key algorithm and size.
+3. `alg` header values for various signature algorithms:
    | Signature Algorithm    | "alg" Param Value |
    | --------    | -------- |
    | ECDSA on secp256r1 with SHA-256 | ES256     |
    | ECDSA on secp256r1 with SHA-512 | ES256     |
    | RSASSA-PSS with SHA-256   | PS256     |
    | RSASSA-PSS with SHA-512   | PS512     |
-* Signing certificate MUST be a valid codesigning certificate.
+4. Signing certificate MUST be a valid codesigning certificate.
+5. Only JWS JSON flattened format is supported. See 'Signature Envelope' section.
 
 ## Signature Algorithms
 The implementation MUST support the following set of algorithms:
@@ -218,11 +208,11 @@ The signing certificate's public key algorithm and size MUST be used to determin
 |ECDSA| 384   | ECDSA on secp384r1 with SHA-384     |
 |ECDSA| 512   | ECDSA on secp521r1 with SHA-512     |
 
-### FAQ
-1. How will Notary v2 support multiple signature envelope format?
+## FAQ
+**Q1.** How will Notary v2 support multiple signature envelope format?
 
-    The general idea is to use `mediaType` of artifact manifest's blob to identify the signature artifact(like jws, cms, dsse,etc). The client implementation can use aformentioned `mediaType` to parse the signature envelope.
+The idea is to use `mediaType` of artifact manifest's blob to identify the signature artifact(like jws, cms, dsse, etc). The client implementation can use the aforementioned `mediaType` to parse the signature envelope.
     
-1. How will Noatary v2 handle non-backward compatible changes to signature format.
-    
-    Signature envelope MUST have versioning  mechanism to support non-backward compatible changes.
+**Q2.** How will Notary v2 handle non-backward compatible changes to signature format?
+
+The Signature envelope MUST have a versioning mechanism to support non-backward compatible changes.
