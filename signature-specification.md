@@ -1,14 +1,14 @@
 # Signature Specification
 
 This document describes how Notary v2 signatures are created and stored.
-The document consists of following sections:
+The document has following sections:
 * **[Storage](#storage)**: Describes how signatures are stored in OCI registry
 * **[Signature Envelope](#signature-envelope)**: Describes how signatures are created.
 
 
 ## Storage
 This section describes how Notary v2 signatures are stored in the OCI Distribution conformant registry.
-Notary v2 uses [ORAS artifact manifest](https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md) to store the signature in the repository. The manifest that contains the signature is of type `application/vnd.cncf.oras.artifact.manifest.v1+json`. The signature artifact manifest consists of a signature type, a reference to the manifest of the artifact being signed, a blob referencing to the signature, and a collection of annotations.
+Notary v2 uses [ORAS artifact manifest](https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md) to store the signature in the repository. The media type of the signature manifest is `application/vnd.cncf.oras.artifact.manifest.v1+json`. The signature manifest has an artifact type which specifies it's a Notary V2 signature, a reference to the manifest of the artifact being signed, a blob referencing the signature, and a collection of annotations.
 ![Signature storage inside registry](media/signature-specification.svg)
 
 - **`artifactType`**(*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.v2`.
@@ -133,7 +133,7 @@ Notary v2 supports only three protected headers: alg, cty, and crit.
 }
 ```
 * **`alg`**(*string*): This REQUIRED property defines which algorithm was used to generate the signature. JWS needs an algorithm(alg) to be present in the header, so we have added it as a protected header.
-* **`cty`**(*string*): The REQUIRED property content-type(cty) is used to declare the media type of the secured content(the payload). This will be used to version different variotions of JWS signature. The supported value is `application/vnd.cncf.notary.v2.jws.v0`.
+* **`cty`**(*string*): The REQUIRED property content-type(cty) is used to declare the media type of the secured content(the payload). This will be used to version different variations of JWS signature. The supported value is `application/vnd.cncf.notary.v2.jws.v0`.
 * **`crit`**(*array of strings*): This REQUIRED property lists the headers that implementation MUST understand and process. The value MUST be `["cty"]`.
 
 **UnprotectedHeaders**:
