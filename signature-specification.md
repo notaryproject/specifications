@@ -11,14 +11,14 @@ This section describes how Notary v2 signatures are stored in the OCI Distributi
 Notary v2 uses [ORAS artifact manifest](https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md) to store the signature in the repository. The media type of the signature manifest is `application/vnd.cncf.oras.artifact.manifest.v1+json`. The signature manifest has an artifact type which specifies it's a Notary V2 signature, a reference to the manifest of the artifact being signed, a blob referencing the signature, and a collection of annotations.
 ![Signature storage inside registry](media/signature-specification.svg)
 
-- **`artifactType`**(*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.v2`.
+- **`artifactType`**(*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.v2.signature`.
 - **`blobs`**(*array of objects*): This REQUIRED property contains collection of only one [artifact descriptor](https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md) referencing signature envelope.
    - **`mediaType`**(*string*): This REQUIRED property contains media type of signature envelope blob. The supported value is `application/jose+json`
 - **`subject`**(*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
 - **`annotations`**(*string-string map*): This OPTIONAL property contains arbitrary metadata for the artifact manifest. It can be used to store information about the signature.
 ```json
 {
- "artifactType": "application/vnd.cncf.notary.v2",
+ "artifactType": "application/vnd.cncf.notary.v2.signature",
  "blobs": [
    {
      "mediaType": "application/jose+json",
@@ -50,7 +50,7 @@ The Signature Envelope is a standard data structure for creating a signed messag
 
 A signature envelope is `e = {m, v, u, s}` where `s` is signature.
 
-Notary v2 supports [JWS JSON Serialization](https://datatracker.ietf.org/doc/html/rfc7515) as signature envelope format with some additional constraints but is extensible to support any other signature envelope format.
+Notary v2 supports [JWS JSON Serialization](https://datatracker.ietf.org/doc/html/rfc7515) as signature envelope format with some additional constraints but makes provisions to support additional signature envelope format.
 
 ### Payload
 Notary v2 requires Payload to be the [descriptor](https://github.com/opencontainers/image-spec/blob/master/descriptor.md#properties) of the subject manifest that is being signed.
@@ -133,7 +133,7 @@ Notary v2 supports only three protected headers: alg, cty, and crit.
 }
 ```
 * **`alg`**(*string*): This REQUIRED property defines which algorithm was used to generate the signature. JWS needs an algorithm(alg) to be present in the header, so we have added it as a protected header.
-* **`cty`**(*string*): The REQUIRED property content-type(cty) is used to declare the media type of the secured content(the payload). This will be used to version different variations of JWS signature. The supported value is `application/vnd.cncf.notary.v2.jws.v0`.
+* **`cty`**(*string*): The REQUIRED property content-type(cty) is used to declare the media type of the secured content(the payload). This will be used to version different variations of JWS signature. The supported value is `application/vnd.cncf.notary.v2.jws.v1`.
 * **`crit`**(*array of strings*): This REQUIRED property lists the headers that implementation MUST understand and process. The value MUST be `["cty"]`.
 
 **UnprotectedHeaders**:
@@ -211,8 +211,9 @@ The signing certificate's public key algorithm and size MUST be used to determin
 ## FAQ
 **Q1.** How will Notary v2 support multiple signature envelope format?
 
-The idea is to use `mediaType` of artifact manifest's blob to identify the signature artifact(like jws, cms, dsse, etc). The client implementation can use the aforementioned `mediaType` to parse the signature envelope.
+The idea is to use `mediaType` of artifact manifest's blob to identify the signature envelope type(like jws, cms, dsse, etc). The client implementation can use the aforementioned `mediaType` to parse the signature envelope.
     
 **Q2.** How will Notary v2 handle non-backward compatible changes to signature format?
 
-The Signature envelope MUST have a versioning mechanism to support non-backward compatible changes.
+The Signature envelope MUST have a versioning mechanism to support non-backward compatible changes. For [JWS JSON serialization](#jws-json-serialization) signature envelope it is achieved by `cty` field in ProtectedHeaders.
+
