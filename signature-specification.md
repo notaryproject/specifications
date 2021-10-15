@@ -55,7 +55,7 @@ Notary v2 supports [JWS JSON Serialization](https://datatracker.ietf.org/doc/htm
 ### Payload
 Notary v2 requires Payload to be the [descriptor](https://github.com/opencontainers/image-spec/blob/master/descriptor.md#properties) of the subject manifest that is being signed.
 1. Descriptor MUST contain `mediaType`, `digest`, `size` fields.
-2. Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules](https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules). In Notary v2 annotations are being used to store signed attributes. The prefix for Notary v2 use is not yet finalized. See [issues-106](https://github.com/notaryproject/notaryproject/issues/106)
+2. Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules](https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules). In Notary v2 annotations are being used to store signed attributes. The annotations key prefix for Notary v2 use is not yet finalized. See [issues-106](https://github.com/notaryproject/notaryproject/issues/106)
 3. Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
 
 Examples:
