@@ -55,7 +55,7 @@ Notary v2 supports [JWS JSON Serialization](https://datatracker.ietf.org/doc/htm
 ### Payload
 Notary v2 requires Payload to be the [descriptor](https://github.com/opencontainers/image-spec/blob/master/descriptor.md#properties) of the subject manifest that is being signed.
 1. Descriptor MUST contain `mediaType`, `digest`, `size` fields.
-2. Descriptor MAY contain `annotations`. The `annotations` are being used to store signed attributes.
+2. Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules](https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules). The prefix `org.opencontainers.notary` is reserved for use in Notary v2 and MUST NOT be used outside this specification. In Notary v2 annotations are being used to store signed attributes
 3. Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
 
 Examples:
@@ -113,11 +113,7 @@ Notary v2 is using one private claim(notary) and two public claims(iat and exp).
 The payload contains the subject manifest and other attributes that have to be integrity protected.
 
 * **`notary`**(*string-string map*): This is a REQUIRED top-level node and a private claim encapsulating the notary v2 data.
-* **`subject`**(*descriptor*): A REQUIRED manifest that needs to be integrity protected.
-  * **`mediaType`**(*string*): This REQUIRED property contains the media type of the referenced content.
-  * **`size`**(*int64*): This REQUIRED property specifies the size, in bytes, of the raw content.
-  * **`digest`**(*string*): This REQUIRED property is the _digest_ of the targeted content.
-  * **`annotations`**(*string-string map*): This OPTIONAL property contains signed attributes and MUST follow the [annotation rules](https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules). The prefix `org.opencontainers.notary` is reserved for use in Notary v2 and MUST NOT be used outside this specification.
+* **`subject`**(*descriptor*): A REQUIRED manifest that needs to be integrity protected. Please refer [Payload](#payload) for more details.
 * **`iat`**(*number*): The REQUIRED property Issued-at(iat) identifies the time at which the signature was issued.
 * **`exp`**(*number*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid. 
 
