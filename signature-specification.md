@@ -202,7 +202,7 @@ Since Notary v2 restricts one signature per signature envelope, the compliant si
    | RSASSA-PSS with SHA-512         | PS512             |
    | ECDSA on secp256r1 with SHA-256 | ES256             |
    | ECDSA on secp384r1 with SHA-384 | ES384             |
-   | ECDSA on secp256r1 with SHA-512 | ES512             |
+   | ECDSA on secp521r1 with SHA-512 | ES512             |
 
 4. Signing certificate MUST be a valid codesigning certificate.
 5. Only JWS JSON flattened format is supported. See 'Signature Envelope' section.
