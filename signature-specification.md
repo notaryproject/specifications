@@ -115,17 +115,15 @@ Notary v2 is using one private claim (`notary`) and two public claims (`iat` and
 
 ```json
 {
-   "notary": {  
-       "subject": {
-           "mediaType": "application/vnd.oci.image.manifest.v1+json",
-           "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-           "size": 16724,
-           "annotations": {
-              "key1": "value1",
-              "key2": "value2",
-               ...
-           }
-       }
+   "subject": {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+      "size": 16724,
+      "annotations": {
+         "key1": "value1",
+         "key2": "value2",
+         ...
+      }
    },
    "iat": 1234567891000,
    "exp": 1234567891011
@@ -134,10 +132,9 @@ Notary v2 is using one private claim (`notary`) and two public claims (`iat` and
 
 The payload contains the subject manifest and other attributes that have to be integrity protected.
 
-- **`notary`** (*string-object map*): This is a REQUIRED top-level node and a private claim encapsulating the notary v2 data.
-- **`subject`** (*descriptor*): A REQUIRED manifest that needs to be integrity protected. Please refer [Payload](#payload) section for more details.
-- **`iat`** (*number*): The REQUIRED property Issued-at (`iat`) identifies the time at which the signature was issued.
-- **`exp`** (*number*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid. 
+* **`subject`**(*descriptor*): A REQUIRED top-level node consisting of the manifest that needs to be integrity protected. Please refer [Payload](#payload) section for more details.
+* **`iat`**(*number*): The REQUIRED property Issued-at(`iat`) identifies the time at which the signature was issued.
+* **`exp`**(*number*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid. 
 
 To leverage JWS claims validation functionality already provided by libraries, we have defined `iat`, `exp` as top-level nodes.
 
