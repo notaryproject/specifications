@@ -100,7 +100,7 @@ The trust policy is represented as JSON data structure as shown below:
 ```
 Property descriptions
 * **`version`**(*string*): This REQUIRED property is the version of the trust policy. The supported value is `1.0`.
-* **`trustPolicies`**(*array of objects*): This REQUIRED property represents a collection of trust policies. As of now Notary v2 only supports one trust policy.
+* **`trustPolicies`**(*string-object map*): This REQUIRED property represents a collection of trust policies. As of now Notary v2 only supports one trust policy.
    * **`name`**(*string*): The name of the trust policy
    * **`trustStores`**(*array of strings*): This REQUIRED property specifies a list of names of trust stores that the user trusts.
    * **`expiryValidations`**(*object*): This REQUIRED property represents a collection of artifact expiry-related validations.
