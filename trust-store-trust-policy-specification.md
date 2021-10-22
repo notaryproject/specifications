@@ -1,5 +1,5 @@
 # Trust Store and Trust Policy Specification
-This document describes how Notary v2 signatures are evaluated for trust. The document comprises of following sections:
+This document describes how Notary v2 signatures are evaluated for trust. The document consists of following sections:
 * **[Trust Store](#trust-store)**: Defines set of signing identity that user trusts.
 * **[Trust Policy](#trust-policy)**: Defines how the artifact is evaluated for trust.
 
@@ -19,7 +19,7 @@ The trust store is represented as JSON data structure as shown below:
         "trust-store-name-1": {
             "identities": {
                 "x509Certs": [
-                    "-----BEGIN CERTIFICATE-----certificate1-----END CERTIFICATE-----",
+                    "-----BEGIN CERTIFICATE-----\ncertificate1\n-----END CERTIFICATE-----",
                     "-----BEGIN CERTIFICATE-----certificate2----END CERTIFICATE-----"
                 ],
                 "tsaX509Certs": [
@@ -48,7 +48,7 @@ Property Description:
 * **`trustStores`**(*object*): This REQUIRED property represents the parent node containing multiple trust stores. Each trust store is identified by the key associated with it like 'trust-store-name-1', 'trust-store-name-2'.
    * **`identities`**(*object*): This REQUIRED property represents the collection of different types of identities. There are two types of identifies that Notary v2 supports: x509 certificates and x509 timestamping certificates.
        * **`x509Certs`**(*array of strings*): This REQUIRED property specifies a list of x509 certificates in PEM format. The collection MUST contain at least one certificate.
-       * **`tsaX509Certs`**(*array of strings*): This Optional property specifies a list of x509 timestamping certificates in PEM format. If the `tsaX509Certs` key is present then collection MUST contain at least one timestamping certificate.
+       * **`tsaX509Certs`**(*array of strings*): This OPTIONAL property specifies a list of x509 timestamping certificates in PEM format. If the `tsaX509Certs` key is present then collection MUST contain at least one timestamping certificate.
 ## Trust Policy
 Users who consume and execute the signed artifact from a registry need a mechanism to specify how the artifacts should be evaluated for trust, this is where a trust policy is used.
 Trust policy allows users to control the artifact's integrity, expiry, and revocation aspect of signature evaluation.
@@ -63,7 +63,7 @@ If artifact expiry validations are enforced the implementation MUST perform the 
 1. If signature expiry is present then signature MUST NOT be expired.
 1. If signing identity is certificate and   
     1. signing certificate and certificate chain are not expired then the implementation MUST ignore the timestamping signature even if it is present in the signature.
-    1. signing certificate and certificate chain are expired then the implementation MUST validate that signature is timestamped and timestamping signature is valid. Also, validate that timestamping certificate and certificate chain MUST NOT be expired.
+    1. signing certificate or certificate chain are expired then the implementation MUST validate that signature is timestamped and timestamping signature is valid. Also, validate that timestamping certificate and certificate chain MUST NOT be expired.
 
 
 ### Artifact Revocation
@@ -75,7 +75,7 @@ If revocation validations are enforced implementation MUST perform the following
    1. and if the signing certificate and certificate chain are not expired then the implementation MUST ignore the revocation check for timestamping signature even if it's present in the signature.
    1. and if the signing certificate and certificate chain is expired then the implementation MUST validate that signature is timestamped and timestamping signature is valid. Also, validate that timestamping certificate and certificate chain MUST NOT be revoked.
 
-The implementation MUST support both [OCSP](https://datatracker.ietf.org/doc/html/rfc6960) and [CRL](https://datatracker.ietf.org/doc/html/rfc5280) based revocations. Since revocation check requires network call and network call can fail because of a variety of reasons such as revocation endpoint is unavailable, network connectivity issue, DDOS attack, etc the implementation MUST support both `fail-open` or `fail-close` use cases.
+The implementation MUST support both [OCSP](https://datatracker.ietf.org/doc/html/rfc6960) and [CRL](https://datatracker.ietf.org/doc/html/rfc5280) based revocations. Since revocation check requires network call and network call can fail because of a variety of reasons such as revocation endpoint is unavailable, network connectivity issue, DDoS attack, etc the implementation MUST support both `fail-open` or `fail-close` use cases.
 * `fail-open`: If revocation endpoint is not reachable, consider artifact as revoked.
 * `fail-close`: If revocation endpoint is not reachable, consider artifact as not revoked.
 
@@ -123,7 +123,7 @@ The implementation must allow the user to execute custom validations. These cust
 
 ## Signature Evaluation
 Precondition: The artifact is signed, trust store and trust policies are present.
-1. Get the signing algorithm(hash+encyption) from the signing identity and validate that the signing algorithm is valid and allow-listed.
+1. Get the signing algorithm(hash+encryption) from the signing identity and validate that the signing algorithm is valid and allow-listed.
 1. Get the public key from the signing identity and validate the artifact integrity using the public key and signing algorithm identified in the previous step.
 1. Get and validate TrustStore and TrustPolicy for correctness.
 1. Get the signing identity from the signed artifact and validate it against the identities configured in the trust store. The signing identity should match or leads to at least one of the trusted identities configured in the trust store.
