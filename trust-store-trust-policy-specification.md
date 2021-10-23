@@ -1,14 +1,18 @@
 # Trust Store and Trust Policy Specification
+
 This document describes how Notary v2 signatures are evaluated for trust. The document consists of following sections:
-* **[Trust Store](#trust-store)**: Defines set of signing identity that user trusts.
-* **[Trust Policy](#trust-policy)**: Defines how the artifact is evaluated for trust.
+
+- **[Trust Store](#trust-store)**: Defines set of signing identity that user trusts.
+- **[Trust Policy](#trust-policy)**: Defines how the artifact is evaluated for trust.
 
 ## Trust Store
+
 Users who consume and execute the signed artifact from a registry need a mechanism to specify the trusted producers. This is where Trust Store is used.
 
 Trust store allows users to specify two kinds of identities:
-* **Certificates**: These are the signing certificates or certificates that chains to root CA.
-* **Timestamping Certificates**: These are the timestamping certificates or certificates that chain to the root certificate of TSA.
+
+- **Certificates**: These are the signing certificates or certificates that chains to root CA.
+- **Timestamping Certificates**: These are the timestamping certificates or certificates that chain to the root certificate of TSA.
 
 The trust store is represented as JSON data structure as shown below:
 
@@ -43,43 +47,53 @@ The trust store is represented as JSON data structure as shown below:
     }
 }
 ```
+
 Property Description:
-* **`version`**(*string*): This REQUIRED property is the version of the trust store. The supported value is `1.0`
-* **`trustStores`**(*object*): This REQUIRED property represents the parent node containing multiple trust stores. Each trust store is identified by the key associated with it like 'trust-store-name-1', 'trust-store-name-2'.
-   * **`identities`**(*object*): This REQUIRED property represents the collection of different types of identities. There are two types of identifies that Notary v2 supports: x509 certificates and x509 timestamping certificates.
-       * **`x509Certs`**(*array of strings*): This REQUIRED property specifies a list of x509 certificates in PEM format. The collection MUST contain at least one certificate.
-       * **`tsaX509Certs`**(*array of strings*): This OPTIONAL property specifies a list of x509 timestamping certificates in PEM format. If the `tsaX509Certs` key is present then collection MUST contain at least one timestamping certificate.
+
+- **`version`**(*string*): This REQUIRED property is the version of the trust store. The supported value is `1.0`
+- **`trustStores`**(*object*): This REQUIRED property represents the parent node containing multiple trust stores. Each trust store is identified by the key associated with it like 'trust-store-name-1', 'trust-store-name-2'.
+  - **`identities`**(*object*): This REQUIRED property represents the collection of different types of identities. There are two types of identifies that Notary v2 supports: x509 certificates and x509 timestamping certificates.
+    - **`x509Certs`**(*array of strings*): This REQUIRED property specifies a list of x509 certificates in PEM format. The collection MUST contain at least one certificate.
+    - **`tsaX509Certs`**(*array of strings*): This OPTIONAL property specifies a list of x509 timestamping certificates in PEM format. If the `tsaX509Certs` key is present then collection MUST contain at least one timestamping certificate.
+
 ## Trust Policy
+
 Users who consume and execute the signed artifact from a registry need a mechanism to specify how the artifacts should be evaluated for trust, this is where a trust policy is used.
 Trust policy allows users to control the artifact's integrity, expiry, and revocation aspect of signature evaluation.
 
 ### Artifact Integrity
+
 The presence of a trust policy indicates that implementation MUST validate that artifact is signed and has not been altered.
 
 ### Artifact Expiry
+
 Trust policy allows users to define how the system should behave when the artifact's signature is expired or signing identity is expired or timestamping identity is expired.
 
 If artifact expiry validations are enforced the implementation MUST perform the following validations:
+
 1. If signature expiry is present then signature MUST NOT be expired.
-1. If signing identity is certificate and   
+1. If signing identity is certificate and
     1. signing certificate and certificate chain are not expired then the implementation MUST ignore the timestamping signature even if it is present in the signature.
     1. signing certificate or certificate chain are expired then the implementation MUST validate that signature is timestamped and timestamping signature is valid. Also, validate that timestamping certificate and certificate chain MUST NOT be expired.
 
-
 ### Artifact Revocation
+
 Trust policy also allows users to control how the system should behave when signing identity or  timestamping identity is revoked
 
 If revocation validations are enforced implementation MUST perform the following validations:
+
 1. If signing identity is a certificate
    1. then signing certificate and certificate-chain MUST NOT be revoked.
    1. and if the signing certificate and certificate chain are not expired then the implementation MUST ignore the revocation check for timestamping signature even if it's present in the signature.
    1. and if the signing certificate and certificate chain is expired then the implementation MUST validate that signature is timestamped and timestamping signature is valid. Also, validate that timestamping certificate and certificate chain MUST NOT be revoked.
 
 The implementation MUST support both [OCSP](https://datatracker.ietf.org/doc/html/rfc6960) and [CRL](https://datatracker.ietf.org/doc/html/rfc5280) based revocations. Since revocation check requires network call and network call can fail because of a variety of reasons such as revocation endpoint is unavailable, network connectivity issue, DDoS attack, etc the implementation MUST support both `fail-open` or `fail-close` use cases.
-* `fail-open`: If revocation endpoint is not reachable, consider artifact as revoked.
-* `fail-close`: If revocation endpoint is not reachable, consider artifact as not revoked.
+
+- `fail-open`: If revocation endpoint is not reachable, consider artifact as revoked.
+- `fail-close`: If revocation endpoint is not reachable, consider artifact as not revoked.
 
 The trust policy is represented as JSON data structure as shown below:
+
 ```json
 {
     "version": "1.0",
@@ -98,57 +112,64 @@ The trust policy is represented as JSON data structure as shown below:
     }
 }
 ```
+
 Property descriptions
-* **`version`**(*string*): This REQUIRED property is the version of the trust policy. The supported value is `1.0`.
-* **`trustPolicies`**(*string-object map*): This REQUIRED property represents a collection of trust policies. As of now Notary v2 only supports one trust policy.
-   * **`name`**(*string*): The name of the trust policy
-   * **`trustStores`**(*array of strings*): This REQUIRED property specifies a list of names of trust stores that the user trusts.
-   * **`expiryValidations`**(*object*): This REQUIRED property represents a collection of artifact expiry-related validations.
-       * **`signatureExpiry`**(*string*): This REQUIRED property specifies what implementation must do if the signature is expired.  Supported values are `enforce` and `warn`.
-       * **`signingIdentityExpiry`**(*string*): This REQUIRED property specifies what implementation must do if signing identity(certificate and certificate-chain) is expired. Supported values are `enforce` and `warn`.
-       * **`timestampExpiry`**(*string*): This REQUIRED property specifies what implementation must do if timestamping certificate and certificate-chain are expired. Supported values are `enforce` and `warn`.
-   * **`revocationValidations`**(*object*): This REQUIRED property represents collection of artifact revocation related validations.
-       * **`signingIdentityRevocation`**(*string*): This REQUIRED property specifies whether implementation should check for signing identity(certificate and certificate-chain) revocation status or not and what implementation must do if this revocation check fails. Supported values are `enforceWithFailOpen`, `enforceWithFailClose`, `warn` and `skip`.
-       * **`timestampRevocation`**(*string*): This REQUIRED property specifies whether implementation should check for timestamping certificate and certificate-chain revocation status or not and what implementation must do if this revocation check fails. Supported values are `enforceWithFailOpen`, `enforceWithFailClose`, `warn` and `skip`.
+
+- **`version`**(*string*): This REQUIRED property is the version of the trust policy. The supported value is `1.0`.
+- **`trustPolicies`**(*string-object map*): This REQUIRED property represents a collection of trust policies. As of now Notary v2 only supports one trust policy.
+  - **`name`**(*string*): The name of the trust policy
+  - **`trustStores`**(*array of strings*): This REQUIRED property specifies a list of names of trust stores that the user trusts.
+  - **`expiryValidations`**(*object*): This REQUIRED property represents a collection of artifact expiry-related validations.
+  - **`signatureExpiry`**(*string*): This REQUIRED property specifies what implementation must do if the signature is expired.  Supported values are `enforce` and `warn`.
+    - **`signingIdentityExpiry`**(*string*): This REQUIRED property specifies what implementation must do if signing identity(certificate and certificate-chain) is expired. Supported values are `enforce` and `warn`.
+    - **`timestampExpiry`**(*string*): This REQUIRED property specifies what implementation must do if timestamping certificate and certificate-chain are expired. Supported values are `enforce` and `warn`.
+  - **`revocationValidations`**(*object*): This REQUIRED property represents collection of artifact revocation related validations.
+    - **`signingIdentityRevocation`**(*string*): This REQUIRED property specifies whether implementation should check for signing identity(certificate and certificate-chain) revocation status or not and what implementation must do if this revocation check fails. Supported values are `enforceWithFailOpen`, `enforceWithFailClose`, `warn` and `skip`.
+    - **`timestampRevocation`**(*string*): This REQUIRED property specifies whether implementation should check for timestamping certificate and certificate-chain revocation status or not and what implementation must do if this revocation check fails. Supported values are `enforceWithFailOpen`, `enforceWithFailClose`, `warn` and `skip`.
 
 Value descriptions
-* **`enforce`**: This means implementation MUST perform validation and throw an error if validation fails.
-* **`enforceWithFailOpen`**: This means implementation MUST perform validation and if validation fails because the endpoint is not reachable, the implementation MUST throw an error and MUST fail the validation.
-* **`enforceWithFailClose`**: This means implementation MUST perform validation and if validation fails because the endpoint is not reachable, the implementation MUST log an error and MUST NOT fail the validation.
-* **`warn`**: This means implementation MUST perform the validation and if validation fails(because of any reason) the implementation MUST log an error and MUST NOT fail validation.
-* **`skip`**: This means implementation MUST NOT perform the validation.
+
+- **`enforce`**: This means implementation MUST perform validation and throw an error if validation fails.
+- **`enforceWithFailOpen`**: This means implementation MUST perform validation and if validation fails because the endpoint is not reachable, the implementation MUST throw an error and MUST fail the validation.
+- **`enforceWithFailClose`**: This means implementation MUST perform validation and if validation fails because the endpoint is not reachable, the implementation MUST log an error and MUST NOT fail the validation.
+- **`warn`**: This means implementation MUST perform the validation and if validation fails(because of any reason) the implementation MUST log an error and MUST NOT fail validation.
+- **`skip`**: This means implementation MUST NOT perform the validation.
 
 ### Extended Validation
+
 The implementation must allow the user to execute custom validations. These custom validation MUST have access to all the information available in the signature envelope like payload, signed attributes, unsigned attributes, and signature.
 
 ## Signature Evaluation
+
 Precondition: The artifact is signed, trust store and trust policies are present.
+
 1. Get the signing algorithm(hash+encryption) from the signing identity and validate that the signing algorithm is valid and allow-listed.
 1. Get the public key from the signing identity and validate the artifact integrity using the public key and signing algorithm identified in the previous step.
 1. Get and validate TrustStore and TrustPolicy for correctness.
 1. Get the signing identity from the signed artifact and validate it against the identities configured in the trust store. The signing identity should match or leads to at least one of the trusted identities configured in the trust store.
     1. If signing identity is certificate then validate that certificate and certificate-chain leads to self-signed root.
-3. Perform [artifact expiry](#artifact-expiry) validations based on trust policy.
-4. Perform [artifact revocation](#artifact-revocation) validations based on trust policy
-5. Perform extended validation(If any).
+1. Perform [artifact expiry](#artifact-expiry) validations based on trust policy.
+1. Perform [artifact revocation](#artifact-revocation) validations based on trust policy
+1. Perform extended validation(If any).
 
 Here is high level uml diagram for signature evaluation:
 
 ![uml diagram showing signature evaluation](./media/trust-store-trust-policy-evaluation.svg)
 
 ## FAQ
+
 **Q1.** Can I scope trust policy by the registry, repository, or namespace?
 
 No, we don't support scoping of trust policy.
 
 **Q2.** How should multiple signatures requirements be represented in the trust policy?
 
-We don't support n out m signature requirement verification scheme. Validation succeeds if verification succeeds for at least one signature. 
+We don't support n out m signature requirement verification scheme. Validation succeeds if verification succeeds for at least one signature.
 
 **Q3.** Should local revocation and TSA servers are listed in the trust policy to support disconnected environments?
 
 Not natively supported but a user can configure `revocationValidations` to `skip` and then use extended validations to check for revocation.
 
-**Q4.** Why do we need to include a complete certificate chain(leading to root) in the signature? 
+**Q4.** Why do we need to include a complete certificate chain(leading to root) in the signature?
 
 Without a complete certificate chain, the implementation won't be able to perform an exhaustive revocation check, which will lead to security issues, and that's the reason for enforcing complete certificate chain.
