@@ -173,3 +173,8 @@ Not natively supported but a user can configure `revocationValidations` to `skip
 **Q4.** Why do we need to include a complete certificate chain(leading to root) in the signature?
 
 Without a complete certificate chain, the implementation won't be able to perform an exhaustive revocation check, which will lead to security issues, and that's the reason for enforcing complete certificate chain.
+
+**Q5.** Why are we validating artifact signature first instead of signing identity?
+
+Ideally, we should validate the signing identity first and then use the public key in the signing identity to validate the artifact signature. However, this will lead to poor performance in the case where the signature is not valid as there are lots of validations against the signing identity including network calls for revocations, and possibly we won't even need to read the trust store/trust policy if the signature validation fails.
+Also, by validating artifact signature first we will still fail the validation if the signing identity is not trusted.
