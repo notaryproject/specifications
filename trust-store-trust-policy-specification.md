@@ -23,24 +23,24 @@ The trust store is represented as JSON data structure as shown below:
         "trust-store-name-1": {
             "identities": {
                 "x509Certs": [
-                    "-----BEGIN CERTIFICATE-----\ncertificate1\n-----END CERTIFICATE-----",
-                    "-----BEGIN CERTIFICATE-----certificate2----END CERTIFICATE-----"
+                    "-----BEGIN CERTIFICATE-----\ncertificate1\n-----END CERTIFICATE-----\n",
+                    "-----BEGIN CERTIFICATE-----\ncertificate2\n----END CERTIFICATE-----\n"
                 ],
                 "tsaX509Certs": [
-                    "-----BEGIN CERTIFICATE-----tsaCertificate1-----END CERTIFICATE-----",
-                    "-----BEGIN CERTIFICATE-----tsaCertificate2-----END CERTIFICATE-----"
+                    "-----BEGIN CERTIFICATE-----\ntsaCertificate1\n-----END CERTIFICATE-----\n",
+                    "-----BEGIN CERTIFICATE-----\ntsaCertificate2\n-----END CERTIFICATE-----\n"
                 ]
             }
         },
         "trust-store-name-2": {
             "identities": {
                 "x509Certs": [
-                    "-----BEGIN CERTIFICATE-----certificate1-----END CERTIFICATE-----",
-                    "-----BEGIN CERTIFICATE-----certificate2----END CERTIFICATE-----"
+                    "-----BEGIN CERTIFICATE-----\ncertificate1\n-----END CERTIFICATE-----\n",
+                    "-----BEGIN CERTIFICATE-----\ncertificate2\n----END CERTIFICATE-----\n"
                 ],
                 "tsaX509Certs": [
-                    "-----BEGIN CERTIFICATE-----tsaCertificate2-----END CERTIFICATE-----",
-                    "-----BEGIN CERTIFICATE-----tsaCertificate3----END CERTIFICATE-----"
+                    "-----BEGIN CERTIFICATE-----\ntsaCertificate2\n-----END CERTIFICATE-----\n",
+                    "-----BEGIN CERTIFICATE-----\ntsaCertificate3\n----END CERTIFICATE-----\n"
                 ]
             }
         }
