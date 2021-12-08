@@ -4,7 +4,8 @@ A current overview of Notary v2, including a collection of requirements & scenar
 
 ## Project Status
 
-The Notary v2 project is in early development and design documents should not be considered final. Please refer to the [milestones](https://github.com/notaryproject/notaryproject/milestones) or [attend](#contributing--conversations) the weekly meetings for details on the roadmap.
+The Notary v2 project is in early development and design documents should not be considered final.
+Please refer to the [milestones](https://github.com/notaryproject/notaryproject/milestones) or [attend](#contributing--conversations) the weekly meetings for details on the roadmap.
 
 ## TOC
 
@@ -26,7 +27,10 @@ Additional details for Notary v2 efforts:
 
 ![Notary v2 scenarios](./media/notary-e2e-scenarios.svg)
 
-Notary v2 provides for multiple signatures of an [OCI Artifact][oci-artifacts] (including container images) to be persisted in an [OCI conformant][oci-distribution-conformance] registry. Artifacts are signed (`nv2 sign`) with private keys, and validated with public keys (`nv2 verify`). To support user deployment flows, signing an OCI Artifact will not change the `@digest` or `artifact:tag` reference. To support content movement across multiple certification boundaries, artifacts and their signatures will be easily copied within and across [OCI conformant][oci-distribution-conformance] registries.
+Notary v2 provides for multiple signatures of an [OCI Artifact][oci-artifacts] (including container images) to be persisted in an [OCI conformant][oci-distribution-conformance] registry.
+Artifacts are signed (`nv2 sign`) with private keys, and validated with public keys (`nv2 verify`).
+To support user deployment flows, signing an OCI Artifact will not change the `@digest` or `artifact:tag` reference.
+To support content movement across multiple certification boundaries, artifacts and their signatures will be easily copied within and across [OCI conformant][oci-distribution-conformance] registries.
 
 ![Notary v2 dependent projects](./media/oss-project-sequence.svg)
 
@@ -92,7 +96,10 @@ docker push registry.acme-rockets.io/net-monitor:v1
 
 ## The Notary v2 Journey
 
-Notary v2 [kicked off in December of 2019][notaryv2-kickoff] with a [broad range of attendees][kickoff-attendees]. The effort defined success goals, including adoption by all major vendors & projects, enabling content to be signed and flow within and across [OCI distribution-spec conformant][oci-distribution-conformance] registries. Throughout 2020, the group agreed upon a set of [Notary v2 requirements][nv2-requirements] and [scenarios][nv2-scenarios] enabling spec and design conversations to be grounded in a set of [goals][nv2-requirements] and [non-goals][non-requirements]. Prototypes, based on the requirements have started, focusing on the primary areas on innovations.
+Notary v2 [kicked off in December of 2019][notaryv2-kickoff] with a [broad range of attendees][kickoff-attendees].
+The effort defined success goals, including adoption by all major vendors & projects, enabling content to be signed and flow within and across [OCI distribution-spec conformant][oci-distribution-conformance] registries.
+Throughout 2020, the group agreed upon a set of [Notary v2 requirements][nv2-requirements] and [scenarios][nv2-scenarios] enabling spec and design conversations to be grounded in a set of [goals][nv2-requirements] and [non-goals][non-requirements].
+Prototypes, based on the requirements have started, focusing on the primary areas on innovations.
 
 ## Top Areas of Focus
 
@@ -108,17 +115,24 @@ A Notary v2 signature would attest to the digest of an artifact, associating it 
 
 ### Registry Persistance, Discovery and Retrieval
 
-An artifact must be capable of being pushed to a registry, with a signature being added independently from the artifact. This enables the originating author of the content to sign the artifact, and subsequent entities to add additional signatures, attesting to its validity as they determine.
+An artifact must be capable of being pushed to a registry, with a signature being added independently from the artifact.
+This enables the originating author of the content to sign the artifact, and subsequent entities to add additional signatures, attesting to its validity as they determine.
 
-The Notary v2 workflow ([outlined in Scenario #0](https://github.com/notaryproject/requirements/blob/main/scenarios.md#scenario-0-build-publish-consume-enforce-policy-deploy)) enables Wabbit Networks to sign their `net-monitor` software. Docker Hub may endorse Wabbit Networks software, providing an aggregator certification by adding a Docker Hub signature. This would allow customers like ACME Rockets to not necessarily know of small vendors like Wabbit Networks, but allow the ACME Rockets engineering team to pull Docker Certified content. As ACME Rockets imports the content, scans and validates it meets their requirements, they add an additional ACME Rockets signature, which must exist for any production usage within the ACME Rockets environment.
+The Notary v2 workflow ([outlined in Scenario #0](https://github.com/notaryproject/requirements/blob/main/scenarios.md#scenario-0-build-publish-consume-enforce-policy-deploy)) enables Wabbit Networks to sign their `net-monitor` software.
+Docker Hub may endorse Wabbit Networks software, providing an aggregator certification by adding a Docker Hub signature.
+This would allow customers like ACME Rockets to not necessarily know of small vendors like Wabbit Networks, but allow the ACME Rockets engineering team to pull Docker Certified content.
+As ACME Rockets imports the content, scans and validates it meets their requirements, they add an additional ACME Rockets signature, which must exist for any production usage within the ACME Rockets environment.
 
 #### Registry Persistance and Retrieval
 
-Registry persistance and retrieval are defined through the [OCI distribution-spec][oci-distribution-spec], with [OCI Artifacts][oci-artifacts] capabilities to store non-container images. No additional changes are known at this time.
+Registry persistance and retrieval are defined through the [OCI distribution-spec][oci-distribution-spec], with [OCI Artifacts][oci-artifacts] capabilities to store non-container images.
+No additional changes are known at this time.
 
 #### Registry Discovery
 
-Registry discovery of linked artifacts enables finding a signature, based on the target artifact. In the Notary v2 example, the ACME Rockets production servers must be capable of efficiently finding the ACME Rockets signature for the `net-monitor:v1` image. Once the signature is identified, through a content addressable digest, the Notary v2 client may validate the signature.
+Registry discovery of linked artifacts enables finding a signature, based on the target artifact.
+In the Notary v2 example, the ACME Rockets production servers must be capable of efficiently finding the ACME Rockets signature for the `net-monitor:v1` image.
+Once the signature is identified, through a content addressable digest, the Notary v2 client may validate the signature.
 
 ### Key Management
 
@@ -136,11 +150,17 @@ Key revocation must support air-gap environments, enabling users to validate key
 
 ## Stages of Development
 
-To deliver Notary v2, we recognized the need of experts from multiple backgrounds, experiences and skill sets. The various perspectives were needed to assure we learned from past efforts and learned from subject matter experts.
+To deliver Notary v2, we recognized the need of experts from multiple backgrounds, experiences and skill sets.
+The various perspectives were needed to assure we learned from past efforts and learned from subject matter experts.
 
-As subject matter experts converged, we found it difficult for the various SMEs to understand other components of the end to end workflow. The typical Open Source model for authoring specs involves “writing it down”. Contributors Create a pull request on some markdown so all can review. However, we learned _The problem isn’t in the writing, it’s in the reading._
+As subject matter experts converged, we found it difficult for the various SMEs to understand other components of the end to end workflow.
+The typical Open Source model for authoring specs involves “writing it down”.
+Contributors Create a pull request on some markdown so all can review.
+However, we learned _The problem isn’t in the writing, it’s in the reading._
 
-To facilitate better communications across the skill sets, respecting everyone's time, we recognized the need to invest in models and prototypes. We followed the design patterns of other large, complex projects like Antoni Gaudí's design of [The Sagrada Famila](https://simple.wikipedia.org/wiki/Sagrada_Fam%C3%ADlia). The [sketch, prototype, build approach](https://stevelasker.blog/2020/07/31/sketch-prototype-build/) would enable the various experts to focus on their component, while understanding where they plug-into other components of the design.
+To facilitate better communications across the skill sets, respecting everyone's time, we recognized the need to invest in models and prototypes.
+We followed the design patterns of other large, complex projects like Antoni Gaudí's design of [The Sagrada Famila](https://simple.wikipedia.org/wiki/Sagrada_Fam%C3%ADlia).
+The [sketch, prototype, build approach](https://stevelasker.blog/2020/07/31/sketch-prototype-build/) would enable the various experts to focus on their component, while understanding where they plug-into other components of the design.
 
 As a result, we identified the following stages of the Notary v2 effort:
 
@@ -157,7 +177,8 @@ Throughout the Notary v2 effort, updates to the stages of development and areas 
 
 Regular conversations for Notary v2 occur on the [Cloud Native Computing Slack](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287?) channel.
 
-Weekly meetings occur each Monday. Please see the [CNCF Calendar](https://www.cncf.io/community/calendar/) for details.
+Weekly meetings occur each Monday.
+Please see the [CNCF Calendar](https://www.cncf.io/community/calendar/) for details.
 
 Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw).
 

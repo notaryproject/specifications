@@ -19,8 +19,11 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
 - **`blobs`** (*array of objects*): This REQUIRED property contains collection of only one [artifact descriptor](https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md) referencing signature envelope.
   - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. The supported value is `application/jose+json`
 - **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
-- **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest. It is being used to store information about the signature. Keys using the `org.cncf.notary` namespace are reserved for use in Notary and MUST NOT be used by other specifications.
-  - **`org.cncf.notary.x509certs.fingerprint.sha256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain used for signature generation. The list of fingerprints is present as a JSON array string.
+- **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest.
+  It is being used to store information about the signature.
+  Keys using the `org.cncf.notary` namespace are reserved for use in Notary and MUST NOT be used by other specifications.
+  - **`org.cncf.notary.x509certs.fingerprint.sha256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain used for signature generation.
+    The list of fingerprints is present as a JSON array string.
 
 ```json
 {
@@ -46,7 +49,9 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
 ### Signature Discovery
 
 The client should be able to discover all the signatures belonging to an artifact (such as image manifest) by using [ORAS Manifest Referrers API](https://github.com/oras-project/artifacts-spec/blob/main/manifest-referrers-api.md).
-ORAS Manifest Referrers API returns a paginated list of all artifacts belonging to a target artifact (such as container images, SBoMs). The implementation can filter Notary signature artifacts by either using ORAS Manifest Referrers API or using custom logic on the client. Each Notary signature artifact refers to a signature envelope blob.  
+ORAS Manifest Referrers API returns a paginated list of all artifacts belonging to a target artifact (such as container images, SBoMs).
+The implementation can filter Notary signature artifacts by either using ORAS Manifest Referrers API or using custom logic on the client.
+Each Notary signature artifact refers to a signature envelope blob.
 
 ### Signature Filtering
 
@@ -55,7 +60,8 @@ The Notary v2 signature artifact's `org.cncf.notary.x509certs.fingerprint.sha256
 
 ## Signature Envelope
 
-The Signature Envelope is a standard data structure for creating a signed message. A signature envelope consists of the following components:
+The Signature Envelope is a standard data structure for creating a signed message.
+A signature envelope consists of the following components:
 
 - Payload `m`: The data that is integrity protected - e.g. descriptor of the artifact being signed.
 - Signed attributes `v`: The signature metadata that is integrity protected - e.g. signature expiration time, signing time, etc.
@@ -71,8 +77,11 @@ Notary v2 supports [JWS JSON Serialization](https://datatracker.ietf.org/doc/htm
 Notary v2 requires Payload to be the content **descriptor** of the subject manifest that is being signed.
 
 1. Descriptor MUST contain `mediaType`, `digest`, `size` fields.
-2. Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules](https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules). In Notary v2 annotations are being used to store signed attributes. The annotations key prefix for Notary v2 use is not yet finalized. See [issues-106](https://github.com/notaryproject/notaryproject/issues/106).
-3. Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
+1. Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules](https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules).
+   In Notary v2 annotations are being used to store signed attributes.
+   The annotations key prefix for Notary v2 use is not yet finalized.
+   See [issues-106](https://github.com/notaryproject/notaryproject/issues/106).
+1. Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
 
 Examples:
 
@@ -96,13 +105,18 @@ Examples:
 
 Notary v2 requires the signature envelope to support the following signed attributes:
 
-- **Creation time**: The time at which the signature was generated. Its value should be numeric representing the number of seconds (not milliseconds) since Epoch.
-- **Expiration time**: The time after which signature shouldn't be considered valid. Its value should be numeric representing the number of seconds since Epoch. This is an OPTIONAL attribute.
+- **Creation time**: The time at which the signature was generated.
+  Its value should be numeric representing the number of seconds (not milliseconds) since Epoch.
+- **Expiration time**: The time after which signature shouldn't be considered valid.
+  Its value should be numeric representing the number of seconds since Epoch.
+  This is an OPTIONAL attribute.
 
 ### Unsigned Attributes
 
 - **Certificates**: The ordered collection of X.509 certificates with a signing certificate as the first entry.
-- **Timestamp**:  The time stamp token generated for a given signature. Only [RFC3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2) compliant *TimeStampToken* are supported. This is an OPTIONAL attribute.
+- **Timestamp**:  The time stamp token generated for a given signature.
+  Only [RFC3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2) compliant *TimeStampToken* are supported.
+  This is an OPTIONAL attribute.
 
 ### Supported Signature Envelopes
 
@@ -115,7 +129,8 @@ Unless explicitly specified as OPTIONAL, all fields are required.
 Also, there shouldn’t be any additional fields other than ones specified in JWSPayload, ProtectedHeader, and UnprotectedHeader.
 
 **JWSPayload a.k.a. Claims**:
-Notary v2 is using one private claim (`notary`) and two public claims (`iat` and `exp`). An example of the claim is described below
+Notary v2 is using one private claim (`notary`) and two public claims (`iat` and `exp`).
+An example of the claim is described below
 
 ```json
 {
@@ -136,7 +151,8 @@ Notary v2 is using one private claim (`notary`) and two public claims (`iat` and
 
 The payload contains the subject manifest and other attributes that have to be integrity protected.
 
-- **`subject`**(*descriptor*): A REQUIRED top-level node consisting of the manifest that needs to be integrity protected. Please refer [Payload](#payload) section for more details.
+- **`subject`**(*descriptor*): A REQUIRED top-level node consisting of the manifest that needs to be integrity protected.
+  Please refer [Payload](#payload) section for more details.
 - **`iat`**(*number*): The REQUIRED property Issued-at(`iat`) identifies the time at which the signature was issued.
 - **`exp`**(*number*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid.
 
@@ -152,9 +168,13 @@ To leverage JWS claims validation functionality already provided by libraries, w
 }
 ```
 
-- **`alg`**(*string*): This REQUIRED property defines which algorithm was used to generate the signature. JWS needs an algorithm(`alg`) to be present in the header, so we have added it as a protected header.
-- **`cty`**(*string*): The REQUIRED property content-type(cty) is used to declare the media type of the secured content(the payload). This will be used to version different variations of JWS signature. The supported value is `application/vnd.cncf.notary.v2.jws.v1`.
-- **`crit`**(*array of strings*): This REQUIRED property lists the headers that implementation MUST understand and process. The value MUST be `["cty"]`.
+- **`alg`**(*string*): This REQUIRED property defines which algorithm was used to generate the signature.
+  JWS needs an algorithm(`alg`) to be present in the header, so we have added it as a protected header.
+- **`cty`**(*string*): The REQUIRED property content-type(cty) is used to declare the media type of the secured content(the payload).
+  This will be used to version different variations of JWS signature.
+  The supported value is `application/vnd.cncf.notary.v2.jws.v1`.
+- **`crit`**(*array of strings*): This REQUIRED property lists the headers that implementation MUST understand and process.
+  The value MUST be `["cty"]`.
 
 **UnprotectedHeaders**: Notary v2 supports only two unprotected headers: timestamp and x5c.
 
@@ -165,17 +185,26 @@ To leverage JWS claims validation functionality already provided by libraries, w
 }
 ```
 
-- **`timestamp`** (*string*): This OPTIONAL property is used to store time stamp token. Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
-- **`x5c`** (*array of strings*): This REQUIRED property contains the list of X.509 certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the JWS. The certificate containing the public key corresponding to the key used to digitally sign the JWS MUST be the first certificate.
+- **`timestamp`** (*string*): This OPTIONAL property is used to store time stamp token.
+  Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
+- **`x5c`** (*array of strings*): This REQUIRED property contains the list of X.509 certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the JWS.
+  The certificate containing the public key corresponding to the key used to digitally sign the JWS MUST be the first certificate.
 
-**Signature**: In JWS signature is calculated by combining JWSPayload and protected headers. The process is described below:
+- **`timestamp`** (*string*): This OPTIONAL property is used to store time stamp token.
+  Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
+- **`x5c`** (*array of strings*): This REQUIRED property contains the list of X.509 certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the JWS.
+  The certificate containing the public key corresponding to the key used to digitally sign the JWS MUST be the first certificate.
+
+**Signature**: In JWS signature is calculated by combining JWSPayload and protected headers.
+The process is described below:
 
 1. Compute the Base64Url value of ProtectedHeaders.
 1. Compute the Base64Url value of JWSPayload.
 1. Build message to be signed by concatenating the values generated in step 1 and step 2 using '.'
 `ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
 1. Compute the signature on the message constructed in the previous step by using the signature algorithm defined in the corresponding header element: `alg`.
-1. Compute the Base64Url value of the signature produced in the previous step. This is the value of the signature property used in the signature envelope.
+1. Compute the Base64Url value of the signature produced in the previous step.
+   This is the value of the signature property used in the signature envelope.
 
 **Signature Envelope**: The final signature envelope comprises of Claims, ProtectedHeaders, UnprotectedHeaders, and signature.
 
@@ -207,7 +236,8 @@ Since Notary v2 restricts one signature per signature envelope, the compliant si
   | ECDSA on secp384r1 with SHA-384 | ES384             |
   | ECDSA on secp521r1 with SHA-512 | ES512             |
 1. Signing certificate MUST be a valid codesigning certificate.
-1. Only JWS JSON flattened format is supported. See 'Signature Envelope' section.
+1. Only JWS JSON flattened format is supported.
+   See 'Signature Envelope' section.
 
 ## Signature Algorithm Requirements
 
@@ -239,7 +269,8 @@ The signing certificate's public key algorithm and size MUST be used to determin
 
 The **signing certificate** MUST meet the following minimum requirements:
 
-- The keyUsage extension MUST be present and MUST be marked critical. The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
+- The keyUsage extension MUST be present and MUST be marked critical.
+  The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
 - The extKeyUsage extension MUST be present and its value MUST be id-kp-codeSigning ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
 - If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
 - The certificate MUST abide by the following key length restrictions:
@@ -248,8 +279,10 @@ The **signing certificate** MUST meet the following minimum requirements:
 
 The **timestamping certificate** MUST meet the following minimum requirements:
 
-- The keyUsage extension MUST be present and MUST be marked critical. The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
-- The extKeyUsage extension MUST be present and MUST be marked critical. The value of extension MUST be id-kp-timeStamping ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
+- The keyUsage extension MUST be present and MUST be marked critical.
+  The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
+- The extKeyUsage extension MUST be present and MUST be marked critical.
+  The value of extension MUST be id-kp-timeStamping ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
 - If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
 - The certificate MUST abide by the following key length restrictions:
   - For RSA public key, the key length MUST be 2048 bits or higher.

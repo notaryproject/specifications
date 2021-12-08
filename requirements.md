@@ -67,7 +67,8 @@ As we identify the requirements and constraints, a number of key contributors wi
 
 Regular conversations for Notary v2 occur on the [Cloud Native Computing Slack](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287?) channel.
 
-Weekly meetings occur each Monday. Please see the [CNCF Calendar](https://www.cncf.io/community/calendar/) for details.
+Weekly meetings occur each Monday.
+Please see the [CNCF Calendar](https://www.cncf.io/community/calendar/) for details.
 
 Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw).
 
