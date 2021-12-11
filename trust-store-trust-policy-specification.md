@@ -97,27 +97,46 @@ The trust policy is represented as JSON data structure as shown below:
 ```json
 {
     "version": "1.0",
-    "trustPolicies": {
-        "name": "trust-policy-name",
-        "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
-        "expiryValidations": {
-            "signatureExpiry": "enforce/warn",
-            "signingIdentityExpiry": "enforce/warn",
-            "timestampExpiry": "enforce/warn"
+    "trustPolicies": [
+        {
+            "name": "trust-policy-name-1",
+            "Scopes": ["wabbit-networks.io/software"],
+            "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
+            "expiryValidations": {
+                "signatureExpiry": "enforce/warn",
+                "signingIdentityExpiry": "enforce/warn",
+                "timestampExpiry": "enforce/warn"
+            },
+            "revocationValidations": {
+                "signingIdentityRevocation": "enforceWithFailOpen/enforceWithFailClose/warn/skip",
+                "timestampRevocation": "enforceWithFailOpen/enforceWithFailClose/warn/skip"
+            }
         },
-        "revocationValidations": {
-            "signingIdentityRevocation": "enforceWithFailOpen/enforceWithFailClose/warn/skip",
-            "timestampRevocation": "enforceWithFailOpen/enforceWithFailClose/warn/skip"
+        {
+            "name": "trust-policy-name-2",
+            "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
+            "expiryValidations": {
+                "signatureExpiry": "enforce/warn",
+                "signingIdentityExpiry": "enforce/warn",
+                "timestampExpiry": "enforce/warn"
+            },
+            "revocationValidations": {
+                "signingIdentityRevocation": "enforceWithFailOpen/enforceWithFailClose/warn/skip",
+                "timestampRevocation": "enforceWithFailOpen/enforceWithFailClose/warn/skip"
+            }
         }
-    }
+
+    ]
 }
 ```
 
 Property descriptions
 
 - **`version`**(*string*): This REQUIRED property is the version of the trust policy. The supported value is `1.0`.
-- **`trustPolicies`**(*string-object map*): This REQUIRED property represents a collection of trust policies. As of now Notary v2 only supports one trust policy.
-  - **`name`**(*string*): The name of the trust policy
+- **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
+  - **`name`**(*string*): The name of the trust policy.
+  - **`scope`**(*string*): The scope determines which trust policy is applicable for a given artifact. The scope field supports prefix-based filtering on `registry-name/namespace+repository-name`. For an artifact there if there is no applicable trust policy, then the signature evaluation must be skipped, this is required to support gradual rollout signature validation.
+  Please see [Scope Constraints](#scope_constraints) for more details.
   - **`trustStores`**(*array of strings*): This REQUIRED property specifies a list of names of trust stores that the user trusts.
   - **`expiryValidations`**(*object*): This REQUIRED property represents a collection of artifact expiry-related validations.
   - **`signatureExpiry`**(*string*): This REQUIRED property specifies what implementation must do if the signature is expired.  Supported values are `enforce` and `warn`.
@@ -135,6 +154,13 @@ Value descriptions
 - **`warn`**: This means implementation MUST perform the validation and if validation fails(because of any reason) the implementation MUST log an error and MUST NOT fail validation.
 - **`skip`**: This means implementation MUST NOT perform the validation.
 
+#### Scope Constraints
+
+- There MUST only be  one trust policy applicable to a artifact.
+- There MUST not be two trust policies with the same scope.
+- There MUST only be only one trust policy without the `scope` key, which means that the trust policy has global scope(applicable to all artifacts).In the case of overlapping scopes, the longest prefix match rule is used.  For example, the `wabbit-networks.io/software/dotnet/ocp-release` image if there are two trust policies with overlapping scopes `registry.wabbit-networks.io/software` and `registery.wabbit-networks.io/software/dotnet` then the policy with the longest-prefix matching scope i.e. `registery.wabbit-networks.io/software/dotnet` will be used for signature evaluation.
+- The turst policy without the `scope` key is optional.
+
 ### Extended Validation
 
 The implementation must allow the user to execute custom validations. These custom validation MUST have access to all the information available in the signature envelope like payload, signed attributes, unsigned attributes, and signature.
@@ -146,8 +172,9 @@ Precondition: The artifact is signed, trust store and trust policies are present
 1. Get the signing algorithm(hash+encryption) from the signing identity and validate that the signing algorithm is valid and allow-listed.
 1. Get the public key from the signing identity and validate the artifact integrity using the public key and signing algorithm identified in the previous step.
 1. Get and validate TrustStore and TrustPolicy for correctness.
-1. Get the signing identity from the signed artifact and validate it against the identities configured in the trust store. The signing identity should match or leads to at least one of the trusted identities configured in the trust store.
-    1. If signing identity is certificate then validate that certificate and certificate-chain leads to self-signed root.
+1. Find the trust policy that is applicable for the given artifact. If there is no applicable trust policy, then the signature evaluation must be skipped.
+1. Get the signing identity from the signed artifact and validate it against the identities configured in the trust store of trust policy determined in step 3. The signing identity must match or lead to at least one of the trusted identities configured in the trust store.
+    1. If signing identity is certificate then validate that the certificate and certificate-chain leads to self-signed root.
 1. Perform [artifact expiry](#artifact-expiry) validations based on trust policy.
 1. Perform [artifact revocation](#artifact-revocation) validations based on trust policy
 1. Perform extended validation(If any).
@@ -158,23 +185,19 @@ Here is high level uml diagram for signature evaluation:
 
 ## FAQ
 
-**Q1.** Can I scope trust policy by the registry, repository, or namespace?
-
-No, we don't support scoping of trust policy.
-
-**Q2.** How should multiple signatures requirements be represented in the trust policy?
+**Q1.** How should multiple signatures requirements be represented in the trust policy?
 
 We don't support n out m signature requirement verification scheme. Validation succeeds if verification succeeds for at least one signature.
 
-**Q3.** Should local revocation and TSA servers are listed in the trust policy to support disconnected environments?
+**Q2.** Should local revocation and TSA servers are listed in the trust policy to support disconnected environments?
 
 Not natively supported but a user can configure `revocationValidations` to `skip` and then use extended validations to check for revocation.
 
-**Q4.** Why do we need to include a complete certificate chain(leading to root) in the signature?
+**Q3.** Why do we need to include a complete certificate chain(leading to root) in the signature?
 
-Without a complete certificate chain, the implementation won't be able to perform an exhaustive revocation check, which will lead to security issues, and that's the reason for enforcing complete certificate chain.
+Without a complete certificate chain, the implementation won't be able to perform an exhaustive revocation check, which will lead to security issues, and that's the reason for enforcing a complete certificate chain.
 
-**Q5.** Why are we validating artifact signature first instead of signing identity?
+**Q4.** Why are we validating artifact signature first instead of signing identity?
 
 Ideally, we should validate the signing identity first and then use the public key in the signing identity to validate the artifact signature. However, this will lead to poor performance in the case where the signature is not valid as there are lots of validations against the signing identity including network calls for revocations, and possibly we won't even need to read the trust store/trust policy if the signature validation fails.
 Also, by validating artifact signature first we will still fail the validation if the signing identity is not trusted.
