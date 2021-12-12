@@ -156,10 +156,10 @@ Value descriptions
 
 #### Scope Constraints
 
-- There MUST only be  one trust policy applicable to a artifact.
+- There MUST only be one trust policy applicable to an artifact.
 - There MUST not be two trust policies with the same scope.
 - There MUST only be only one trust policy without the `scope` key, which means that the trust policy has global scope(applicable to all artifacts).In the case of overlapping scopes, the longest prefix match rule is used.  For example, the `wabbit-networks.io/software/dotnet/ocp-release` image if there are two trust policies with overlapping scopes `registry.wabbit-networks.io/software` and `registery.wabbit-networks.io/software/dotnet` then the policy with the longest-prefix matching scope i.e. `registery.wabbit-networks.io/software/dotnet` will be used for signature evaluation.
-- The turst policy without the `scope` key is optional.
+- The trust policy without the `scope` key is optional.
 
 ### Extended Validation
 
