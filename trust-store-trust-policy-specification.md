@@ -135,7 +135,7 @@ Property descriptions
 - **`version`**(*string*): This REQUIRED property is the version of the trust policy. The supported value is `1.0`.
 - **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
   - **`name`**(*string*): The name of the trust policy.
-  - **`scope`**(*string*): The scope determines which trust policy is applicable for a given artifact. The scope field supports prefix-based filtering on `registry-name/namespace+repository-name`. For an artifact there if there is no applicable trust policy, then the signature evaluation must be skipped, this is required to support gradual rollout signature validation.
+  - **`scope`**(*string*): The scope determines which trust policy is applicable for a given artifact. The scope field supports prefix-based filtering on registry-name/namespace+repository-name. For an artifact, if there is no applicable trust policy, then signature evaluation must be skipped.
   Please see [Scope Constraints](#scope_constraints) for more details.
   - **`trustStores`**(*array of strings*): This REQUIRED property specifies a list of names of trust stores that the user trusts.
   - **`expiryValidations`**(*object*): This REQUIRED property represents a collection of artifact expiry-related validations.
@@ -173,7 +173,7 @@ Precondition: The artifact is signed, trust store and trust policies are present
 1. Get the public key from the signing identity and validate the artifact integrity using the public key and signing algorithm identified in the previous step.
 1. Get and validate TrustStore and TrustPolicy for correctness.
 1. Find the trust policy that is applicable for the given artifact. If there is no applicable trust policy, then the signature evaluation must be skipped.
-1. Get the signing identity from the signed artifact and validate it against the identities configured in the trust store of trust policy determined in step 3. The signing identity must match or lead to at least one of the trusted identities configured in the trust store.
+1. Get the signing identity from the signed artifact and validate it against the identities configured in the trust store of trust policy determined in step 4. The signing identity must match or lead to at least one of the trusted identities configured in the trust store.
     1. If signing identity is certificate then validate that the certificate and certificate-chain leads to self-signed root.
 1. Perform [artifact expiry](#artifact-expiry) validations based on trust policy.
 1. Perform [artifact revocation](#artifact-revocation) validations based on trust policy
