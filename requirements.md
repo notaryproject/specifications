@@ -51,9 +51,12 @@ As we identify the requirements and constraints, a number of key contributors wi
   - [Quay][quay] - Hank Donnay <hdonnay@redhat.com>
   - [IBM Cloud Container Registry (icr)][icr]
 - Registry Vendors, Projects & Products
-  - [Docker Trusted Registry][docker-dtr]
+  - [Mirantis Secure Registry (msr, formerly Docker Trusted Registry)][msr]
   - [Harbor][harbor]
   - [JFrog Artifactory][jfrog]
+- Controllers, Runtimes & Engines
+  - [Mirantis Container Runtime (formerly Docker Engine – Enterprise)][mirantis-runtime]
+  - [Mirantis Kubernetes Engine (mke, formerly Docker Enterprise/UCP)][mke]
 - Artifact Types
   - [OCI & Docker Container Images][image-spec]
   - [Helm Charts][helm-registry]
@@ -73,7 +76,9 @@ Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWru
 [acr]:                  https://aka.ms/acr/artifacts
 [artifacts-repo]:       https://github.com/opencontainers/artifacts
 [docker-hub]:           https://hub.docker.com/
-[docker-dtr]:           https://www.docker.com/products/image-registry
+[msr]:                  https://www.mirantis.com/software/mirantis-secure-registry
+[mirantis-runtime]:     https://www.mirantis.com/software/container-runtime/
+[mke]:                  https://www.mirantis.com/software/mirantis-kubernetes-engine/
 [ecr]:                  https://aws.amazon.com/ecr/
 [gcr]:                  https://cloud.google.com/container-registry/
 [gpr]:                  https://github.com/features/package-registry
