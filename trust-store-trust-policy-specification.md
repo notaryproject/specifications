@@ -135,8 +135,7 @@ Property descriptions
 - **`version`**(*string*): This REQUIRED property is the version of the trust policy. The supported value is `1.0`.
 - **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
   - **`name`**(*string*): The name of the trust policy.
-  - **`scope`**(*array of string*): The scope determines which trust policy is applicable for a given artifact. The scope field supports array of prefix-based filtering on registry-name/namespace+repository-name. For an artifact, if there is no applicable trust policy, then signature evaluation must be skipped.
-  Please see [Scope Constraints](#scope_constraints) for more details.
+  - **`scope`**(*array of string*): The scope determines which trust policy is applicable for a given artifact. The scope field supports array of prefix-based filtering on registry-name/namespace+repository-name. For an artifact, if there is no applicable trust policy, then signature evaluation must be skipped. Please see [Scope Constraints](#scope_constraints) for more details.
   - **`trustStores`**(*array of strings*): This REQUIRED property specifies a list of names of trust stores that the user trusts.
   - **`expiryValidations`**(*object*): This REQUIRED property represents a collection of artifact expiry-related validations.
   - **`signatureExpiry`**(*string*): This REQUIRED property specifies what implementation must do if the signature is expired.  Supported values are `enforce` and `warn`.
@@ -157,8 +156,9 @@ Value descriptions
 #### Scope Constraints
 
 - There MUST NOT be two trust policies with the same scope.
-- There MUST be only one trust policy applicable to an artifact. In the case of overlapping scopes, the longest prefix match rule is used.  For example, the `wabbit-networks.io/software/dotnet/ocp-release` image if there are two trust policies with overlapping scopes `registry.wabbit-networks.io/software` and `registry.wabbit-networks.io/software/dotnet` then the policy with the longest-prefix matching scope i.e. `registry.wabbit-networks.io/software/dotnet` will be used for signature evaluation.
-- There MUST only be only one trust policy without the `scope` key, which means that the trust policy has global scope(applicable to all artifacts). The trust policy without the `scope` key is optional.
+- There MUST be only one trust policy applicable to an artifact. In the case of overlapping scopes, the longest prefix match rule is used. E.g. For the `wabbit-networks.io/software/dotnet/ocp-release` image if there are two trust policies with overlapping scopes `registry.wabbit-networks.io/software` and `registry.wabbit-networks.io/software/dotnet` then the policy with the longest-prefix matching scope i.e. `registry.wabbit-networks.io/software/dotnet` will be used for signature evaluation.
+- Optionally, there can be one trust policy without scope. The trust policy without scope applies to all artifacts.
+- The scope MUST NOT support reference expansion i.e. URIs must be explicit. E.g. the scope should be `docker.io/library/registry` rather than `registry`.
 
 ### Extended Validation
 
@@ -184,19 +184,19 @@ Here is high level uml diagram for signature evaluation:
 
 ## FAQ
 
-**Q1.** How should multiple signatures requirements be represented in the trust policy?
+**Q: How should multiple signatures requirements be represented in the trust policy?**
 
-We don't support n out m signature requirement verification scheme. Validation succeeds if verification succeeds for at least one signature.
+**A:** We don't support n out m signature requirement verification scheme. Validation succeeds if verification succeeds for at least one signature.
 
-**Q2.** Should local revocation and TSA servers are listed in the trust policy to support disconnected environments?
+**Q: Should local revocation and TSA servers are listed in the trust policy to support disconnected environments?**
 
-Not natively supported but a user can configure `revocationValidations` to `skip` and then use extended validations to check for revocation.
+**A:** Not natively supported but a user can configure `revocationValidations` to `skip` and then use extended validations to check for revocation.
 
-**Q3.** Why do we need to include a complete certificate chain(leading to root) in the signature?
+**Q: Why do we need to include a complete certificate chain(leading to root) in the signature?**
 
-Without a complete certificate chain, the implementation won't be able to perform an exhaustive revocation check, which will lead to security issues, and that's the reason for enforcing a complete certificate chain.
+**A:** Without a complete certificate chain, the implementation won't be able to perform an exhaustive revocation check, which will lead to security issues, and that's the reason for enforcing a complete certificate chain.
 
-**Q4.** Why are we validating artifact signature first instead of signing identity?
+**Q: Why are we validating artifact signature first instead of signing identity?**
 
-Ideally, we should validate the signing identity first and then use the public key in the signing identity to validate the artifact signature. However, this will lead to poor performance in the case where the signature is not valid as there are lots of validations against the signing identity including network calls for revocations, and possibly we won't even need to read the trust store/trust policy if the signature validation fails.
+**A:** Ideally, we should validate the signing identity first and then use the public key in the signing identity to validate the artifact signature. However, this will lead to poor performance in the case where the signature is not valid as there are lots of validations against the signing identity including network calls for revocations, and possibly we won't even need to read the trust store/trust policy if the signature validation fails.
 Also, by validating artifact signature first we will still fail the validation if the signing identity is not trusted.
