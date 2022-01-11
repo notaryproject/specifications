@@ -18,7 +18,7 @@ The signature manifest has an artifact type which specifies it's a Notary V2 sig
 
 - **`artifactType`** (*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.v2.signature`.
 - **`blobs`** (*array of objects*): This REQUIRED property contains collection of only one [artifact descriptor](https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md) referencing signature envelope.
-   - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. The supported value is `application/jose+json`
+  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. The supported value is `application/jose+json`
 - **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
 - **`annotations`** (*string-string map*): This OPTIONAL property contains arbitrary metadata for the artifact manifest. It can be used to store information about the signature.
 
@@ -204,7 +204,7 @@ Since Notary v2 restricts one signature per signature envelope, the compliant si
 4. Signing certificate MUST be a valid codesigning certificate.
 5. Only JWS JSON flattened format is supported. See 'Signature Envelope' section.
 
-## Signature Algorithms
+## Signature Algorithm Requirements
 
 The implementation MUST support the following set of algorithms:
 1. RSASSA-PSS with SHA-256
@@ -229,6 +229,28 @@ The signing certificate's public key algorithm and size MUST be used to determin
 | EC                   | 256             | ECDSA on secp256r1 with SHA-256 |
 | EC                   | 384             | ECDSA on secp384r1 with SHA-384 |
 | EC                   | 512             | ECDSA on secp521r1 with SHA-512 |
+
+### Certificate Requirements
+
+The signing certificate MUST meet the following minimum requirements:
+
+- The signing certificate MUST satisfy the following constraints:
+  - The keyUsage extension MUST be present and MUST be marked critical. The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
+  - The extKeyUsage extension MUST be present and its value MUST be id-kp-codeSigning ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
+  - If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
+- The certificate MUST abide by the following key length restrictions:
+  - For RSA public key, the key length MUST be 2048 bits or higher.
+  - For ECDSA public key, the key length MUST be 256 bits or higher.
+
+The timestamping certificate MUST meet the following minimum requirements:
+
+- The timestamping certificate MUST satisfy the following constraints:
+  - The keyUsage extension MUST be present and MUST be marked critical. The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
+  - The extKeyUsage extension MUST be present and and MUST be marked critical. The value of extension MUST be id-kp-timeStamping ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
+  - If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
+- The certificate MUST abide by the following key length restrictions:
+  - For RSA public key, the key length MUST be 2048 bits or higher.
+  - For ECDSA public key, the key length MUST be 256 bits or higher.
 
 ## FAQ
 
