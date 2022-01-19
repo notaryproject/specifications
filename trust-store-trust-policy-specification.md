@@ -168,10 +168,7 @@ Value descriptions
     - `wabbit-networks.io/software`
 - There MUST be only one trust policy applicable to an artifact. In the case of overlapping scopes, the following steps should be used to evaluate the priority
     1. Respoitory scope i.e. exact match of repository URI has the highest priority
-    2. In the case of more than one matching namespace scopes, the scope with the longest namespace match takes priority over other namespace scopes. 
-
-    For example, in the case of the `wabbit-networks.io/software/ocp-release` repository, the priority order of matching scope is
-    `wabbit-networks.io/software/ocp-release` > `wabbit-networks.io/software/` > `wabbit-networks.io/`.
+    2. In the case of more than one matching namespace scopes, the scope with the longest namespace match takes priority over other namespace scopes.For example, in the case of the `wabbit-networks.io/software/ocp-release` repository, the priority order of matching scope is `wabbit-networks.io/software/ocp-release` > `wabbit-networks.io/software/` > `wabbit-networks.io/`.
 - Two trust policies MUST NOT have the same scope.
 - Optionally, there can be one trust policy without scope. The trust policy without scope applies to all artifacts.
 - The scope MUST NOT support reference expansion i.e. URIs must be explicit. E.g. the scope should be `docker.io/library/registry` rather than `registry`.
@@ -184,7 +181,7 @@ The implementation must allow the user to execute custom validations. These cust
 
 Precondition: The artifact is signed, trust store and trust policies are present.
 
-1. Get the signing algorithm(hash+encryption) from the signing identity and validate that the signing algorithm is valid and allow-listed.
+1. Get the signing algorithm (hash+encryption) from the signing identity and validate that the signing algorithm is valid and allow-listed.
 1. Get the public key from the signing identity and validate the artifact integrity using the public key and signing algorithm identified in the previous step.
 1. Get and validate TrustStore and TrustPolicy for correctness.
 1. Find the trust policy that is applicable for the given artifact. If there is no applicable trust policy, then the signature evaluation must be skipped.
@@ -202,13 +199,13 @@ Here is high level uml diagram for signature evaluation:
 
 **Q: How should multiple signatures requirements be represented in the trust policy?**
 
-**A:** We don't support n out m signature requirement verification scheme. Validation succeeds if verification succeeds for at least one signature.
+**A:** Noltary v2 doesn't support n out m signature requirement verification scheme. Validation succeeds if verification succeeds for at least one signature.
 
-**Q: Should local revocation and TSA servers are listed in the trust policy to support disconnected environments?**
+**Q: Should local revocation and TSA servers be listed in the trust policy to support disconnected environments?**
 
 **A:** Not natively supported but a user can configure `revocationValidations` to `skip` and then use extended validations to check for revocation.
 
-**Q: Why do we need to include a complete certificate chain(leading to root) in the signature?**
+**Q: Why do we need to include a complete certificate chain (leading to root) in the signature?**
 
 **A:** Without a complete certificate chain, the implementation won't be able to perform an exhaustive revocation check, which will lead to security issues, and that's the reason for enforcing a complete certificate chain.
 
