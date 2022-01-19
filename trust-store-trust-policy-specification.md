@@ -135,7 +135,7 @@ Property descriptions
 - **`version`**(*string*): This REQUIRED property is the version of the trust policy. The supported value is `1.0`.
 - **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
   - **`name`**(*string*): The name of the trust policy.
-  - **`scope`**(*array of string*): The scope determines which trust policy is applicable for a given artifact. The scope field supports array of prefix-based filtering on registry-name/namespace+repository-name. For an artifact, if there is no applicable trust policy, then signature evaluation must be skipped. Please see [Scope Constraints](#scope_constraints) for more details.
+  - **`scope`**(*string*): The scope determines which trust policy is applicable for the given artifact. The scope field supports filtering based on repository URI `${registry-name}/${namespace}/${repository-name}` using either repository URI or namespace. For an artifact, if there is no applicable trust policy then the signature evaluation MUST be skipped, this is required to support the gradual rollout of signature validation.
   - **`trustStores`**(*array of strings*): This REQUIRED property specifies a list of names of trust stores that the user trusts.
   - **`expiryValidations`**(*object*): This REQUIRED property represents a collection of artifact expiry-related validations.
   - **`signatureExpiry`**(*string*): This REQUIRED property specifies what implementation must do if the signature is expired.  Supported values are `enforce` and `warn`.
@@ -155,8 +155,24 @@ Value descriptions
 
 #### Scope Constraints
 
-- There MUST NOT be two trust policies with the same scope.
-- There MUST be only one trust policy applicable to an artifact. In the case of overlapping scopes, the longest prefix match rule is used. E.g. For the `wabbit-networks.io/software/dotnet/ocp-release` image if there are two trust policies with overlapping scopes `registry.wabbit-networks.io/software` and `registry.wabbit-networks.io/software/dotnet` then the policy with the longest-prefix matching scope i.e. `registry.wabbit-networks.io/software/dotnet` will be used for signature evaluation.
+- The scope ending with the slash character(`/`) is considered repository scope. Repository scope is applicable only if it exactly matches with repository URI.
+- The scope not ending with the slash character(`/`) is considered namespace scope. Namespace scope is applicable only if it matches the complete or partial namespace of the repository. Example, For `wabbit-networks.io/software/ocp-release` image repository:
+  - matching scopes are:
+    - `wabbit-networks.io/` -  Matches all repositories of wabbit-networks.io registry.
+    - `wabbit-networks.io/software/` - Matches all repositories within software namespace of wabbit-networks.io registry.
+    - `wabbit-networks.io/software/ocp-release` - Matches only wabbit-networks.io/software/ocp-release repository.
+  - non-matching scopes are:
+    - `wabbit-networks`
+    - `wabbit-networks.io`
+    - `wabbit-networks.io/soft/`
+    - `wabbit-networks.io/software`
+- There MUST be only one trust policy applicable to an artifact. In the case of overlapping scopes, the following steps should be used to evaluate the priority
+    1. Respoitory scope i.e. exact match of repository URI has the highest priority
+    2. In the case of more than one matching namespace scopes, the scope with the longest namespace match takes priority over other namespace scopes. 
+
+    For example, in the case of the `wabbit-networks.io/software/ocp-release` repository, the priority order of matching scope is
+    `wabbit-networks.io/software/ocp-release` > `wabbit-networks.io/software/` > `wabbit-networks.io/`.
+- Two trust policies MUST NOT have the same scope.
 - Optionally, there can be one trust policy without scope. The trust policy without scope applies to all artifacts.
 - The scope MUST NOT support reference expansion i.e. URIs must be explicit. E.g. the scope should be `docker.io/library/registry` rather than `registry`.
 
