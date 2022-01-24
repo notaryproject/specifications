@@ -100,7 +100,7 @@ The trust policy is represented as JSON data structure as shown below:
     "trustPolicies": [
         {
             "name": "trust-policy-name-1",
-            "Scopes": ["wabbit-networks.io/software"],
+            "scopes": ["wabbit-networks.io/software/*"],
             "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
             "expiryValidations": {
                 "signatureExpiry": "enforce/warn",
@@ -135,7 +135,7 @@ Property descriptions
 - **`version`**(*string*): This REQUIRED property is the version of the trust policy. The supported value is `1.0`.
 - **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
   - **`name`**(*string*): The name of the trust policy.
-  - **`scope`**(*string*): The scope determines which trust policy is applicable for the given artifact. The scope field supports filtering based on repository URI `${registry-name}/${namespace}/${repository-name}` using either repository URI or namespace. For an artifact, if there is no applicable trust policy then the signature evaluation MUST be skipped, this is required to support the gradual rollout of signature validation.
+  - **`scopes`**(*array of strings*): The scope determines which trust policy is applicable for the given artifact. The scope field supports filtering based on repository URI `${registry-name}/${namespace}/${repository-name}` using either repository URI or namespaces. For an artifact, if there is no applicable trust policy then the signature evaluation MUST be skipped, this is required to support the gradual rollout of signature validation. For more information, see [scope constraints](#scope-constraints) section.
   - **`trustStores`**(*array of strings*): This REQUIRED property specifies a list of names of trust stores that the user trusts.
   - **`expiryValidations`**(*object*): This REQUIRED property represents a collection of artifact expiry-related validations.
   - **`signatureExpiry`**(*string*): This REQUIRED property specifies what implementation must do if the signature is expired.  Supported values are `enforce` and `warn`.
@@ -155,20 +155,31 @@ Value descriptions
 
 #### Scope Constraints
 
-- The scope ending with the slash character(`/`) is considered repository scope. Repository scope is applicable only if it exactly matches with repository URI.
-- The scope not ending with the slash character(`/`) is considered namespace scope. Namespace scope is applicable only if it matches the complete or partial namespace of the repository. Example, For `wabbit-networks.io/software/ocp-release` image repository:
-  - matching scopes are:
-    - `wabbit-networks.io/` -  Matches all repositories of wabbit-networks.io registry.
-    - `wabbit-networks.io/software/` - Matches all repositories within software namespace of wabbit-networks.io registry.
-    - `wabbit-networks.io/software/ocp-release` - Matches only wabbit-networks.io/software/ocp-release repository.
-  - non-matching scopes are:
-    - `wabbit-networks`
+- Scope MUST support one and two trailing asterisks (`* / **`) wildcard characters.
+  - If used, wildcard characters MUST be preceded with a slash character (`/`).
+  - If used, wildcard characters MUST be present at the end of the scope.
+- The scope without trailing asterisk(s) characters is considered repository scope. Repository scope matches only with completely repository URI.
+- The scope with one trailing asterisk character (`*`) is considered namespace scope. Namespace scope matches only for the repositories directly present inside the scope.
+- The scope with two trailing asterisk characters (`**`) is considered nested namespace scope. Nested namespace scope matches all the repositories present inside the given namespace and sub-namespaces.
+Example, For `wabbit-networks.io/software/ocp-release` image repository:
+  - Matching scopes:
+    - `wabbit-networks.io/**` -  matches all repositories of wabbit-networks.io registry.
+    - `wabbit-networks.io/software/*` - matches repositories directly within software namespace of wabbit-networks.io registry.
+    - `wabbit-networks.io/software/ocp-release` - matches only wabbit-networks.io/software/ocp-release repository.
+  - Non-matching scopes:
     - `wabbit-networks.io`
-    - `wabbit-networks.io/soft/`
+    - `wabbit-networks.io/soft/*`
     - `wabbit-networks.io/software`
-- There MUST be only one trust policy applicable to an artifact. In the case of overlapping scopes, the following steps should be used to evaluate the priority
-    1. Respoitory scope i.e. exact match of repository URI has the highest priority
-    2. In the case of more than one matching namespace scopes, the scope with the longest namespace match takes priority over other namespace scopes.For example, in the case of the `wabbit-networks.io/software/ocp-release` repository, the priority order of matching scope is `wabbit-networks.io/software/ocp-release` > `wabbit-networks.io/software/` > `wabbit-networks.io/`.
+  - Invalid scopes(Parse Error):
+    - `wabbit-networks.io/`
+    - `wabbit-networks.io/software/`
+    - `wabbit-networks.io/software*`
+    - `wabbit-networks.io/software**`
+- There MUST be only one trust policy applicable to an artifact. In the case of overlapping scopes, the following steps MUST be used to evaluate the priority.
+  1. Respoitory scope i.e. exact match of repository URI has the highest priority
+  1. Namespace scope takes priority over nested namespace scope.
+  1. In the case of more than one matching nested namespace scopes, the scope with the longest match takes priority over other nested namespace scopes.
+  For example, in the case of the `wabbit-networks.io/software/ocp-release` repository, the priority order for matching scopes is `wabbit-networks.io/software/ocp-release` > `wabbit-networks.io/software/*` > `wabbit-networks.io/software/**` > `wabbit-networks.io/**`.
 - Two trust policies MUST NOT have the same scope.
 - Optionally, there can be one trust policy without scope. The trust policy without scope applies to all artifacts.
 - The scope MUST NOT support reference expansion i.e. URIs must be explicit. E.g. the scope should be `docker.io/library/registry` rather than `registry`.
