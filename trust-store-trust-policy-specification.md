@@ -99,30 +99,38 @@ The trust policy is represented as JSON data structure as shown below:
     "version": "1.0",
     "trustPolicies": [
         {
-            "name": "trust-policy-name-1",
-            "scopes": ["wabbit-networks.io/software/*"],
+            "name": "verify-signature",
+            "scopes": [
+                "wabbit-networks.io/software/product1"
+                "wabbit-networks.io/software/product2" ],
             "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
             "expiryValidations": {
-                "signatureExpiry": "enforce/warn",
-                "signingIdentityExpiry": "enforce/warn",
-                "timestampExpiry": "enforce/warn"
+                "signatureExpiry": "enforce" | "warn",
+                "signingIdentityExpiry": "enforce" | "warn",
+                "timestampExpiry": "enforce" | "warn"
             },
             "revocationValidations": {
-                "signingIdentityRevocation": "enforceWithFailOpen/enforceWithFailClose/warn/skip",
-                "timestampRevocation": "enforceWithFailOpen/enforceWithFailClose/warn/skip"
+                "signingIdentityRevocation": "enforceWithFailOpen" | "enforceWithFailClose" | "warn" | "skip",
+                "timestampRevocation": "enforceWithFailOpen" | "enforceWithFailClose"| "warn" | "skip"
             }
         },
         {
-            "name": "trust-policy-name-2",
+            "name": "skip-signature-verification",
+            "scopes": [ "wabbit-networks.io/software/unsigned/productA" ],
+            "skipValidations": true,
+        },
+        {
+            "name": "global-trust-policy",
+            "scopes": [ "*" ],
             "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
             "expiryValidations": {
-                "signatureExpiry": "enforce/warn",
-                "signingIdentityExpiry": "enforce/warn",
-                "timestampExpiry": "enforce/warn"
+                "signatureExpiry": "enforce" | "warn",
+                "signingIdentityExpiry": "enforce" | "warn",
+                "timestampExpiry": "enforce" | "warn"
             },
             "revocationValidations": {
-                "signingIdentityRevocation": "enforceWithFailOpen/enforceWithFailClose/warn/skip",
-                "timestampRevocation": "enforceWithFailOpen/enforceWithFailClose/warn/skip"
+                "signingIdentityRevocation": "enforceWithFailOpen" | "enforceWithFailClose" | "warn" | "skip",
+                "timestampRevocation": "enforceWithFailOpen" | "enforceWithFailClose"| "warn" | "skip"
             }
         }
 
@@ -134,14 +142,15 @@ Property descriptions
 
 - **`version`**(*string*): This REQUIRED property is the version of the trust policy. The supported value is `1.0`.
 - **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
-  - **`name`**(*string*): The name of the trust policy.
-  - **`scopes`**(*array of strings*): The scope determines which trust policy is applicable for the given artifact. The scope field supports filtering based on repository URI `${registry-name}/${namespace}/${repository-name}` using either repository URI or namespaces. For an artifact, if there is no applicable trust policy then the signature evaluation MUST be skipped, this is required to support the gradual rollout of signature validation. For more information, see [scope constraints](#scope-constraints) section.
-  - **`trustStores`**(*array of strings*): This REQUIRED property specifies a list of names of trust stores that the user trusts.
-  - **`expiryValidations`**(*object*): This REQUIRED property represents a collection of artifact expiry-related validations.
-  - **`signatureExpiry`**(*string*): This REQUIRED property specifies what implementation must do if the signature is expired.  Supported values are `enforce` and `warn`.
+  - **`name`**(*string*): This REQUIRED propert represents name of the trust policy.
+  - **`scopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact. The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`. For more information, see [scopes constraints](#scope-constraints) section.
+  - **`skipValidations`**(*boolean*): This OPTIONAL property dictates whether Notary v2 should skip signature validations or not. If set to `true` Notary v2 MUST NOT perform any signature validations including the custom validations performed using plugins. This is required to support the gradual rollout of signature validation i.e the case when the user application has a mix of signed and unsigned artifacts. When set to `false`, the following properties  MUST be present `trustStores`, `expiryValidations`, `revocationValidations`. The default value is `false`.
+  - **`trustStores`**(*array of strings*): This OPTIONAL property specifies a list of names of trust stores that the user trusts.
+  - **`expiryValidations`**(*object*): This OPTIONAL property represents a collection of artifact expiry-related validations.
+    - **`signatureExpiry`**(*string*): This REQUIRED property specifies what implementation must do if the signature is expired.  Supported values are `enforce` and `warn`.
     - **`signingIdentityExpiry`**(*string*): This REQUIRED property specifies what implementation must do if signing identity(certificate and certificate-chain) is expired. Supported values are `enforce` and `warn`.
     - **`timestampExpiry`**(*string*): This REQUIRED property specifies what implementation must do if timestamping certificate and certificate-chain are expired. Supported values are `enforce` and `warn`.
-  - **`revocationValidations`**(*object*): This REQUIRED property represents collection of artifact revocation related validations.
+  - **`revocationValidations`**(*object*): This OPTIONAL property represents collection of artifact revocation related validations.
     - **`signingIdentityRevocation`**(*string*): This REQUIRED property specifies whether implementation should check for signing identity(certificate and certificate-chain) revocation status or not and what implementation must do if this revocation check fails. Supported values are `enforceWithFailOpen`, `enforceWithFailClose`, `warn` and `skip`.
     - **`timestampRevocation`**(*string*): This REQUIRED property specifies whether implementation should check for timestamping certificate and certificate-chain revocation status or not and what implementation must do if this revocation check fails. Supported values are `enforceWithFailOpen`, `enforceWithFailClose`, `warn` and `skip`.
 
@@ -153,36 +162,17 @@ Value descriptions
 - **`warn`**: This means implementation MUST perform the validation and if validation fails(because of any reason) the implementation MUST log an error and MUST NOT fail validation.
 - **`skip`**: This means implementation MUST NOT perform the validation.
 
-#### Scope Constraints
+#### Scopes Constraints
 
-- Scope MUST support one and two trailing asterisks (`* / **`) wildcard characters.
-  - If used, wildcard characters MUST be preceded with a slash character (`/`).
-  - If used, wildcard characters MUST be present at the end of the scope.
-- The scope without trailing asterisk(s) characters is considered repository scope. Repository scope matches only with completely repository URI.
-- The scope with one trailing asterisk character (`*`) is considered namespace scope. Namespace scope matches only for the repositories directly present inside the scope.
-- The scope with two trailing asterisk characters (`**`) is considered nested namespace scope. Nested namespace scope matches all the repositories present inside the given namespace and sub-namespaces.
-Example, For `wabbit-networks.io/software/ocp-release` image repository:
-  - Matching scopes:
-    - `wabbit-networks.io/**` -  matches all repositories of wabbit-networks.io registry.
-    - `wabbit-networks.io/software/*` - matches repositories directly within software namespace of wabbit-networks.io registry.
-    - `wabbit-networks.io/software/ocp-release` - matches only wabbit-networks.io/software/ocp-release repository.
-  - Non-matching scopes:
-    - `wabbit-networks.io`
-    - `wabbit-networks.io/soft/*`
-    - `wabbit-networks.io/software`
-  - Invalid scopes(Parse Error):
-    - `wabbit-networks.io/`
-    - `wabbit-networks.io/software/`
-    - `wabbit-networks.io/software*`
-    - `wabbit-networks.io/software**`
-- There MUST be only one trust policy applicable to an artifact. In the case of overlapping scopes, the following steps MUST be used to evaluate the priority.
-  1. Respoitory scope i.e. exact match of repository URI has the highest priority
-  1. Namespace scope takes priority over nested namespace scope.
-  1. In the case of more than one matching nested namespace scopes, the scope with the longest match takes priority over other nested namespace scopes.
-  For example, in the case of the `wabbit-networks.io/software/ocp-release` repository, the priority order for matching scopes is `wabbit-networks.io/software/ocp-release` > `wabbit-networks.io/software/*` > `wabbit-networks.io/software/**` > `wabbit-networks.io/**`.
-- Two trust policies MUST NOT have the same scope.
-- Optionally, there can be one trust policy without scope. The trust policy without scope applies to all artifacts.
-- The scope MUST NOT support reference expansion i.e. URIs must be explicit. E.g. the scope should be `docker.io/library/registry` rather than `registry`.
+- Trust policy MUST have a scope property and the scope collection MUST contain at least one value.
+- The scope MUST contain a fully qualified URI of the repository. The repository URI MUST NOT contain asterisk character `*`.
+- Optionally, there can be one trust policy with scope collection containing only asterisk(s) character `*` as the value. The scope with `*` value is called global scope. The trust policy with global scope applies to all the artifacts.
+- For a given artifact there MUST be only one applicable trust policy, with the exception of trust policy with global scope.
+- For a given artifact, if there is no applicable trust policy then Notary v2 MUST consider the artifact as untrusted and fail signature verification.
+- The scope MUST NOT support reference expansion i.e. URIs must be fully qualified. E.g. the scope should be `docker.io/library/registry` rather than `registry`.
+- Evaluation order of trust policies:
+  1. *Exact match*: If there exists a trust policy whose scope contains the artifact's repository URI then the aforementioned policy MUST be used for signature evaluation. Otherwise, continue to the next step.
+  1. *Gobal*: If there exists a trust policy with global scope then use that policy for signature evaluation. Otherwise, fail the signature verification.
 
 ### Extended Validation
 
