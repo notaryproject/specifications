@@ -105,13 +105,13 @@ The trust policy is represented as JSON data structure as shown below:
                 "wabbit-networks.io/software/product2" ],
             "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
             "expiryValidations": {
-                "signatureExpiry": "enforce" | "warn",
-                "signingIdentityExpiry": "enforce" | "warn",
-                "timestampExpiry": "enforce" | "warn"
+                "signatureExpiry": "enforce | warn",
+                "signingIdentityExpiry": "enforce | warn",
+                "timestampExpiry": "enforce | warn"
             },
             "revocationValidations": {
-                "signingIdentityRevocation": "enforceWithFailOpen" | "enforceWithFailClose" | "warn" | "skip",
-                "timestampRevocation": "enforceWithFailOpen" | "enforceWithFailClose"| "warn" | "skip"
+                "signingIdentityRevocation": "enforceWithFailOpen | enforceWithFailClose | warn | skip",
+                "timestampRevocation": "enforceWithFailOpen | enforceWithFailClose | warn | skip"
             }
         },
         {
@@ -124,13 +124,13 @@ The trust policy is represented as JSON data structure as shown below:
             "scopes": [ "*" ],
             "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
             "expiryValidations": {
-                "signatureExpiry": "enforce" | "warn",
-                "signingIdentityExpiry": "enforce" | "warn",
-                "timestampExpiry": "enforce" | "warn"
+                "signatureExpiry": "enforce | warn",
+                "signingIdentityExpiry": "enforce | warn",
+                "timestampExpiry": "enforce | warn"
             },
             "revocationValidations": {
-                "signingIdentityRevocation": "enforceWithFailOpen" | "enforceWithFailClose" | "warn" | "skip",
-                "timestampRevocation": "enforceWithFailOpen" | "enforceWithFailClose"| "warn" | "skip"
+                "signingIdentityRevocation": "enforceWithFailOpen | enforceWithFailClose | warn | skip",
+                "timestampRevocation": "enforceWithFailOpen | enforceWithFailClose | warn | skip"
             }
         }
 
@@ -185,7 +185,7 @@ Precondition: The artifact is signed, trust store and trust policies are present
 1. Get the signing algorithm (hash+encryption) from the signing identity and validate that the signing algorithm is valid and allow-listed.
 1. Get the public key from the signing identity and validate the artifact integrity using the public key and signing algorithm identified in the previous step.
 1. Get and validate TrustStore and TrustPolicy for correctness.
-1. Find the trust policy that is applicable for the given artifact. If there is no applicable trust policy, then the signature evaluation must be skipped.
+1. Find the trust policy that is applicable for the given artifact. In the trust policy if `skipValidations` is set to `true`, then the signature evaluation must be skipped.
 1. Get the signing identity from the signed artifact and validate it against the identities configured in the trust store of trust policy determined in step 4. The signing identity must match or lead to at least one of the trusted identities configured in the trust store.
     1. If signing identity is certificate then validate that the certificate and certificate-chain leads to self-signed root.
 1. Perform [artifact expiry](#artifact-expiry) validations based on trust policy.
