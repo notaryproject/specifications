@@ -117,7 +117,7 @@ The trust policy is represented as JSON data structure as shown below:
         {
             "name": "skip-signature-verification",
             "scopes": [ "wabbit-networks.io/software/unsigned/productA" ],
-            "skipValidations": true,
+            "skipSignatureVerification": true,
         },
         {
             "name": "global-trust-policy",
@@ -144,7 +144,7 @@ Property descriptions
 - **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
   - **`name`**(*string*): This REQUIRED propert represents name of the trust policy.
   - **`scopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact. The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`. For more information, see [scopes constraints](#scope-constraints) section.
-  - **`skipValidations`**(*boolean*): This OPTIONAL property dictates whether Notary v2 should skip signature validations or not. If set to `true` Notary v2 MUST NOT perform any signature validations including the custom validations performed using plugins. This is required to support the gradual rollout of signature validation i.e the case when the user application has a mix of signed and unsigned artifacts. When set to `false`, the following properties  MUST be present `trustStores`, `expiryValidations`, `revocationValidations`. The default value is `false`.
+  - **`skipSignatureVerification`**(*boolean*): This OPTIONAL property dictates whether Notary v2 should skip signature verification or not. If set to `true` Notary v2 MUST NOT perform any signature validations including the custom validations performed using plugins. This is required to support the gradual rollout of signature validation i.e the case when the user application has a mix of signed and unsigned artifacts. When set to `false`, the following properties  MUST be present `trustStores`, `expiryValidations`, `revocationValidations`. The default value is `false`.
   - **`trustStores`**(*array of strings*): This OPTIONAL property specifies a list of names of trust stores that the user trusts.
   - **`expiryValidations`**(*object*): This OPTIONAL property represents a collection of artifact expiry-related validations.
     - **`signatureExpiry`**(*string*): This REQUIRED property specifies what implementation must do if the signature is expired.  Supported values are `enforce` and `warn`.
@@ -185,7 +185,7 @@ Precondition: The artifact is signed, trust store and trust policies are present
 1. Get the signing algorithm (hash+encryption) from the signing identity and validate that the signing algorithm is valid and allow-listed.
 1. Get the public key from the signing identity and validate the artifact integrity using the public key and signing algorithm identified in the previous step.
 1. Get and validate TrustStore and TrustPolicy for correctness.
-1. Find the trust policy that is applicable for the given artifact. In the trust policy if `skipValidations` is set to `true`, then the signature evaluation must be skipped.
+1. Find the trust policy that is applicable for the given artifact. In the trust policy if `skipSignatureVerification` is set to `true`, then the signature evaluation must be skipped.
 1. Get the signing identity from the signed artifact and validate it against the identities configured in the trust store of trust policy determined in step 4. The signing identity must match or lead to at least one of the trusted identities configured in the trust store.
     1. If signing identity is certificate then validate that the certificate and certificate-chain leads to self-signed root.
 1. Perform [artifact expiry](#artifact-expiry) validations based on trust policy.
@@ -200,7 +200,7 @@ Here is high level uml diagram for signature evaluation:
 
 **Q: How should multiple signatures requirements be represented in the trust policy?**
 
-**A:** Noltary v2 doesn't support n out m signature requirement verification scheme. Validation succeeds if verification succeeds for at least one signature.
+**A:** Notary v2 doesn't support n out m signature requirement verification scheme. Validation succeeds if verification succeeds for at least one signature.
 
 **Q: Should local revocation and TSA servers be listed in the trust policy to support disconnected environments?**
 
