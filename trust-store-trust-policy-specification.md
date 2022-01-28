@@ -164,9 +164,10 @@ Value descriptions
 
 #### Scopes Constraints
 
-- Trust policy MUST have a scope property and the scope collection MUST contain at least one value.
-- The scope MUST contain a fully qualified URI of the repository. The repository URI MUST NOT contain asterisk character `*`.
-- Optionally, there can be one trust policy with scope collection containing only asterisk(s) character `*` as the value. The scope with `*` value is called global scope. The trust policy with global scope applies to all the artifacts.
+- Each trust policy MUST contain scope property and the scope collection MUST contain at least one value.
+- The scope MUST contain one of the following:
+  - List of one or more fully qualified repository URIs. The repository URI MUST NOT contain the asterisk character `*`.
+  - A single value with one asterisk character `*`. The scope with `*` value is called global scope. The trust policy with global scope applies to all the artifacts. There can only be one trust policy that uses a global scope.
 - For a given artifact there MUST be only one applicable trust policy, with the exception of trust policy with global scope.
 - For a given artifact, if there is no applicable trust policy then Notary v2 MUST consider the artifact as untrusted and fail signature verification.
 - The scope MUST NOT support reference expansion i.e. URIs must be fully qualified. E.g. the scope should be `docker.io/library/registry` rather than `registry`.
