@@ -4,7 +4,7 @@ A current overview of Notary v2, including a collection of requirements & scenar
 
 ## Project Status
 
-The Notary v2 project is in early development and design documents should not be considered final. Please refer to the [milestones](https://github.com/notaryproject/notaryproject/milestones) or [attend](#contributing-&-conversations) the weekly meetings for details on the roadmap.
+The Notary v2 project is in early development and design documents should not be considered final. Please refer to the [milestones](https://github.com/notaryproject/notaryproject/milestones) or [attend](#contributing--conversations) the weekly meetings for details on the roadmap.
 
 ## TOC
 
@@ -46,7 +46,7 @@ nv2 sign \
 docker push registry.wabbit-networks.io/net-monitor:v1
 ```
 
-On another node, verify the signature before deployment. 
+On another node, verify the signature before deployment.
 
 _**Note**: the `nv2 verify` command is shown external to the docker client to demonstrate validation, which may be added to any container runtime, including containerd._
 
