@@ -157,8 +157,8 @@ Property descriptions
 Value descriptions
 
 - **`enforce`**: This means implementation MUST perform validation and throw an error if validation fails.
-- **`enforceWithFailOpen`**: This means implementation MUST perform validation and if validation fails because the endpoint is not reachable, the implementation MUST throw an error and MUST fail the validation.
-- **`enforceWithFailClose`**: This means implementation MUST perform validation and if validation fails because the endpoint is not reachable, the implementation MUST log an error and MUST NOT fail the validation.
+- **`enforceWithFailOpen`**: This means implementation MUST perform validation and if validation fails because the endpoint is not reachable, the implementation MUST log an error and MUST NOT fail the validation.
+- **`enforceWithFailClose`**: This means implementation MUST perform validation and if validation fails because the endpoint is not reachable, the implementation MUST throw an error and MUST fail the validation.
 - **`warn`**: This means implementation MUST perform the validation and if validation fails(because of any reason) the implementation MUST log an error and MUST NOT fail validation.
 - **`skip`**: This means implementation MUST NOT perform the validation.
 
@@ -224,7 +224,7 @@ The implementation must allow the user to execute custom validations. These cust
 
 If the certificate revocation trust-store setting is set to `skip`, skip the below steps. Otherwise, check for revocation status for certificate and certificate chain.
 
-1. If the revocation status of any of the certificates cannot be determined (revocation unavailable) and `signingIdentityRevocation` is set to either `enforceWithFailClose` or `warn` then log a warning and skip the below steps. Otherwise, fail the signature validation and exit.
+1. If the revocation status of any of the certificates cannot be determined (revocation unavailable) and `signingIdentityRevocation` is set to either `enforceWithFailOpen` or `warn` then log a warning and skip the below steps. Otherwise, fail the signature validation and exit.
 1. If any of the certificates are revoked and `signingIdentityRevocation` is set to either `enforceWithFailOpen` or `enforceWithFailClose` then fail signature validation and exit else log a warning.
 
 Starting from Root to leaf certificate, for each certificate in the certificate chain, perform the following steps to check its revocation status:
