@@ -46,11 +46,15 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
     1. **Get signature artifact manifest:** Download the Notary v2 signature's artifact manifest for the given artifact descriptor.
     1. **Filter signature artifact manifest:**
         1. Filter out the unsupported signature formats by comparing the signature envelope format type (`[descriptors].descriptor.mediaType`) in the signature manifest, with the supported formats defined in [signature specification](./signature-specification.md#storage).
-        1. Depending upon the trust-store configuration, further filter out signature manifest. why? How? **TBD**(See [signature filtering](https://hackmd.io/@pritesh/signature_filtering)).
+        1. Depending upon the trust-store and trust-policy configuration, further filter out signature manifests.
+            1. Using the `scopes` configured in trust policies, get the applicable trust policy.
+            1. From the trust policy, get the list of trusted signing certificates. If the trust policy contains multiple trust stores, create a list of trusted signing certificates by merging the trusted signing certificate list of each trust store.
+                1. Calculate the SHA-256 fingerprint of all the trusted certificates and compare them against the list of SHA-256 certificate fingerprints present in  `org.cncf.notary.x509certs.fingerprint.sha256` annotation of artifact manifest.
+                1. If there is at least one match, continue to the next step. Otherwise, move to the next signature artifact descriptor(step 2.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
         1. If the artifact manifest is filtered out, skip the below steps and move to the next signature artifact descriptor(step 2.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
     1. **Get and verify signatures:** On the filtered Notary v2 signature artifact manifest, perform the following steps:
         1. Download the signature envelope.
         1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy-specification.md#signature-evaluation) section.
-        1. If signature verification fails, skip the below steps and move to the next signature artifact descriptor(step 2.1). If all signature artifact manifests have already been processed, fail the signature verification and exit.
+        1. If signature verification fails, skip the below steps and move to the next signature artifact descriptor(step 2.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
         1. If signature verification succeeds, compare the digest derived from the given OCI artifact reference with the signed digest present in the signature envelope's payload. If digests are equal, signature verification is considered successful. Otherwise, move to the next signature artifact descriptor(step 2.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
 1. **Get OCI artifact:** Using the verified digest, download the OCI artifact. This step is not in the purview of Notary v2.

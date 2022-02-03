@@ -20,7 +20,8 @@ The signature manifest has an artifact type which specifies it's a Notary V2 sig
 - **`blobs`** (*array of objects*): This REQUIRED property contains collection of only one [artifact descriptor](https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md) referencing signature envelope.
   - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. The supported value is `application/jose+json`
 - **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
-- **`annotations`** (*string-string map*): This OPTIONAL property contains arbitrary metadata for the artifact manifest. It can be used to store information about the signature.
+- **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest. It is being used to store information about the signature. Keys using the `org.cncf.notary` namespace are reserved for use in Notary and MUST NOT be used by other specifications.
+  - **`org.cncf.notary.x509certs.fingerprint.sha256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingureprint of signing certificate and certificate chain used for signature generation. The list of fingerprints is present as a JSON array string.
 
 ```json
 {
@@ -38,7 +39,7 @@ The signature manifest has an artifact type which specifies it's a Notary V2 sig
    "size": 16724
  },
  "annotations": {
-   "org.cncf.notary.signature.subject": "wabbit-networks.io"
+   "org.cncf.notary.x509certs.fingerprint.sha256": "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\" \"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
  }
 }
 ```
@@ -48,6 +49,10 @@ The signature manifest has an artifact type which specifies it's a Notary V2 sig
 The client should be able to discover all the signatures belonging to an artifact (such as image manifest) by using [ORAS Manifest Referrers API](https://github.com/oras-project/artifacts-spec/blob/main/manifest-referrers-api.md).
 ORAS Manifest Referrers API returns a paginated list of all artifacts belonging to a target artifact (such as container images, SBoMs). The implementation can filter Notary signature artifacts by either using ORAS Manifest Referrers API or using custom logic on the client. Each Notary signature artifact refers to a signature envelope blob.  
 
+### Signature Filtering
+
+An OCI artifact can have multiple signatures, Notary v2 uses annotations of the signature artifact to filter relevant signatures based on the applicable trust policy.
+The Notary v2 signature artifact's `io.cncf.notary.x509certs.fingerprint.sha256` annotations key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
 
 ## Signature Envelope
 
