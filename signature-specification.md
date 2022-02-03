@@ -232,22 +232,20 @@ The signing certificate's public key algorithm and size MUST be used to determin
 
 ### Certificate Requirements
 
-The signing certificate MUST meet the following minimum requirements:
+The **signing certificate** MUST meet the following minimum requirements:
 
-- The signing certificate MUST satisfy the following constraints:
-  - The keyUsage extension MUST be present and MUST be marked critical. The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
-  - The extKeyUsage extension MUST be present and its value MUST be id-kp-codeSigning ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
-  - If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
+- The keyUsage extension MUST be present and MUST be marked critical. The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
+- The extKeyUsage extension MUST be present and its value MUST be id-kp-codeSigning ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
+- If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
 - The certificate MUST abide by the following key length restrictions:
   - For RSA public key, the key length MUST be 2048 bits or higher.
   - For ECDSA public key, the key length MUST be 256 bits or higher.
 
-The timestamping certificate MUST meet the following minimum requirements:
+The **timestamping certificate** MUST meet the following minimum requirements:
 
-- The timestamping certificate MUST satisfy the following constraints:
-  - The keyUsage extension MUST be present and MUST be marked critical. The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
-  - The extKeyUsage extension MUST be present and and MUST be marked critical. The value of extension MUST be id-kp-timeStamping ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
-  - If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
+- The keyUsage extension MUST be present and MUST be marked critical. The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
+- The extKeyUsage extension MUST be present and and MUST be marked critical. The value of extension MUST be id-kp-timeStamping ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
+- If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
 - The certificate MUST abide by the following key length restrictions:
   - For RSA public key, the key length MUST be 2048 bits or higher.
   - For ECDSA public key, the key length MUST be 256 bits or higher.

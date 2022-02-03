@@ -256,7 +256,7 @@ To check the revocation status of a certificate against CRL, the following steps
 1. Verify the CRL signature.
 1. Verify that the CRL is valid (not expired). A CRL is considered expired if the current date is after the `NextUpdate` field in the CRL.
 1. Look up the certificate’s serial number in the CRL.
-    1. If the certificate’s serial number is listed in the CRL, look for `InvalidityDate`. If the invalidity date is present and timestamp signature is also present then if the invalidity date is before the timestamping date, the certificate is considered revoked. If the invalidity date is not present in CRL, the certificate is considered revoked.
+    1. If the certificate’s serial number is listed in the CRL, look for `InvalidityDate`. If CRL has invalidity date and artifact signature is timestamped then compare the invalidity date with the timestamping date. If the invalidity date is before the timestamping date, the certificate is considered revoked. If the invalidity date is not present in CRL, the certificate is considered revoked.
     1. If the CRL is expired and the certificate is listed in the CRL for any reason other than `certificate hold`, the certificate is considered revoked.
     1. If the certificate is not listed in the CRL or the revocation reason is `certificate hold`, a new CRL is retrieved if the current time is past the time in the `NextUpdate` field in the current CRL. The new CRL is then checked to determine if the certificate is revoked. If the original reason was `certificate hold`, the CRL is checked to determine if the certificate is unrevoked by looking for the `RemoveFromCRL` revocation code.
 
