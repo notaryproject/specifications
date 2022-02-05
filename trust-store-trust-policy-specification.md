@@ -187,7 +187,7 @@ A distinguished name (usually just shortened to "DN") uniquely identifies an ent
 - If the subject DN of the signing certificate is used in the trust anchor, then it MUST meet the following requirements:
   - The value of `trustAnchors` MUST begin with `subject:` followed by comma-separated one or more RDNs. For example, `subject: C=${country}, ST=${state}, L=${locallity}, O={organization}, OU=${organization-unit}, CN=${common-name}`.
   - Trust anchor MUST contain country (CN), state Or province (ST), and organization (O) RDNs. All other RDNs are optional. The minimal possible trust anchor is `subject: C=${country}, ST=${state}, O={organization}`,
-  - Trust anchor MUST support overlapping values. Trust anchors are considered overlapping if there exists a certificate for which multiple trust anchors evaluate true. For example, the following two trust anchors are overlapping:
+  - Trust anchor MUST NOT have overlapping values. Trust anchors are considered overlapping if there exists a certificate for which multiple trust anchors evaluate true. For example, the following two trust anchors are overlapping:
     - `subject: C=US, ST=WA, O=wabbit-network.io, OU=org1`
     - `subject:  C=US, ST=WA, O=wabbit-network.io`
   - In some special cases trust anchor MUST escape one or more characters in an RDN. Those cases are:
@@ -204,7 +204,7 @@ The implementation must allow the user to execute custom validations. These cust
 
 ### Prerequisites
 
-- User has configured [trust store](#trust-store) and [trust policy](#trust-policy).
+- User has configured valid [trust store](#trust-store) and [trust policy](#trust-policy).
 
 ### Steps
 
@@ -223,7 +223,7 @@ The implementation must allow the user to execute custom validations. These cust
             1. Validate that certificate and certificate-chain lead to a trusted certificate configured in the `x509Certs` field of trust-store.
             1. If the above verification succeeds then continue to the next step else iterate over the next trust store. If all of the trust stores have been evaluated then fail the signature validation and exit.
     1. For the applicable trust policy, **validate trust anchors** (if present):
-        1. If trust anchors are present, validate that the signing certificate complies with `trustAnchors` i.e. the value of subject attributes configured in `trustAnchors` matches with the value of corresponding attributes in the signing certificate’s subject. If trust anchors are not present continue to step 4.
+        1. If trust anchors are present, validate that the value of subject attributes configured in `trustAnchors` matches with the value of corresponding attributes in the signing certificate’s subject. If trust anchors are not present continue to step 4.
         1. If the above verification succeeds then continue to the next step. Otherwise, fail the signature validation and exit.
     1. **Validate trust policy:**
         1. If signature expiry is present in the signature envelope, using the local machine’s current time(in UTC) check whether the signature is expired or not. If the signature is not expired, continue to the next step. Otherwise, if `signatureExpiry` is set to `Enforce` then fail the signature validation and exit else log a warning and continue to the next step.
