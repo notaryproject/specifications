@@ -16,7 +16,7 @@ The user wants to sign an OCI artifact and push the signature to a repository.
     1. Verify that the signing certificate is valid and satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
     1. Verify that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
     1. Generate signature.
-        1. Generate signature using signature formats specified in [supported signature envelopes](./signature-specification.md#supported-signature-envelopes).
+        1. Generate signature using signature formats specified in [supported signature envelopes](./signature-specification.md#supported-signature-envelopes). Also, as part of this step, the user-defined/supplied custom attributes should be added to the signature's signed attributes.
         1. If the user wants to timestamp the signature, obtain an [RFC-3161](https://datatracker.ietf.org/doc/html/rfc3161.html) compliant timestamp for the signature generated in the previous step. Otherwise, continue to the next step.
             1. Verify that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
             1. Verify that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
