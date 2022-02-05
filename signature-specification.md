@@ -21,7 +21,7 @@ The signature manifest has an artifact type which specifies it's a Notary V2 sig
   - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. The supported value is `application/jose+json`
 - **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
 - **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest. It is being used to store information about the signature. Keys using the `org.cncf.notary` namespace are reserved for use in Notary and MUST NOT be used by other specifications.
-  - **`org.cncf.notary.x509certs.fingerprint.sha256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingureprint of signing certificate and certificate chain used for signature generation. The list of fingerprints is present as a JSON array string.
+  - **`org.cncf.notary.x509certs.fingerprint.sha256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain used for signature generation. The list of fingerprints is present as a JSON array string.
 
 ```json
 {
@@ -52,7 +52,7 @@ ORAS Manifest Referrers API returns a paginated list of all artifacts belonging 
 ### Signature Filtering
 
 An OCI artifact can have multiple signatures, Notary v2 uses annotations of the signature artifact to filter relevant signatures based on the applicable trust policy.
-The Notary v2 signature artifact's `io.cncf.notary.x509certs.fingerprint.sha256` annotations key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
+The Notary v2 signature artifact's `org.cncf.notary.x509certs.fingerprint.sha256` annotations key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
 
 ## Signature Envelope
 
