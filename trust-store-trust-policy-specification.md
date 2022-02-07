@@ -104,6 +104,9 @@ The trust policy is represented as JSON data structure as shown below:
                 "wabbit-networks.io/software/product1"
                 "wabbit-networks.io/software/product2" ],
             "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
+            "trustAnchors": [
+                "subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io"
+            ],
             "expiryValidations": {
                 "signatureExpiry": "enforce | warn",
                 "signingIdentityExpiry": "enforce | warn",
@@ -146,6 +149,7 @@ Property descriptions
   - **`scopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact. The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`. For more information, see [scopes constraints](#scope-constraints) section.
   - **`skipSignatureVerification`**(*boolean*): This OPTIONAL property dictates whether Notary v2 should skip signature verification or not. If set to `true` Notary v2 MUST NOT perform any signature validations including the custom validations performed using plugins. This is required to support the gradual rollout of signature validation i.e the case when the user application has a mix of signed and unsigned artifacts. When set to `false`, the following properties  MUST be present `trustStores`, `expiryValidations`, `revocationValidations`. The default value is `false`.
   - **`trustStores`**(*array of strings*): This OPTIONAL property specifies a list of names of trust stores that the user trusts.
+  - **`trustAnchors`**(*array of strings*): This OPTIONAL property specifies a list of elements/attributes of the signing certificate's subject. If present, the collection MUST contain at least one value. For more information, see [trust anchors constraints](#trust-anchors-constraints) section.
   - **`expiryValidations`**(*object*): This OPTIONAL property represents a collection of artifact expiry-related validations.
     - **`signatureExpiry`**(*string*): This REQUIRED property specifies what implementation must do if the signature is expired.  Supported values are `enforce` and `warn`.
     - **`signingIdentityExpiry`**(*string*): This REQUIRED property specifies what implementation must do if signing identity(certificate and certificate-chain) is expired. Supported values are `enforce` and `warn`.
@@ -175,6 +179,23 @@ Value descriptions
   1. *Exact match*: If there exists a trust policy whose scope contains the artifact's repository URI then the aforementioned policy MUST be used for signature evaluation. Otherwise, continue to the next step.
   1. *Gobal*: If there exists a trust policy with global scope then use that policy for signature evaluation. Otherwise, fail the signature verification.
 
+### Trust Anchors Constraints
+
+A distinguished name (usually just shortened to "DN") uniquely identifies an entry and in the case of the certificate's subject, DN uniquely identifies the requestor/holder of the certificate. The DN is comprised of zero or more comma-separated components called relative distinguished names, or RDNs. For example, the DN `C=US, ST=WA, O=wabbit-network.io, OU=org1`"` has four RDNs. The RDN consists of an attribute type name followed by an equal sign and the string representation of the corresponding attribute value.
+
+- Trust anchor MUST support a full and partial list of all the attribute types present in [subject DN](https://www.rfc-editor.org/rfc/rfc5280.html#section-4.1.2.6) of x509 certificate.
+- If the subject DN of the signing certificate is used in the trust anchor, then it MUST meet the following requirements:
+  - The value of `trustAnchors` MUST begin with `subject:` followed by comma-separated one or more RDNs. For example, `subject: C=${country}, ST=${state}, L=${locallity}, O={organization}, OU=${organization-unit}, CN=${common-name}`.
+  - Trust anchor MUST contain country (CN), state Or province (ST), and organization (O) RDNs. All other RDNs are optional. The minimal possible trust anchor is `subject: C=${country}, ST=${state}, O={organization}`,
+  - Trust anchor MUST NOT have overlapping values. Trust anchors are considered overlapping if there exists a certificate for which multiple trust anchors evaluate true. For example, the following two trust anchors are overlapping:
+    - `subject: C=US, ST=WA, O=wabbit-network.io, OU=org1`
+    - `subject:  C=US, ST=WA, O=wabbit-network.io`
+  - In some special cases trust anchor MUST escape one or more characters in an RDN. Those cases are:
+    - If a value starts or ends with a space, then that space character MUST be escaped as `\`.
+    - All occurrences of the comma character (`,`) MUST be escaped as `\,`.
+    - All occurrences of the semicolon character (`;`) MUST be escaped as `\;`.
+    - All occurrences of the backslash character (`\`) MUST be escaped as `\\`.
+
 ### Extended Validation
 
 The implementation must allow the user to execute custom validations. These custom validation MUST have access to all the information available in the signature envelope like payload, signed attributes, unsigned attributes, and signature.
@@ -183,7 +204,7 @@ The implementation must allow the user to execute custom validations. These cust
 
 ### Prerequisites
 
-- User has configured [trust store](#trust-store) and [trust policy](#trust-policy).
+- User has configured valid [trust store](#trust-store) and [trust policy](#trust-policy).
 
 ### Steps
 
@@ -201,6 +222,9 @@ The implementation must allow the user to execute custom validations. These cust
         1. For each the trust-stores configured in applicable trust-policy perform the following steps.
             1. Validate that certificate and certificate-chain lead to a trusted certificate configured in the `x509Certs` field of trust-store.
             1. If the above verification succeeds then continue to the next step else iterate over the next trust store. If all of the trust stores have been evaluated then fail the signature validation and exit.
+    1. For the applicable trust policy, **validate trust anchors** (if present):
+        1. If trust anchors are present, validate that the value of subject attributes configured in `trustAnchors` matches with the value of corresponding attributes in the signing certificate’s subject. If trust anchors are not present continue to step 4.
+        1. If the above verification succeeds then continue to the next step. Otherwise, fail the signature validation and exit.
     1. **Validate trust policy:**
         1. If signature expiry is present in the signature envelope, using the local machine’s current time(in UTC) check whether the signature is expired or not. If the signature is not expired, continue to the next step. Otherwise, if `signatureExpiry` is set to `Enforce` then fail the signature validation and exit else log a warning and continue to the next step.
         1. Check for the timestamp signature in the signature envelope.
