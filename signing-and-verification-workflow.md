@@ -35,7 +35,7 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
 
 - User has a fully qualified reference to an OCI artifact they want to pull. If the fully qualified artifact reference contains a tag then the user needs to resolve this tag to a digest.
 
-    E.g. If fully qualified reference is `wabbit-networks.io/software:Latest` where `Latest` is a tag pointing to an artifact. The user must resolve `Latest` tag to a digest and construct a new artifact reference using the resolved digest `wabbit-networks.io/software@sha256:${digest}`.
+    E.g. If a fully qualified reference is `wabbit-networks.io/software:Latest` where `Latest` is a tag pointing to an artifact. The user must resolve the `Latest` tag to a digest and construct a new artifact reference using the resolved digest `wabbit-networks.io/software@sha256:${digest}`.
 - User has configured [trust store and trust policy](./trust-store-trust-policy-specification.md) required for signature verification.
 
 ### Steps
@@ -50,11 +50,11 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
             1. Using the `scopes` configured in trust policies, get the applicable trust policy.
             1. Get the list of trusted certificates from the trust stores specified in the applicable trust policy. If the trust policy contains multiple trust stores, create a list of trusted certificates by merging the trusted certificate list of each trust store.
                 1. Calculate the SHA-256 fingerprint of all the trusted certificates and compare them against the list of SHA-256 certificate fingerprints present in  `org.cncf.notary.x509certs.fingerprint.sha256` annotation of artifact manifest.
-                1. If there is at least one match, continue to the next step. Otherwise, move to the next signature artifact descriptor(step 2.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
-        1. If the artifact manifest is filtered out, skip the below steps and move to the next signature artifact descriptor(step 2.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
+                1. If there is at least one match, continue to the next step. Otherwise, move to the next signature artifact descriptor(step 3.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
+        1. If the artifact manifest is filtered out, skip the below steps and move to the next signature artifact descriptor(step 3.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
     1. **Get and verify signatures:** On the filtered Notary v2 signature artifact manifest, perform the following steps:
         1. Download the signature envelope.
         1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy-specification.md#signature-evaluation) section.
-        1. If signature verification fails, skip the below steps and move to the next signature artifact descriptor(step 2.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
-        1. If signature verification succeeds, compare the digest derived from the given OCI artifact reference with the signed digest present in the signature envelope's payload. If digests are equal, signature verification is considered successful. Otherwise, move to the next signature artifact descriptor(step 2.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
+        1. If the signature verification fails, skip the below steps and move to the next signature artifact descriptor(step 3.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
+        1. If signature verification succeeds, compare the digest derived from the given OCI artifact reference with the signed digest present in the signature envelope's payload. If digests are equal, signature verification is considered successful. Otherwise, move to the next signature artifact descriptor(step 3.1). If all signature artifact descriptors have already been processed, fail the signature verification and exit.
 1. **Get OCI artifact:** Using the verified digest, download the OCI artifact. This step is not in the purview of Notary v2.
