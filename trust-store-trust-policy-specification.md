@@ -1,6 +1,6 @@
 # Trust Store and Trust Policy Specification
 
-This document describes how Notary v2 signatures are evaluated for trust. The document consists of following sections:
+This document describes how Notary v2 signatures are evaluated for trust. The document consists of the following sections:
 
 - **[Trust Store](#trust-store)**: Defines set of signing identity that user trusts.
 - **[Trust Policy](#trust-policy)**: Defines how the artifact is evaluated for trust.
@@ -11,8 +11,8 @@ Users who consume and execute the signed artifact from a registry need a mechani
 
 Trust store allows users to specify two kinds of identities:
 
-- **Certificates**: These are the signing certificates or certificates that chains to root CA.
-- **Timestamping Certificates**: These are the timestamping certificates or certificates that chain to the root certificate of TSA.
+- **Certificates**: These are the signing certificates or certificates in the certificate chain of the signing certificate.
+- **Timestamping Certificates**: These are the timestamping certificates or certificates in the certificate chain of the timestamping certificate.
 
 The trust store is represented as JSON data structure as shown below:
 
@@ -63,7 +63,7 @@ Trust policy allows users to control the artifact's integrity, expiry, and revoc
 
 ### Artifact Integrity
 
-The presence of a trust policy indicates that implementation MUST validate that artifact is signed and has not been altered.
+The artifact MUST be signed and has not been altered.
 
 ### Artifact Expiry
 
@@ -73,8 +73,8 @@ If artifact expiry validations are enforced the implementation MUST perform the 
 
 1. If signature expiry is present then signature MUST NOT be expired.
 1. If signing identity is certificate and
-    1. signing certificate and certificate chain are not expired then the implementation MUST ignore the timestamping signature even if it is present in the signature.
-    1. signing certificate or certificate chain are expired then the implementation MUST validate that signature is timestamped and timestamping signature is valid. Also, validate that timestamping certificate and certificate chain MUST NOT be expired.
+    1. the timestamp signature is not present then the signing certificate and the certificate chain MUST NOT be expired.
+    1. the timestamp signature is present then the timestamp signature MUST be valid. At the time of timestamping, signing certificate (including certificate chain) MUST NOT be expired. Also, the timestamping certificate and certificate chain MUST NOT be expired.
 
 ### Artifact Revocation
 
@@ -82,15 +82,13 @@ Trust policy also allows users to control how the system should behave when sign
 
 If revocation validations are enforced implementation MUST perform the following validations:
 
-1. If signing identity is a certificate
-   1. then signing certificate and certificate-chain MUST NOT be revoked.
-   1. and if the signing certificate and certificate chain are not expired then the implementation MUST ignore the revocation check for timestamping signature even if it's present in the signature.
-   1. and if the signing certificate and certificate chain is expired then the implementation MUST validate that signature is timestamped and timestamping signature is valid. Also, validate that timestamping certificate and certificate chain MUST NOT be revoked.
+1. If signing identity is a certificate then signing certificate and certificate chain MUST NOT be revoked.
+1. If the timestamp signature is present then the timestamping certificate and certificate chain MUST NOT be revoked.
 
 The implementation MUST support both [OCSP](https://datatracker.ietf.org/doc/html/rfc6960) and [CRL](https://datatracker.ietf.org/doc/html/rfc5280) based revocations. Since revocation check requires network call and network call can fail because of a variety of reasons such as revocation endpoint is unavailable, network connectivity issue, DDoS attack, etc the implementation MUST support both `fail-open` or `fail-close` use cases.
 
-- `fail-open`: If revocation endpoint is not reachable, consider artifact as revoked.
-- `fail-close`: If revocation endpoint is not reachable, consider artifact as not revoked.
+- `fail-open`: If revocation endpoint is not reachable, consider artifact as not revoked.
+- `fail-close`: If revocation endpoint is not reachable, consider artifact as revoked.
 
 The trust policy is represented as JSON data structure as shown below:
 
@@ -145,7 +143,7 @@ Property descriptions
 
 - **`version`**(*string*): This REQUIRED property is the version of the trust policy. The supported value is `1.0`.
 - **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
-  - **`name`**(*string*): This REQUIRED propert represents name of the trust policy.
+  - **`name`**(*string*): This REQUIRED propert represents the name of the trust policy.
   - **`scopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact. The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`. For more information, see [scopes constraints](#scope-constraints) section.
   - **`skipSignatureVerification`**(*boolean*): This OPTIONAL property dictates whether Notary v2 should skip signature verification or not. If set to `true` Notary v2 MUST NOT perform any signature validations including the custom validations performed using plugins. This is required to support the gradual rollout of signature validation i.e the case when the user application has a mix of signed and unsigned artifacts. When set to `false`, the following properties  MUST be present `trustStores`, `expiryValidations`, `revocationValidations`. The default value is `false`.
   - **`trustStores`**(*array of strings*): This OPTIONAL property specifies a list of names of trust stores that the user trusts.
@@ -172,12 +170,12 @@ Value descriptions
 - The scope MUST contain one of the following:
   - List of one or more fully qualified repository URIs. The repository URI MUST NOT contain the asterisk character `*`.
   - A single value with one asterisk character `*`. The scope with `*` value is called global scope. The trust policy with global scope applies to all the artifacts. There can only be one trust policy that uses a global scope.
-- For a given artifact there MUST be only one applicable trust policy, with the exception of trust policy with global scope.
+- For a given artifact there MUST be only one applicable trust policy, except for trust policy with global scope.
 - For a given artifact, if there is no applicable trust policy then Notary v2 MUST consider the artifact as untrusted and fail signature verification.
 - The scope MUST NOT support reference expansion i.e. URIs must be fully qualified. E.g. the scope should be `docker.io/library/registry` rather than `registry`.
 - Evaluation order of trust policies:
   1. *Exact match*: If there exists a trust policy whose scope contains the artifact's repository URI then the aforementioned policy MUST be used for signature evaluation. Otherwise, continue to the next step.
-  1. *Gobal*: If there exists a trust policy with global scope then use that policy for signature evaluation. Otherwise, fail the signature verification.
+  1. *Global*: If there exists a trust policy with global scope then use that policy for signature evaluation. Otherwise, fail the signature verification.
 
 ### Trust Anchors Constraints
 
@@ -218,8 +216,8 @@ The implementation must allow the user to execute custom validations. These cust
 1. **Validate the signature against trust policy and trust store.**
     1. Using the `scope` configured in trust policies, get the applicable trust policy. (Implementations might have this value precomputed, added it for completeness)
     1. For the applicable trust policy, **validate trust-store:**
-        1. Validate that signature envelope contains complete certificate chain that start from a code signing certificate and terminate with the root certificate. Also, validate that code signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
-        1. For each the trust-stores configured in applicable trust-policy perform the following steps.
+        1. Validate that the signature envelope contains a complete certificate chain that starts from a code signing certificate and terminates with the root certificate. Also, validate that code signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
+        1. For each of the trust-stores configured in applicable trust-policy perform the following steps.
             1. Validate that certificate and certificate-chain lead to a trusted certificate configured in the `x509Certs` field of trust-store.
             1. If the above verification succeeds then continue to the next step else iterate over the next trust store. If all of the trust stores have been evaluated then fail the signature validation and exit.
     1. For the applicable trust policy, **validate trust anchors** (if present):
@@ -237,7 +235,7 @@ The implementation must allow the user to execute custom validations. These cust
             1. Validate that timestamp certificate and certificate chain leads to a trusted TSA certificate configured in trust policy.
             1. Validate timestamp certificate and certificate chain revocation status  using [certificate revocation evaluation](#certificate-revocation-evaluation) section as per `timestampRevocation` setting in trust-policy
             1. Retrieve the timestamp's time from `TSTInfo.genTime`.
-            1. Retrieve the timestamp's accuracy.  If the accuracy is explicitly specified in `TSTInfo.accuracy`, use that value.  If the accuracy is not explicitly specified and `TSTInfo.policy` is the baseline time-stamp policy([RFC-3628](https://tools.ietf.org/html/rfc3628#section-5.2)), use accuracy of 1 second.  Otherwise, use accuracy of 0.
+            1. Retrieve the timestamp's accuracy.  If the accuracy is explicitly specified in `TSTInfo.accuracy`, use that value.  If the accuracy is not explicitly specified and `TSTInfo.policy` is the baseline time-stamp policy([RFC-3628](https://tools.ietf.org/html/rfc3628#section-5.2)), use accuracy of 1 second.  Otherwise, use an accuracy of 0.
             1. Calculate the timestamp range using the lower and upper limits per [RFC-3161 section 2.4.2](https://tools.ietf.org/html/rfc3161#section-2.4.2) and store the limits as `timeStampLowerLimit` and `timeStampUpperLimit` variables respectively.
         1. Check that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` timestamp is entirely within the certificate's validity period.  If the time range is entirely within the signing certificate and certificate chain's validity period, continue to the next step.  Otherwise, If `signingIdentityExpiry` in trust-policy is configured to `Enforce` then fail the signature validation and exit else log a warning and continue to the next step.
         1. Validate signing identity(certificate and certificate chain) revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section as per `signingIdentityRevocation` setting in trust-policy.
@@ -280,7 +278,7 @@ To check the revocation status of a certificate against CRL, the following steps
 1. Verify the CRL signature.
 1. Verify that the CRL is valid (not expired). A CRL is considered expired if the current date is after the `NextUpdate` field in the CRL.
 1. Look up the certificate’s serial number in the CRL.
-    1. If the certificate’s serial number is listed in the CRL, look for `InvalidityDate`. If CRL has invalidity date and artifact signature is timestamped then compare the invalidity date with the timestamping date. If the invalidity date is before the timestamping date, the certificate is considered revoked. If the invalidity date is not present in CRL, the certificate is considered revoked.
+    1. If the certificate’s serial number is listed in the CRL, look for `InvalidityDate`. If CRL has an invalidity date and artifact signature is timestamped then compare the invalidity date with the timestamping date. If the invalidity date is before the timestamping date, the certificate is considered revoked. If the invalidity date is not present in CRL, the certificate is considered revoked.
     1. If the CRL is expired and the certificate is listed in the CRL for any reason other than `certificate hold`, the certificate is considered revoked.
     1. If the certificate is not listed in the CRL or the revocation reason is `certificate hold`, a new CRL is retrieved if the current time is past the time in the `NextUpdate` field in the current CRL. The new CRL is then checked to determine if the certificate is revoked. If the original reason was `certificate hold`, the CRL is checked to determine if the certificate is unrevoked by looking for the `RemoveFromCRL` revocation code.
 
@@ -312,15 +310,15 @@ To check the revocation status of a certificate using OCSP, the following steps 
 
 ## FAQ
 
-**Q: How should multiple signatures requirements be represented in the trust policy?**
+**Q: Does Notary v2 supports `n` out of `m` signatures verification requirement?**
 
-**A:** Notary v2 doesn't support n out m signature requirement verification scheme. Validation succeeds if verification succeeds for at least one signature.
+**A:** Notary v2 doesn't support n out m signature requirement verification scheme. Signature verification workflow succeeds if verification succeeds for at least one signature.
 
-**Q: Should local revocation and TSA servers be listed in the trust policy to support disconnected environments?**
+**Q: Does Notary v2 support overriding of revocation endpoints to support signature verification in disconnected environments?**
 
 **A:** Not natively supported but a user can configure `revocationValidations` to `skip` and then use extended validations to check for revocation.
 
-**Q: Why do we need to include a complete certificate chain (leading to root) in the signature?**
+**Q: Why user needs to include a complete certificate chain (leading to root) in the signature?**
 
 **A:** Without a complete certificate chain, the implementation won't be able to perform an exhaustive revocation check, which will lead to security issues, and that's the reason for enforcing a complete certificate chain.
 
