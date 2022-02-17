@@ -310,7 +310,7 @@ To check the revocation status of a certificate using OCSP, the following steps 
 
 ## FAQ
 
-**Q: Does Notary v2 supports n out m signatures verification requirement?**
+**Q: Does Notary v2 supports `n` out of `m` signatures verification requirement?**
 
 **A:** Notary v2 doesn't support n out m signature requirement verification scheme. Signature verification workflow succeeds if verification succeeds for at least one signature.
 
