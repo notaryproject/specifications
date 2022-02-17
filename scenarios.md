@@ -296,7 +296,7 @@ A user building public images using CI tooling on public infrastructure (e.g. an
 
 **Implications of this requirement:**
 
-1. Users would prefer to not include long lived private signing keys in the public infrastructure for security reasons.
+1. Users should not need to create a secret containing sensitive data that could be leaked in a malicious pull request.
 1. Users should not need to setup additional external servers for key management.
 
 ## Open Discussions
