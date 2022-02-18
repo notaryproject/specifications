@@ -317,6 +317,18 @@ If a user does not have a specific key for a given artifact, verified using a th
 1. Users must be able to to access a chain of trust that links the signing key for a particular artifact to a trusted root.
 1. Users must be able to configure roots of trust.
 
+### Scenario #13: Signing OSS Projects with Public CI Tooling
+
+A user building public images using CI tooling on public infrastructure (e.g. an OSS project with GitHub Actions) would like to have a CI step to easily add signing to their image builds.
+
+1. The user adds a CI step to their build pipeline, preferrably as a copy/paste with minimal configuration.
+1. The image is automatically signed as CI builds run.
+
+**Implications of this requirement:**
+
+1. Users should not need to create a secret containing sensitive data that could be leaked in a malicious pull request.
+1. Users should not need to setup additional external servers for key management.
+
 ## Open Discussions
 
 - What is the relationship between a signature, an artifact and a registry?
