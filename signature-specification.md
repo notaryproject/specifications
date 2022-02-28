@@ -70,7 +70,7 @@ A signature envelope consists of the following components:
 
 A signature envelope is `e = {m, v, u, s}` where `s` is signature.
 
-Notary v2 supports [JWS JSON Serialization](https://datatracker.ietf.org/doc/html/rfc7515) and [COSE_Sign1](https://datatracker.ietf.org/doc/html/rfc8152#section-4) as signature envelope formats with some additional constraints but makes provisions to support additional signature envelope format.
+Notary v2 supports [JWS JSON Serialization](https://datatracker.ietf.org/doc/html/rfc7515) and [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4) as signature envelope formats with some additional constraints but makes provisions to support additional signature envelope format.
 
 ### Payload
 
@@ -248,8 +248,8 @@ To leverage JWS claims validation functionality already provided by libraries, w
 The process is described below:
 
 1. Compute the Base64Url value of ProtectedHeaders.
-2. Compute the Base64Url value of JWSPayload.
-3. Build message to be signed by concatenating the values generated in step 1 and step 2 using '.'
+1. Compute the Base64Url value of JWSPayload.
+1. Build message to be signed by concatenating the values generated in step 1 and step 2 using '.'
 `ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
 1. Compute the signature on the message constructed in the previous step by using the signature algorithm defined in the corresponding header element: `alg`.
 1. Compute the Base64Url value of the signature produced in the previous step.
@@ -288,10 +288,10 @@ Since Notary v2 restricts one signature per signature envelope, the compliant si
 1. Only JWS JSON flattened format is supported.
    See 'Signature Envelope' section.
 
-#### COSE_Sign1
+#### COSE_Sign1_Tagged
 
 In COSE ([rfc8152](https://datatracker.ietf.org/doc/html/rfc8152)), data is stored as either payload or headers (protected and unprotected).
-Notary v2 uses [COSE_Sign1](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) object as the signature envelope with some additional constraints on the header fields.
+Notary v2 uses [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) object as the signature envelope with some additional constraints on the header fields.
 
 Unless explicitly specified as OPTIONAL, all fields are required.
 
@@ -373,7 +373,7 @@ The process is described below:
 1. Compute the signature on the `ToBeSigned` constructed in the previous step by using the signature algorithm defined in the corresponding header element: `alg`.
    This is the value of the signature property used in the signature envelope.
 
-**Signature Envelope**: The final signature envelope is a `COSE_Sign1` object, consisting of Payload, ProtectedHeaders, UnprotectedHeaders, and Signature.
+**Signature Envelope**: The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of Payload, ProtectedHeaders, UnprotectedHeaders, and Signature.
 
 ```
 header_map = {
@@ -393,6 +393,8 @@ COSE_Sign1 = [
    payload : bstr,
    signature : bstr
 ]
+
+COSE_Sign1_Tagged = #6.18(COSE_Sign1)
 ```
 
 **Implementation Constraints**: Notary v2 implementation MUST enforce the following constraints on signature generation and verification:
