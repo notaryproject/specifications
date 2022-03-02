@@ -120,120 +120,6 @@ Notary v2 requires the signature envelope to support the following signed attrib
 
 ### Supported Signature Envelopes
 
-#### JWS JSON Serialization
-
-In JWS JSON Serialization ([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)), data is stored as either claims or headers (protected and unprotected).
-Notary v2 uses JWS JSON Serialization for the signature envelope with some additional constraints on the structure of claims and headers.
-
-Unless explicitly specified as OPTIONAL, all fields are required.
-Also, there shouldn’t be any additional fields other than ones specified in JWSPayload, ProtectedHeader, and UnprotectedHeader.
-
-**JWSPayload a.k.a. Claims**:
-Notary v2 is using one private claim (`notary`) and two public claims (`iat` and `exp`).
-An example of the claim is described below
-
-```json
-{
-   "subject": {
-      "mediaType": "application/vnd.oci.image.manifest.v1+json",
-      "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-      "size": 16724,
-      "annotations": {
-         "key1": "value1",
-         "key2": "value2",
-         ...
-      }
-   },
-   "iat": 1234567891000,
-   "exp": 1234567891011
-}
-```
-
-The payload contains the subject manifest and other attributes that have to be integrity protected.
-
-- **`subject`**(*descriptor*): A REQUIRED top-level node consisting of the manifest that needs to be integrity protected.
-  Please refer [Payload](#payload) section for more details.
-- **`iat`**(*number*): The REQUIRED property Issued-at(`iat`) identifies the time at which the signature was issued.
-- **`exp`**(*number*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid.
-
-To leverage JWS claims validation functionality already provided by libraries, we have defined `iat`, `exp` as top-level nodes.
-
-**ProtectedHeaders**: Notary v2 supports only three protected headers: `alg`, `cty`, and `crit`.
-
-```json
-{
-    "alg": "RS256",
-    "cty": "application/vnd.cncf.notary.v2.jws.v1",
-    "crit":["cty"]
-}
-```
-
-- **`alg`**(*string*): This REQUIRED property defines which algorithm was used to generate the signature.
-  JWS needs an algorithm(`alg`) to be present in the header, so we have added it as a protected header.
-- **`cty`**(*string*): The REQUIRED property content-type(cty) is used to declare the media type of the secured content(the payload).
-  This will be used to version different variations of JWS signature.
-  The supported value is `application/vnd.cncf.notary.v2.jws.v1`.
-- **`crit`**(*array of strings*): This REQUIRED property lists the headers that implementation MUST understand and process.
-  The value MUST be `["cty"]`.
-
-**UnprotectedHeaders**: Notary v2 supports only two unprotected headers: timestamp and x5c.
-
-```json
-{
-    "timestamp": "<Base64(TimeStampToken)>",
-    "x5c": ["<Base64(DER(leafCert))>", "<Base64(DER(intermediateCACert))>", "<Base64(DER(rootCert))>"]
-}
-```
-
-- **`timestamp`** (*string*): This OPTIONAL property is used to store time stamp token.
-  Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
-- **`x5c`** (*array of strings*): This REQUIRED property contains the list of X.509 certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the JWS.
-  The certificate containing the public key corresponding to the key used to digitally sign the JWS MUST be the first certificate.
-
-**Signature**: In JWS signature is calculated by combining JWSPayload and protected headers.
-The process is described below:
-
-1. Compute the Base64Url value of ProtectedHeaders.
-1. Compute the Base64Url value of JWSPayload.
-1. Build message to be signed by concatenating the values generated in step 1 and step 2 using '.'
-`ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
-1. Compute the signature on the message constructed in the previous step by using the signature algorithm defined in the corresponding header element: `alg`.
-1. Compute the Base64Url value of the signature produced in the previous step.
-   This is the value of the signature property used in the signature envelope.
-
-**Signature Envelope**: The final signature envelope comprises of Claims, ProtectedHeaders, UnprotectedHeaders, and signature.
-
-Since Notary v2 restricts one signature per signature envelope, the compliant signature envelope MUST be in flattened JWS JSON format.
-
-```json
-{
-    "payload": "<Base64Url(JWSPayload)>",
-    "protected": "<Base64Url(ProtectedHeaders)>",
-    "header": {
-        "timestamp": "<Base64(TimeStampToken)>",
-        "x5c": ["<Base64(DER(leafCert))>", "<Base64(DER(intermediateCACert))>", "<Base64(DER(rootCert))>"]
-    },
-    "signature": "Base64Url( sign( ASCII( <Base64Url(ProtectedHeader)>.<Base64Url(JWSPayload)> )))"  
-}
-```
-
-**Implementation Constraints**: Notary v2 implementation MUST enforce the following constraints on signature generation and verification:
-
-1. `alg` header value MUST NOT be `none` or any symmetric-key algorithm such as `HMAC`.
-1. `alg` header value MUST be same as that of signature algorithm identified using signing certificate's public key algorithm and size.
-1. `alg` header values for various signature algorithms:
-    | Signature Algorithm             | `alg` Param Value |
-    | ------------------------------- | ----------------- |
-    | RSASSA-PSS with SHA-256         | PS256             |
-    | RSASSA-PSS with SHA-384         | PS384             |
-    | RSASSA-PSS with SHA-512         | PS512             |
-    | ECDSA on secp256r1 with SHA-256 | ES256             |
-    | ECDSA on secp384r1 with SHA-384 | ES384             |
-    | ECDSA on secp521r1 with SHA-512 | ES512             |
-1. Signing certificate MUST be a valid codesigning certificate.
-1. Only JWS JSON flattened format is supported.
-   See 'Signature Envelope' section.
-
 #### COSE_Sign1_Tagged
 
 In COSE ([rfc8152](https://datatracker.ietf.org/doc/html/rfc8152)), data is stored as either payload or headers (protected and unprotected).
@@ -241,15 +127,12 @@ Notary v2 uses [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152
 
 Unless explicitly specified as OPTIONAL, all fields are required.
 
-**Payload**:
-Both `JSON` and `CBOR` payload (as defined in the [Payload](#payload) section) are accepted by Notary v2.
+**Payload**: COSE signs the payload as defined in the [Payload](#payload) section.
 
 **ProtectedHeaders**: Notary v2 supports only the following protected headers:
 
 ```sql
-a5 -- Map of size 5
-   01       -- Key:   Integer: 1    -- `alg`: algorithm
-   38 24    -- Value: Integer: -37  -- `PS256`
+a4 -- Map of size 4
    02       -- Key:   Integer: 2    -- `cty`: content type
    78 35    -- Value: UTF-8 text: 53 bytes
       61 70 70 6c 69 63 61 74 69 6f 6e 2f 76 6e 64 2e -- application/vnd.
@@ -269,15 +152,13 @@ a5 -- Map of size 5
    1b 00 00 01 1f 71 fb 08 43 -- Value: Integer: 1234567891011
 ```
 
-- **`alg`**(*integer*): This REQUIRED property (label: `1`) defines which algorithm was used to generate the signature.
-  COSE needs an algorithm(`alg`) to be present in the header, so we have added it as a protected header.
-- **`cty`**(*string*): The REQUIRED property content-type(cty) (label: `2`) is used to declare the media type of the secured content(the payload).
-- **`crit`**(*array of integers or strings*): This REQUIRED property (label: `3`) lists the headers that implementation MUST understand and process.
+- **`cty`** (*string*): The REQUIRED property content-type (label: `2`) is used to declare the media type of the secured content (the payload).
+- **`crit`** (*array of integers or strings*): This REQUIRED property (label: `3`) lists the headers that implementation MUST understand and process.
   The array MUST contain `2` (`cty`), and `signingtime`. If `expiry` is presented, the array MUST also contain `expiry`.
-- **`signingtime`**(*integer*): The REQUIRED property identifies the time at which the signature was generated.
-- **`expiry`**(*integer*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid.
+- **`signingtime`** (*integer*): The REQUIRED property identifies the time at which the signature was generated.
+- **`expiry`** (*integer*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid.
 
-**UnprotectedHeaders**: Notary v2 supports only two unprotected headers: `timestamp` and `x5c`.
+**UnprotectedHeaders**: Notary v2 supports only two unprotected headers: `timestamp` and `x5chain`.
 
 ```sql
 a2 -- Map of size 2
@@ -298,15 +179,15 @@ a2 -- Map of size 2
 
 - **`timestamp`** (*binary string*): This OPTIONAL property is used to store time stamp token.
   Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
-- **`x5chain`** (*array of binary strings*): This REQUIRED property (label: `33` by [IANA](https://www.iana.org/assignments/cose/cose.xhtml)) contains the list of X.509 certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the COSE.
+- **`x5chain`** (*array of binary strings*): This REQUIRED property (label: `33` by [IANA](https://www.iana.org/assignments/cose/cose.xhtml#header-parameters)) contains the list of X.509 certificate or certificate chain ([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the COSE.
   The certificate containing the public key corresponding to the key used to digitally sign the COSE MUST be the first certificate.
   Optionally, this header can be presented in the protected header.
 
-**Signature**: In COSE signature is calculated by constructing the `Sig_structure` for `COSE_Sign1`.
+**Signature**: In COSE, signature is calculated by constructing the `Sig_structure` for `COSE_Sign1`.
 The process is described below:
 
 1. Encode the protected header into a CBOR object as a binary string named `body_protected`.
-1. Construct the `Sig_structure` for `COSE_Sign1`.
+2. Construct the `Sig_structure` for `COSE_Sign1`.
     ```
     Sig_structure = [
         context : "Signature1",
@@ -315,8 +196,8 @@ The process is described below:
         payload : bstr
     ]
     ```
-1. Encode `Sig_structure` into a CBOR object as a binary string named `ToBeSigned`.
-1. Compute the signature on the `ToBeSigned` constructed in the previous step by using the signature algorithm defined in the corresponding header element: `alg`.
+3. Encode `Sig_structure` into a CBOR object as a binary string named `ToBeSigned`.
+4. Compute the signature on the `ToBeSigned` constructed in the previous step by using the signature algorithm defined in the corresponding header element: `alg`.
    This is the value of the signature property used in the signature envelope.
 
 **Signature Envelope**: The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of Payload, ProtectedHeaders, UnprotectedHeaders, and Signature.
@@ -342,10 +223,6 @@ COSE_Sign1 = [
 
 COSE_Sign1_Tagged = #6.18(COSE_Sign1)
 ```
-
-**Implementation Constraints**: Notary v2 implementation MUST enforce the following constraints on signature generation and verification:
-
-1. `alg` header value MUST have the same constraints as the **JWS JSON Serialization** envelope format.
 
 ## Signature Algorithm Requirements
 
