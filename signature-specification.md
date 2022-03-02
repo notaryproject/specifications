@@ -17,7 +17,7 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
 
 - **`artifactType`** (*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.v2.signature`.
 - **`blobs`** (*array of objects*): This REQUIRED property contains collection of only one [artifact descriptor](https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md) referencing signature envelope.
-  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. The supported value are `application/jose+json` and `application/cose`.
+  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. The supported value is `application/cose`.
 - **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
 - **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest.
   It is being used to store information about the signature.
@@ -70,7 +70,7 @@ A signature envelope consists of the following components:
 
 A signature envelope is `e = {m, v, u, s}` where `s` is signature.
 
-Notary v2 supports [JWS JSON Serialization](https://datatracker.ietf.org/doc/html/rfc7515) and [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4) as signature envelope formats with some additional constraints but makes provisions to support additional signature envelope format.
+Notary v2 supports [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4) as signature envelope format with some additional constraints but makes provisions to support additional signature envelope format.
 
 ### Payload
 
@@ -80,9 +80,7 @@ Notary v2 requires Payload to be the content **descriptor** of the subject manif
 1. Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules](https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules). Notary v2 uses annotations for storing both Notary specific and user defined signed attributes. The prefix `org.cncf.notary` in annotation keys is reserved for use in Notary v2 and MUST NOT be used outside this specification.
 1. Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
 
-#### JSON Examples
-
-The media type of the content descriptor is `application/vnd.cncf.oras.artifact.descriptor.v1+json`.
+Examples: The media type of the content descriptor is `application/vnd.cncf.oras.artifact.descriptor.v1+json`.
 
 ```jsonc
 {
@@ -101,58 +99,6 @@ The media type of the content descriptor is `application/vnd.cncf.oras.artifact.
    "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
    "size": 32654
 }
-```
-
-#### CBOR Examples
-
-The media type of the content descriptor is `application/vnd.cncf.oras.artifact.descriptor.v1+cbor`.
-
-```sql
-a4 -- Map of size 4
-   69       -- Key:   UTF-8 text: 9 bytes
-      6d 65 64 69 61 54 79 70 65                      -- mediaType
-   78 2a    -- Value: UTF-8 text: 42 bytes
-      61 70 70 6c 69 63 61 74 69 6f 6e 2f 76 6e 64 2e -- application/vnd.
-      6f 63 69 2e 69 6d 61 67 65 2e 6d 61 6e 69 66 65 -- oci.image.manife
-      73 74 2e 76 31 2b 6a 73 6f 6e                   -- st.v1+json
-   66       -- Key:   UTF-8 text: 6 bytes
-      64 69 67 65 73 74                               -- digest
-   78 47    -- Value: UTF-8 text: 71 bytes
-      73 68 61 32 35 36 3a 37 33 63 38 30 33 39 33 30 -- sha256:73c803930
-      65 61 33 62 61 31 65 35 34 62 63 32 35 63 32 62 -- ea3ba1e54bc25c2b
-      64 63 35 33 65 64 64 30 32 38 34 63 36 32 65 64 -- dc53edd0284c62ed
-      36 35 31 66 65 37 62 30 30 33 36 39 64 61 35 31 -- 651fe7b00369da51
-      39 61 33 63 33 33 33                            -- 9a3c333
-   64       -- Key:   UTF-8 text: 4 bytes
-      73 69 7a 65                                     -- size
-   19 41 54 -- Value: Integer: 16724
-   6b       -- Key:   UTF-8 text: 11 bytes
-      61 6e 6e 6f 74 61 74 69 6f 6e 73                -- annotations
-   a1 -- Value: Map of size 1
-      78 1a    -- Key:   UTF-8 text: 26 bytes
-         69 6f 2e 77 61 62 62 69 74 2d 6e 65 74 77 6f 72 -- io.wabbit-networ
-         6b 73 2e 62 75 69 6c 64 49 64                   -- ks.buildId
-      63       -- Value: UTF-8 text: 3 bytes
-         31 32 33                                        -- 123
-```
-
-```sql
-a3 -- Map of size 3
-   69       -- Key:   UTF-8 text: 9 bytes
-      6d 65 64 69 61 54 79 70 65                      -- mediaType
-   6c       -- Value: UTF-8 text: 12 bytes
-      73 62 6f 6d 2f 65 78 61 6d 70 6c 65             -- sbom/example
-   66       -- Key:   UTF-8 text: 6 bytes
-      64 69 67 65 73 74                               -- digest
-   78 47    -- Value: UTF-8 text: 71 bytes
-      73 68 61 32 35 36 3a 39 38 33 34 38 37 36 64 63 -- sha256:9834876dc
-      66 62 30 35 63 62 31 36 37 61 35 63 32 34 39 35 -- fb05cb167a5c2495
-      33 65 62 61 35 38 63 34 61 63 38 39 62 31 61 64 -- 3eba58c4ac89b1ad
-      66 35 37 66 32 38 66 32 66 39 64 30 39 61 66 31 -- f57f28f2f9d09af1
-      30 37 65 65 38 66 30                            -- 07ee8f0
-   64       -- Key:   UTF-8 text: 4 bytes
-      73 69 7a 65                                     -- size
-   19 7f 8e -- Value: Integer: 32654
 ```
 
 ### Signed Attributes
