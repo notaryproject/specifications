@@ -131,97 +131,92 @@ Unless explicitly specified as OPTIONAL, all fields are required.
 
 **ProtectedHeaders**: Notary v2 supports only the following protected headers:
 
-```sql
-a4 -- Map of size 4
-   02       -- Key:   Integer: 2    -- `cty`: content type
-   78 35    -- Value: UTF-8 text: 53 bytes
-      61 70 70 6c 69 63 61 74 69 6f 6e 2f 76 6e 64 2e -- application/vnd.
-      63 6e 63 66 2e 6f 72 61 73 2e 61 72 74 69 66 61 -- cncf.oras.artifa
-      63 74 2e 64 65 73 63 72 69 70 74 6f 72 2e 76 31 -- ct.descriptor.v1
-      2b 63 62 6f 72                                  -- +cbor
-   03       -- Key:   Integer: 3    -- `crit`: critical headers
-   82       -- Value: Array of length 2
-      02 -- Integer: 2  -- `cty`: content type
-      6b -- UTF-8 text: 11 bytes
-         73 69 67 6e 69 6e 67 74 69 6d 65                -- signingtime
-   6b       -- Key:   UTF-8 text: 11 bytes
-      73 69 67 6e 69 6e 67 74 69 6d 65                -- signingtime
-   1b 00 00 01 1f 71 fb 08 38 -- Value: Integer: 1234567891000
-   66       -- Key:   UTF-8 text: 6 bytes
-      65 78 70 69 72 79                               -- expiry
-   1b 00 00 01 1f 71 fb 08 43 -- Value: Integer: 1234567891011
+```
+{
+  / crit / 2: [
+    / cty / 3,
+    'signingtime',
+    'expiry'
+  ],
+  / cty / 3: 'application/vnd.cncf.oras.artifact.descriptor.v1+json',
+  'signingtime': 1234567891000,
+  'expiry': 1234567891011
+}
 ```
 
-- **`cty`** (*string*): The REQUIRED property content-type (label: `2`) is used to declare the media type of the secured content (the payload).
-- **`crit`** (*array of integers or strings*): This REQUIRED property (label: `3`) lists the headers that implementation MUST understand and process.
-  The array MUST contain `2` (`cty`), and `signingtime`. If `expiry` is presented, the array MUST also contain `expiry`.
+Note: The above example is represented using the [extended CBOR diagnostic notation](https://datatracker.ietf.org/doc/html/rfc8152#appendix-C).
+
+- **`crit`** (*array of integers or strings*): This REQUIRED property (label: `2`) lists the headers that implementation MUST understand and process.
+  The array MUST contain `3` (`cty`), and `signingtime`. If `expiry` is presented, the array MUST also contain `expiry`.
+- **`cty`** (*string*): The REQUIRED property content-type (label: `3`) is used to declare the media type of the secured content (the payload).
 - **`signingtime`** (*integer*): The REQUIRED property identifies the time at which the signature was generated.
 - **`expiry`** (*integer*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid.
 
 **UnprotectedHeaders**: Notary v2 supports only two unprotected headers: `timestamp` and `x5chain`.
 
-```sql
-a2 -- Map of size 2
-   69       -- Key:   UTF-8 text: 9 bytes
-      74 69 6d 65 73 74 61 6d 70                      -- timestamp
-   4e       -- Value: Binary string: 14 bytes
-      54 69 6d 65 53 74 61 6d 70 54 6f 6b 65 6e       -- TimeStampToken
-   18 21    -- Key:   Integer: 33   -- `x5chain`
-   83       -- Value: Array of length 3
-      4d -- Binary string: 13 bytes
-         44 45 52 28 6c 65 61 66 43 65 72 74 29          -- DER(leafCert)
-      57 -- Binary string: 23 bytes
-         44 45 52 28 69 6e 74 65 72 6d 65 64 69 61 74 65 -- DER(intermediate
-         43 41 43 65 72 74 29                            -- CACert)
-      4d -- Binary string: 13 bytes
-         44 45 52 28 72 6f 6f 74 43 65 72 74 29          -- DER(rootCert)
+```
+{
+  'timestamp': << TimeStampToken >>,
+  / x5chain / 33: [
+    << DER(leafCert) >>,
+    << DER(intermediate CACert) >>,
+    << DER(rootCert) >>
+  ]
+}
 ```
 
-- **`timestamp`** (*binary string*): This OPTIONAL property is used to store time stamp token.
+Note: `<<` and `>>` are used to notate the byte string resulting from encoding the data item.
+
+- **`timestamp`** (*byte string*): This OPTIONAL property is used to store time stamp token.
   Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
-- **`x5chain`** (*array of binary strings*): This REQUIRED property (label: `33` by [IANA](https://www.iana.org/assignments/cose/cose.xhtml#header-parameters)) contains the list of X.509 certificate or certificate chain ([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the COSE.
+- **`x5chain`** (*array of byte strings*): This REQUIRED property (label: `33` by [IANA](https://www.iana.org/assignments/cose/cose.xhtml#header-parameters)) contains the list of X.509 certificate or certificate chain ([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the COSE.
   The certificate containing the public key corresponding to the key used to digitally sign the COSE MUST be the first certificate.
   Optionally, this header can be presented in the protected header.
 
 **Signature**: In COSE, signature is calculated by constructing the `Sig_structure` for `COSE_Sign1`.
 The process is described below:
 
-1. Encode the protected header into a CBOR object as a binary string named `body_protected`.
+1. Encode the protected header into a CBOR object as a byte string named `body_protected`.
 2. Construct the `Sig_structure` for `COSE_Sign1`.
     ```
     Sig_structure = [
-        context : "Signature1",
-        body_protected : bstr,
-        external_aad : empty_bstr,
-        payload : bstr
+        / context / 'Signature1',
+        / body_protected / << ProtectedHeaders >>,
+        / external_aad / h'',
+        / payload / << Payload >>,
     ]
     ```
-3. Encode `Sig_structure` into a CBOR object as a binary string named `ToBeSigned`.
+3. Encode `Sig_structure` into a CBOR object as a byte string named `ToBeSigned`.
 4. Compute the signature on the `ToBeSigned` constructed in the previous step by using the signature algorithm defined in the corresponding header element: `alg`.
    This is the value of the signature property used in the signature envelope.
 
 **Signature Envelope**: The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of Payload, ProtectedHeaders, UnprotectedHeaders, and Signature.
 
 ```
-header_map = {
-   * label => values
-}
-
-COSE_Sign1 = [
-   protected : bstr .cbor header_map,
-   unprotected : {
-       timestamp: TimeStampToken,
-       x5chain: [
-           leafCert,
-           intermediateCACert,
-           rootCert
-       ]
-   },
-   payload : bstr,
-   signature : bstr
-]
-
-COSE_Sign1_Tagged = #6.18(COSE_Sign1)
+18(
+  [
+    / protected / << {
+      / crit / 2: [
+        / cty / 3,
+        'signingtime',
+        'expiry'
+      ],
+      / cty / 3: 'application/vnd.cncf.oras.artifact.descriptor.v1+json',
+      'signingtime': 1234567891000,
+      'expiry': 1234567891011
+    } >>,
+    / unprotected / {
+      'timestamp': << TimeStampToken >>,
+      / x5chain / 33: [
+        << DER(leafCert) >>,
+        << DER(intermediate CACert) >>,
+        << DER(rootCert) >>
+      ]
+    },
+    / payload / << descriptor >>,
+    / signature / << sign( << Sig_structure >> ) >>
+  ]
+)
 ```
 
 ## Signature Algorithm Requirements
