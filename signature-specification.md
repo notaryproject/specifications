@@ -295,10 +295,10 @@ The **timestamping certificate** MUST meet the following minimum requirements:
 
 **Q: How will Notary v2 support multiple signature envelope format?**
 
-**A:** The idea is to use `mediaType` of artifact manifest's blob to identify the signature envelope type (like JWS, CMS, DSSE, etc).
+**A:** The idea is to use `mediaType` of artifact manifest's blob to identify the signature envelope type (like CWT, JWS, CMS, DSSE, etc).
 The client implementation can use the aforementioned `mediaType` to parse the signature envelope.
 
 **Q: How will Notary v2 handle non-backward compatible changes to signature format?**
 
 **A:** The Signature envelope MUST have a versioning mechanism to support non-backward compatible changes.
-For [JWS JSON serialization](#jws-json-serialization) signature envelope it is achieved by `cty` field in ProtectedHeaders.
+For [Signed CWT](#signed-cwt-cose_sign1_tagged) signature envelope it is achieved by `cty` field in ProtectedHeaders.
