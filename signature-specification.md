@@ -17,7 +17,7 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
 
 - **`artifactType`** (*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.v2.signature`.
 - **`blobs`** (*array of objects*): This REQUIRED property contains collection of only one [artifact descriptor](https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md) referencing signature envelope.
-  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. The supported value is `application/cose`.
+  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. The supported value is `application/cwt`.
 - **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
 - **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest.
   It is being used to store information about the signature.
@@ -70,7 +70,7 @@ A signature envelope consists of the following components:
 
 A signature envelope is `e = {m, v, u, s}` where `s` is signature.
 
-Notary v2 supports [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4) as signature envelope format with some additional constraints but makes provisions to support additional signature envelope format.
+Notary v2 supports [signed CWT](https://datatracker.ietf.org/doc/html/rfc8392) as signature envelope format with some additional constraints but makes provisions to support additional signature envelope format.
 
 ### Payload
 
@@ -120,37 +120,62 @@ Notary v2 requires the signature envelope to support the following signed attrib
 
 ### Supported Signature Envelopes
 
-#### COSE_Sign1_Tagged
+#### Signed CWT (COSE_Sign1_Tagged)
 
-In COSE ([rfc8152](https://datatracker.ietf.org/doc/html/rfc8152)), data is stored as either payload or headers (protected and unprotected).
-Notary v2 uses [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) object as the signature envelope with some additional constraints on the header fields.
+In CWT ([rfc8392](https://datatracker.ietf.org/doc/html/rfc8392)), data is stored as either claims or headers (protected and unprotected).
+Notary v2 uses [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) object as the signature envelope with some additional constraints on the structure of claims and headers.
 
 Unless explicitly specified as OPTIONAL, all fields are required.
+Also, there shouldn’t be any additional fields other than ones specified in CWTPayload, ProtectedHeader, and UnprotectedHeader.
 
-**Payload**: COSE signs the payload as defined in the [Payload](#payload) section.
+**CWTPayload a.k.a. Claims**:
+Notary v2 is using one private claim (`subject`) and two public claims (`iat` and `exp`).
+An example of the claim is described below
+
+```
+CWTPayload = {
+  'subject': << '{
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+    "size": 16724,
+    "annotations": {
+      "key1": "value1",
+      "key2": "value2",
+      ...
+    }
+  }' >>,
+  / exp / 4: 1234567891011,
+  / iat / 6: 1234567891000
+}
+```
+
+Note: The above example is represented using the [extended CBOR diagnostic notation](https://datatracker.ietf.org/doc/html/rfc8152#appendix-C). `<<` and `>>` are used to notate the byte string resulting from encoding the data item.
+
+The payload contains the subject manifest and other attributes that have to be integrity protected.
+
+- **`subject`**(*descriptor*): A REQUIRED top-level node consisting of the manifest that needs to be integrity protected.
+  Please refer [Payload](#payload) section for more details.
+- **`exp`** (*integer*): This OPTIONAL property (label: `4`) contains the expiration time on or after which the signature must not be considered valid.
+- **`iat`** (*integer*): The REQUIRED property (label: `6`) identifies the time at which the signature was issued.
+
+To leverage CWT claims validation functionality already provided by libraries, we have defined `iat`, `exp` as top-level nodes.
 
 **ProtectedHeaders**: Notary v2 supports only the following protected headers:
 
 ```
-{
+ProtectedHeaders = {
   / crit / 2: [
-    / cty / 3,
-    'signingtime',
-    'expiry'
+    / cty / 3
   ],
-  / cty / 3: 'application/vnd.cncf.oras.artifact.descriptor.v1+json',
-  'signingtime': 1234567891000,
-  'expiry': 1234567891011
+  / cty / 3: 'application/vnd.cncf.notary.v2.cwt.v1'
 }
 ```
 
-Note: The above example is represented using the [extended CBOR diagnostic notation](https://datatracker.ietf.org/doc/html/rfc8152#appendix-C).
-
 - **`crit`** (*array of integers or strings*): This REQUIRED property (label: `2`) lists the headers that implementation MUST understand and process.
-  The array MUST contain `3` (`cty`), and `signingtime`. If `expiry` is presented, the array MUST also contain `expiry`.
+  The value MUST be `[ / cty / 3 ]`.
 - **`cty`** (*string*): The REQUIRED property content-type (label: `3`) is used to declare the media type of the secured content (the payload).
-- **`signingtime`** (*integer*): The REQUIRED property identifies the time at which the signature was generated.
-- **`expiry`** (*integer*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid.
+  This will be used to version different variations of CWT signature.
+  The supported value is `application/vnd.cncf.notary.v2.cwt.v1`.
 
 **UnprotectedHeaders**: Notary v2 supports only two unprotected headers: `timestamp` and `x5chain`.
 
@@ -165,32 +190,30 @@ Note: The above example is represented using the [extended CBOR diagnostic notat
 }
 ```
 
-Note: `<<` and `>>` are used to notate the byte string resulting from encoding the data item.
-
 - **`timestamp`** (*byte string*): This OPTIONAL property is used to store time stamp token.
   Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
-- **`x5chain`** (*array of byte strings*): This REQUIRED property (label: `33` by [IANA](https://www.iana.org/assignments/cose/cose.xhtml#header-parameters)) contains the list of X.509 certificate or certificate chain ([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the COSE.
-  The certificate containing the public key corresponding to the key used to digitally sign the COSE MUST be the first certificate.
+- **`x5chain`** (*array of byte strings*): This REQUIRED property (label: `33` by [IANA](https://www.iana.org/assignments/cose/cose.xhtml#header-parameters)) contains the list of X.509 certificate or certificate chain ([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the CWT.
+  The certificate containing the public key corresponding to the key used to digitally sign the CWT MUST be the first certificate.
   Optionally, this header can be presented in the protected header.
 
-**Signature**: In COSE, signature is calculated by constructing the `Sig_structure` for `COSE_Sign1`.
+**Signature**: In CWT, signature is calculated by constructing the `Sig_structure` for `COSE_Sign1`.
 The process is described below:
 
 1. Encode the protected header into a CBOR object as a byte string named `body_protected`.
-2. Construct the `Sig_structure` for `COSE_Sign1`.
+1. Construct the `Sig_structure` for `COSE_Sign1`.
     ```
     Sig_structure = [
         / context / 'Signature1',
         / body_protected / << ProtectedHeaders >>,
         / external_aad / h'',
-        / payload / << Payload >>,
+        / payload / << CWTPayload >>,
     ]
     ```
-3. Encode `Sig_structure` into a CBOR object as a byte string named `ToBeSigned`.
-4. Compute the signature on the `ToBeSigned` constructed in the previous step by using the signature algorithm defined in the corresponding header element: `alg`.
+1. Encode `Sig_structure` into a CBOR object as a byte string named `ToBeSigned`.
+1. Compute the signature on the `ToBeSigned` constructed in the previous step by using the signature algorithm for the signing key.
    This is the value of the signature property used in the signature envelope.
 
-**Signature Envelope**: The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of Payload, ProtectedHeaders, UnprotectedHeaders, and Signature.
+**Signature Envelope**: The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of CWTPayload, ProtectedHeaders, UnprotectedHeaders, and Signature.
 
 ```
 18(
@@ -213,7 +236,7 @@ The process is described below:
         << DER(rootCert) >>
       ]
     },
-    / payload / << descriptor >>,
+    / payload / << CWTPayload >>,
     / signature / << sign( << Sig_structure >> ) >>
   ]
 )
