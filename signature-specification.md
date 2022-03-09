@@ -27,22 +27,22 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
 
 ```json
 {
-   "artifactType": "application/vnd.cncf.notary.v2.signature",
-    "blobs": [
-        {
-            "mediaType": "application/jose+json",
-            "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
-            "size": 32654
-        }
-    ],
-    "subject": {
-        "mediaType": "application/vnd.oci.image.manifest.v1+json",
-        "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-        "size": 16724
-    },
-    "annotations": {
-        "org.cncf.notary.x509certs.fingerprint.sha256": "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\" \"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+  "artifactType": "application/vnd.cncf.notary.v2.signature",
+  "blobs": [
+    {
+      "mediaType": "application/jose+json",
+      "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+      "size": 32654
     }
+  ],
+  "subject": {
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+    "size": 16724
+  },
+  "annotations": {
+    "org.cncf.notary.x509certs.fingerprint.sha256": "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\" \"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+  }
 }
 ```
 
@@ -84,20 +84,20 @@ Examples: The media type of the content descriptor is `application/vnd.cncf.oras
 
 ```jsonc
 {
-   "mediaType": "application/vnd.oci.image.manifest.v1+json",
-   "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-   "size": 16724,
-   "annotations": {
-      "io.wabbit-networks.buildId": "123"  // user defined signed attribute.
-   }
+  "mediaType": "application/vnd.oci.image.manifest.v1+json",
+  "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+  "size": 16724,
+  "annotations": {
+    "io.wabbit-networks.buildId": "123" // user defined signed attribute.
+  }
 }
 ```
 
 ```json
 {
-   "mediaType": "sbom/example",
-   "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
-   "size": 32654
+  "mediaType": "sbom/example",
+  "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+  "size": 32654
 }
 ```
 
@@ -203,10 +203,10 @@ The process is described below:
 1. Construct the `Sig_structure` for `COSE_Sign1`.
     ```
     Sig_structure = [
-        / context / 'Signature1',
-        / body_protected / << ProtectedHeaders >>,
-        / external_aad / h'',
-        / payload / << CWTPayload >>,
+      / context / 'Signature1',
+      / body_protected / << ProtectedHeaders >>,
+      / external_aad / h'',
+      / payload / << CWTPayload >>,
     ]
     ```
 1. Encode `Sig_structure` into a CBOR object as a byte string named `ToBeSigned`.
