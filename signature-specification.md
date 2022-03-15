@@ -21,8 +21,8 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
 - **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
 - **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest.
   It is being used to store information about the signature.
-  Keys using the `org.cncf.notary` namespace are reserved for use in Notary and MUST NOT be used by other specifications.
-  - **`org.cncf.notary.x509certs.fingerprint.sha256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain used for signature generation.
+  Keys using the `io.cncf.notary` namespace are reserved for use in Notary and MUST NOT be used by other specifications.
+  - **`io.cncf.notary.x509certs.fingerprint.sha256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain used for signature generation.
     The list of fingerprints is present as a JSON array string.
 
 ```json
@@ -41,7 +41,7 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
         "size": 16724
     },
     "annotations": {
-        "org.cncf.notary.x509certs.fingerprint.sha256": "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\" \"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+        "io.cncf.notary.x509certs.fingerprint.sha256": "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\" \"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
     }
 }
 ```
@@ -56,7 +56,7 @@ Each Notary signature artifact refers to a signature envelope blob.
 ### Signature Filtering
 
 An OCI artifact can have multiple signatures, Notary v2 uses annotations of the signature artifact to filter relevant signatures based on the applicable trust policy.
-The Notary v2 signature artifact's `org.cncf.notary.x509certs.fingerprint.sha256` annotations key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
+The Notary v2 signature artifact's `io.cncf.notary.x509certs.fingerprint.sha256` annotations key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
 
 ## Signature Envelope
 
@@ -77,7 +77,7 @@ Notary v2 supports [JWS JSON Serialization](https://datatracker.ietf.org/doc/htm
 Notary v2 requires Payload to be the content **descriptor** of the subject manifest that is being signed.
 
 1. Descriptor MUST contain `mediaType`, `digest`, `size` fields.
-1. Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules](https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules). Notary v2 uses annotations for storing both Notary specific and user defined signed attributes. The prefix `org.cncf.notary` in annotation keys is reserved for use in Notary v2 and MUST NOT be used outside this specification.
+1. Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules](https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules). Notary v2 uses annotations for storing both Notary specific and user defined signed attributes. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary v2 and MUST NOT be used outside this specification.
 1. Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
 
 Examples:
