@@ -30,7 +30,7 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
    "artifactType": "application/vnd.cncf.notary.v2.signature",
     "blobs": [
         {
-            "mediaType": "application/jose+json",
+            "mediaType": "application/cose",
             "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
             "size": 32654
         }
