@@ -41,19 +41,19 @@ The Notary v2 signature artifact's `io.cncf.notary.x509.fingerprint.sha256` anno
 The Signature Envelope is a standard data structure for creating a signed message.
 A signature envelope consists of the following components:
 
-- Payload `p`: The data that is integrity protected - e.g. descriptor of the artifact being signed.
+- Payload/Message `m`: The data that is integrity protected - e.g. descriptor of the artifact being signed.
 - Signed attributes `v`: The signature metadata that is integrity protected - e.g. signature expiration time, creation time, etc.
-- Unsigned attributes `u`: These attributes are considered unsigned with respect to the signing key that generates the signature. These attributes are typically signed by a third party (e.g. CA, TSA).
+- Unsigned attributes `u`: Unsigned attributes `u`: These attributes are not signed by the signing key that generates the signature. We anticipate unsigned attributes contain content that may be signed by an different party e.g. Certificate chain signed by a CA, or TSA countersignature signed by the TSA.
 - Cryptographic signatures `s`: The digital signatures computed on payload and signed attributes.
 
-A signature envelope is `e = {p, v, u, s}` where `s` is signature.
+A signature envelope is `e = {m, v, u, s}` where `s` is signature.
 
 This specification defines the set of signed and unsigned attributes that make up a valid The Notary v2 signature. This specification aims to be be agnostic of signature envelope format (e.g. COSE, JWS), details of encoding the envelope in a specific signature envelope format are covered in in separate specs.
 
 Notary v2 supports the following envelope formats:
 
 - [COSE Sign1](./signature-envelope-cose.md)
-- [JWT](./signature-envelope-jwt.md)
+- [JWS](./signature-envelope-jws.md)
 
 ### Payload
 
@@ -174,7 +174,7 @@ The client implementation can use the aforementioned `mediaType` to parse the si
 
 ### Signing time
 
-The signing time denotes the time at which the signature was generated. A X509 certificate has a defined lifetime during which it can be used to generate signatures. Signatures generated after the certificate expires are considered invalid. A trusted timestamp allows a verifier to determine if the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature be treated as valid when a certificate is revoked, if the certificate was revoked after the signature was generated. In the absence of a trusted timestamp, signatures are considered invalid after certificate expires, and all signatures are considered revoked when a certificate is revoked.
+The signing time denotes the time at which the signature was generated. A X509 certificate has a defined [validity](https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5) during which it can be used to generate signatures. The signing time must be greater than or equal to certificate's `notBefore` attribute, and signing time must be less than or equal to certificate's `notAfter` attribute. Signatures generated after the certificate expires are considered invalid. A trusted timestamp allows a verifier to determine if the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature be treated as valid when a certificate is revoked, if the certificate was revoked after the signature was generated. In the absence of a trusted timestamp, signatures are considered invalid after certificate expires, and all signatures are considered revoked when a certificate is revoked.
 
 [annotation-rules]: https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules
 [artifact-descriptor]: https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md
