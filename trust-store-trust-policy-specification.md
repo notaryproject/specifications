@@ -11,14 +11,16 @@ The document consists of the following sections:
 Users who consume and execute the signed artifact from a registry need a mechanism to specify the trusted producers.
 This is where Trust Store is used.
 
-Trust store allows users to specify two kinds of identities:
+Trust store allows users to specify two kinds of identities, with additional identities coming in future releases:
 
 - **Certificates**: These are the signing certificates or certificates in the certificate chain of the signing certificate.
 - **Timestamping Certificates**: These are the timestamping certificates or certificates in the certificate chain of the timestamping certificate.
 
+### Trust Store Schema
+
 The trust store is represented as JSON data structure as shown below:
 
-```json
+```jsonc
 {
     "version": "1.0",
     "trustStores": {
@@ -50,7 +52,7 @@ The trust store is represented as JSON data structure as shown below:
 }
 ```
 
-Property Description:
+### Trust Store Properties
 
 - **`version`**(*string*): This REQUIRED property is the version of the trust store.
   The supported value is `1.0`
@@ -100,17 +102,19 @@ Since revocation check requires network call and network call can fail because o
 - `fail-open`: If revocation endpoint is not reachable, consider artifact as not revoked.
 - `fail-close`: If revocation endpoint is not reachable, consider artifact as revoked.
 
+### Trust Policy Schema
+
 The trust policy is represented as JSON data structure as shown below:
 
-```json
+```jsonc
 {
     "version": "1.0",
     "trustPolicies": [
         {
             "name": "verify-signature",
             "scopes": [
-                "wabbit-networks.io/software/product1"
-                "wabbit-networks.io/software/product2" ],
+                "registry.wabbit-networks.io/software/net-monitor"
+                "registry.wabbit-networks.io/software/net-logger" ],
             "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
             "trustAnchors": [
                 "subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io"
@@ -149,7 +153,7 @@ The trust policy is represented as JSON data structure as shown below:
 }
 ```
 
-Property descriptions
+### Trust Policy Properties
 
 - **`version`**(*string*): This REQUIRED property is the version of the trust policy.
   The supported value is `1.0`.
@@ -180,7 +184,7 @@ Property descriptions
     - **`timestampRevocation`**(*string*): This REQUIRED property specifies whether implementation should check for timestamping certificate and certificate-chain revocation status or not and what implementation must do if this revocation check fails.
       Supported values are `enforceWithFailOpen`, `enforceWithFailClose`, `warn` and `skip`.
 
-Value descriptions
+#### Value descriptions
 
 - **`enforce`**: This means implementation MUST perform validation and throw an error if validation fails.
 - **`enforceWithFailOpen`**: This means implementation MUST perform validation and if validation fails because the endpoint is not reachable, the implementation MUST log an error and MUST NOT fail the validation.
@@ -243,7 +247,7 @@ These custom validation MUST have access to all the information available in the
 
 ### Prerequisites
 
-- User has configured valid [trust store](#trust-store) and [trust policy](#trust-policy).
+- User has configured a valid [trust store](#trust-store) and [trust policy](#trust-policy).
 
 ### Steps
 
@@ -301,7 +305,7 @@ These custom validation MUST have access to all the information available in the
 ### Certificate Revocation Evaluation
 
 If the certificate revocation trust-store setting is set to `skip`, skip the below steps.
-therwise, check for revocation status for certificate and certificate chain.
+otherwise, check for revocation status for certificate and certificate chain.
 
 1. If the revocation status of any of the certificates cannot be determined (revocation unavailable) and `signingIdentityRevocation` is set to either `enforceWithFailOpen` or `warn` then log a warning and skip the below steps.
    Otherwise, fail the signature validation and exit.
