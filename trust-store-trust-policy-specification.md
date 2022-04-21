@@ -1,6 +1,6 @@
 # Trust Store and Trust Policy Specification
 
-Notary v2 currently supports X509 based PKI and identities, and uses a trust store and trust policy to determine if a signed artifact is authentic.
+Notary v2 currently supports X509 based PKI and identities, and uses a trust store and trust policy to determine if a signed artifact is considered authentic.
 
 The document consists of the following sections:
 
@@ -23,7 +23,7 @@ Contains a set of trusted identities through which trust is derived for the rest
 - The trust store is a directory location, under which each sub directory is considered a named store, that contains zero or more certificates. The name of this sub directory is used to reference the specfic store in trust policy.
 - Certificates in a trust store are typically root certificates. Intermediate certificates can be used, but not recommended as intermediate certificates can be rotated more often and can break signature verification.
 
-Notary v2 uses following directory structure to represent the trust store. The example shows 
+Notary v2 uses following directory structure to represent the trust store. The example shows named stores `acme-rockets` and `wabbit-networks`, which are subseqently references in the trust policy. Without this reference, presence of a named store and certificates in it does not confer trust automatically to the named store. The trust store is configured ahead of verification time, by an out of band mechanism that is beyond the scope of this document. Different entities and organizations have their own processes and policies to configure and distribute trust stores.
 
 ```text
 ~/.notation/trust_store
@@ -32,8 +32,8 @@ Notary v2 uses following directory structure to represent the trust store. The e
             /acme-rockets
                 cert1.pem
                 cert2.pem
-                  /sub-dir     # ignored
-                    cert-3.pem # ignored
+                  /sub-dir       # ignored
+                    cert-3.pem   # ignored
             /wabbit-networks
                 cert3.pem
         /tsa_roots
@@ -41,48 +41,17 @@ Notary v2 uses following directory structure to represent the trust store. The e
                 tsa-cert1.pem
 ```
 
-The Trust store currently allows users to specify two kinds of identities, additional identities may be supported in future :
+The Trust store currently supports two kinds of identities, additional identities may be supported in future :
 
 - **Certificates**: The `x509/ca` trust store contains named stores that contain Certificate Authority (CA) root and intermediate certificates.
 - **Timestamping Certificates**: The `x509/tsa_roots` trust store contains named stores with Time Stamping Authority (TSA) root and intermediate certificates. **NOTE** TSA based timestamping will not be available in Notation RC1.
 
 Any additional sub directories under names stores and certificates in it are ignored.
 
-A user references the named trust store in the trust policy to indicate that the specific trust store should be used during signature evaluation. Without this reference, none of the named stores are trusted by default.
-
 ## Trust Policy
 
 Describes how signatures are evaluated using the policy, to determine if a signed artifact is authentic. Users who consume and execute the signed artifact from a registry need a mechanism to specify how the artifacts should be evaluated for trust, this is where a trust policy is used.
 Trust policy allows users to control the artifact's integrity, expiry, and revocation aspect of signature evaluation.
-
-### Artifact Integrity 
-
-The artifact MUST be signed and has not been altered.
-
-### Artifact Expiry
-
-Trust policy allows users to define how the system should behave when the artifact's signature is expired or signing identity is expired or timestamping identity is expired.
-
-If artifact expiry validations are enforced the implementation MUST perform the following validations:
-
-1. If signature expiry is present then signature MUST NOT be expired.
-1. If signing identity is certificate and
-    1. The timestamp signature is not present then the signing certificate and the certificate chain MUST NOT be expired.
-    1. The timestamp signature is present then the timestamp signature MUST be valid.
-       At the time of timestamping, signing certificate (including certificate chain) MUST NOT be expired.
-       Also, the timestamping certificate and certificate chain MUST NOT be expired.
-
-### Artifact Revocation
-
-Trust policy also allows users to control how the system should behave when signing identity or  timestamping identity is revoked
-
-If revocation validations are enforced implementation MUST perform the following validations:
-
-1. If signing identity is a certificate then signing certificate and certificate chain MUST NOT be revoked.
-1. If the timestamp signature is present then the timestamping certificate and certificate chain MUST NOT be revoked.
-
-The implementation MUST support both [OCSP](https://datatracker.ietf.org/doc/html/rfc6960) and [CRL](https://datatracker.ietf.org/doc/html/rfc5280) based revocations.
-Since revocation check requires network call and network call can fail because of a variety of reasons such as revocation endpoint is unavailable, network connectivity issue, DDoS attack, etc the implementation MUST support both `fail-open` or `fail-close` use cases.
 
 ### Trust Policy Schema
 
@@ -133,21 +102,25 @@ The trust policy is as JSON document, example shown below:
     If present, the collection MUST contain at least one value.
     For more information, see [trust anchors constraints](#trust-anchors-constraints) section.
 
-#### SignatureVerification details
+#### Signature Verification details
 
-- `strict` : Signature verification is performed at `strict` level, which enforces all of the signature verification checks - integrity, authenticity, revocation check. If any of these checks fails, the signature verification fails. This is the recommended level in environments where a signature verification failure does not have high impact to other concerns (like application avaiability). It is recommended that build and development environments where images are initially injested use `strict` level.
-- `permissive` : The `permissive` level enforces integrity and authenticity, but will only audit for revocation and expiry, whose failures are only logged. The `permissive` level is recommended to be used if signature verification is done at deploytime or runtime, and the user only needs integrity and authenticity guarantees.
+- `strict` : Signature verification is performed at `strict` level, which enforces all of the signature verification checks - integrity, authenticity, revocation check. If any of these checks fails, the signature verification fails. This is the recommended level in environments where a signature verification failure does not have high impact to other concerns (like application avaiability). It is recommended that build and development environments where images are initially injested, or at high assurance at deploy time  use `strict` level.
+- `permissive` : The `permissive` level enforces integrity and authenticity, but will only audit for revocation and expiry, whose failures are only logged. The `permissive` level is recommended to be used if signature verification is done at deploy time or runtime, and the user only needs integrity and authenticity guarantees.
 - `audit` : The `audit` level only enforces integrity check if a signature is present. Failure of all other checks are only logged.
-The default value is `false`.
-The default value is `false`.
 - `skip` : The `skip` level does not fetch signatures for artifacts and does not perform any signature verification. This is useful when an application uses multiple artifacts, and has a mix of signed and unsigned artifacts. Note that `skip` cannot be used with a global scope (`*`), the value of `registryScopes` MUST contain fully qualified registry URL(s).
 
-|Level|   |Integrity[1]|Authenticity[2]|Trusted timestamp[3]|Revocation check[4]|
-|---|---|---|---|---|---|
-|strict|   |Enforce|Enforce|Enforce|Enforce|
-|permissive|   |Enforce|Enforce|Audit|Audit|
-|audit|   |Enforce|Audit|Audit|Audit|
-|skip|   |Skip|Skip|Skip|Skip|
+|Level     |Recommended Usage|Integrity|Authenticity|Trusted timestamp|Expiry|Revocation check|
+|----------|-----------------|---------|------------|-----------------|------|----------------|
+|strict    |Use at development, build and deploy time|Enforce|Enforce|Enforce|Enforce|Enforce|
+|permissive|Use at deploy time or runtime|Enforce|Enforce|Audit|Audit|Audit|
+|audit     |Use when adopting signed images, without breaking existing workflows|Enforce|Audit|Audit|Audit|Audit|
+|skip      |Use to exclude verification for unsigned images|Skip|Skip|Skip|Skip|Skip|
+
+**Integrity** : Guarantees that the artifact wasn't altered after it was signed. All signature verifications levels always enforce integrity. Invalid signatures are rejected.
+**Authenticity** : Guarantees that the artifact was signed by an identity trusted by the verifier. Its definition does not include revocation, which is when a trusted identity is subsequently untrusted because of a compromise.
+**Trusted timestamp** : Guarantees that the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature be treated as valid when a certificate is revoked, if the certificate was revoked after the signature was generated. In the absence of a trusted timestamp, signatures are considered invalid after certificate expires, and all signatures are considered revoked when a certificate is revoked.
+**Expiry** : This is an optional feature that gurantees that an artifact is considered fresh, if the signing identity indicates an optional artifact expiry time.
+**Revocation check** : Guarantees that the signing identity is still trusted at signature verification time. Events such as key or system compromise can make a signing identity that was previously trusted, to be subsequrntly untrusted. This guarantee typically requires a verification time call to an external system, which may not be consistently reliable. The `permissive` verification level only audits for revocation check and does not enforce it. If a particular revocation mechnanism provides is reliable, use `strict` verification level instead.
 
 #### Scopes Constraints
 
@@ -179,15 +152,15 @@ The RDN consists of an attribute type name followed by an equal sign and the str
 - Trust anchor MUST support a full and partial list of all the attribute types present in [subject DN](https://www.rfc-editor.org/rfc/rfc5280.html#section-4.1.2.6) of x509 certificate.
 - If the subject DN of the signing certificate is used in the trust anchor, then it MUST meet the following requirements:
   - The value of `trustAnchors` MUST begin with `subject:` followed by comma-separated one or more RDNs.
-    For example, `subject: C=${country}, ST=${state}, L=${locallity}, O={organization}, OU=${organization-unit}, CN=${common-name}`.
+    For example, `x509.subject: C=${country}, ST=${state}, L=${locallity}, O={organization}, OU=${organization-unit}, CN=${common-name}`.
   - Trust anchor MUST contain country (CN), state Or province (ST), and organization (O) RDNs.
     All other RDNs are optional.
     The minimal possible trust anchor is `subject: C=${country}, ST=${state}, O={organization}`,
   - Trust anchor MUST NOT have overlapping values.
     Trust anchors are considered overlapping if there exists a certificate for which multiple trust anchors evaluate true.
     For example, the following two trust anchors are overlapping:
-    - `subject: C=US, ST=WA, O=wabbit-network.io, OU=org1`
-    - `subject:  C=US, ST=WA, O=wabbit-network.io`
+    - `x509.subject: C=US, ST=WA, O=wabbit-network.io, OU=org1`
+    - `x509.subject:  C=US, ST=WA, O=wabbit-network.io`
   - In some special cases trust anchor MUST escape one or more characters in an RDN.
     Those cases are:
     - If a value starts or ends with a space, then that space character MUST be escaped as `\`.
