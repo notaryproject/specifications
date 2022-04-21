@@ -1,76 +1,61 @@
 # Trust Store and Trust Policy Specification
 
-This document describes how Notary v2 signatures are evaluated for trust.
+Notary v2 currently supports X509 based PKI and identities, and uses a trust store and trust policy to determine if a signed artifact is authentic.
+
 The document consists of the following sections:
 
-- **[Trust Store](#trust-store)**: Defines set of signing identity that user trusts.
-- **[Trust Policy](#trust-policy)**: Defines how the artifact is evaluated for trust.
+- **[Trust Store](#trust-store)**: Contains a set of trusted identities through which trust is derived for the rest of the system. For X509 PKI, the trust store contains a set of root certificates.
+- **[Trust Policy](#trust-policy)**: A policy language which indicates the which identities are trusted to produce artifacts.
+- **[Signature Evaluation](#signature-evaluation)**: Describes how signatures are evaluated using the policy, to determine if a signed artifact is authentic.
+
+Other types of identities and trust models may be supported in future, which may introduce other constructs/policy elements to support signature evaluation.
+
+All examples use the actors defined in Notary v2 [scenario](https://github.com/notaryproject/notaryproject/blob/main/scenarios.md#scenario-0-build-publish-consume-enforce-policy-deploy)
+
+- Wabbit Networks company builds, signs and distributes their `net-monitor` software though public registries.
+- ACME Rockets consumes the `net-monitor` software from a public registry importing the  artifacts and reference artifacts (signatures, SBoMs) into their private registry. The private registry also contains additional artifacts that ACME Rockets themselves sign.
 
 ## Trust Store
 
-Users who consume and execute the signed artifact from a registry need a mechanism to specify the trusted producers.
-This is where Trust Store is used.
+Contains a set of trusted identities through which trust is derived for the rest of the system. For X509 PKI, the trust store typically contains root certificates.
 
-Trust store allows users to specify two kinds of identities, with additional identities coming in future releases:
+- The Notary v2 trust store consists of multiple named collections of certificates, called named stores.
+- The trust store is a directory location, under which each sub directory is considered a named store, that contains zero or more certificates. The name of this sub directory is used to reference the specfic store in trust policy.
+- Certificates in a trust store are typically root certificates. Intermediate certificates can be used, but not recommended as intermediate certificates can be rotated more often and can break signature verification.
 
-- **Certificates**: These are the signing certificates or certificates in the certificate chain of the signing certificate.
-- **Timestamping Certificates**: These are the timestamping certificates or certificates in the certificate chain of the timestamping certificate.
+Notary v2 uses following directory structure to represent the trust store. The example shows 
 
-### Trust Store Schema
-
-The trust store is represented as JSON data structure as shown below:
-
-```jsonc
-{
-    "version": "1.0",
-    "trustStores": {
-        "trust-store-name-1": {
-            "identities": {
-                "x509Certs": [
-                    "-----BEGIN CERTIFICATE-----\ncertificate1\n-----END CERTIFICATE-----\n",
-                    "-----BEGIN CERTIFICATE-----\ncertificate2\n----END CERTIFICATE-----\n"
-                ],
-                "tsaX509Certs": [
-                    "-----BEGIN CERTIFICATE-----\ntsaCertificate1\n-----END CERTIFICATE-----\n",
-                    "-----BEGIN CERTIFICATE-----\ntsaCertificate2\n-----END CERTIFICATE-----\n"
-                ]
-            }
-        },
-        "trust-store-name-2": {
-            "identities": {
-                "x509Certs": [
-                    "-----BEGIN CERTIFICATE-----\ncertificate1\n-----END CERTIFICATE-----\n",
-                    "-----BEGIN CERTIFICATE-----\ncertificate2\n----END CERTIFICATE-----\n"
-                ],
-                "tsaX509Certs": [
-                    "-----BEGIN CERTIFICATE-----\ntsaCertificate2\n-----END CERTIFICATE-----\n",
-                    "-----BEGIN CERTIFICATE-----\ntsaCertificate3\n----END CERTIFICATE-----\n"
-                ]
-            }
-        }
-    }
-}
+```text
+~/.notation/trust_store
+    /x509
+        /ca_roots
+            /acme-rockets
+                cert1.pem
+                cert2.pem
+                  /sub-dir     # ignored
+                    cert-3.pem # ignored
+            /wabbit-networks
+                cert3.pem
+        /tsa_roots
+            /publicly-trusted-tsa
+                tsa-cert1.pem
 ```
 
-### Trust Store Properties
+The Trust store currently allows users to specify two kinds of identities, additional identities may be supported in future :
 
-- **`version`**(*string*): This REQUIRED property is the version of the trust store.
-  The supported value is `1.0`
-- **`trustStores`**(*object*): This REQUIRED property represents the parent node containing multiple trust stores.
-  Each trust store is identified by the key associated with it like 'trust-store-name-1', 'trust-store-name-2'.
-  - **`identities`**(*object*): This REQUIRED property represents the collection of different types of identities.
-    There are two types of identifies that Notary v2 supports: x509 certificates and x509 timestamping certificates.
-    - **`x509Certs`**(*array of strings*): This REQUIRED property specifies a list of x509 certificates in PEM format.
-      The collection MUST contain at least one certificate.
-    - **`tsaX509Certs`**(*array of strings*): This OPTIONAL property specifies a list of x509 timestamping certificates in PEM format.
-      If the `tsaX509Certs` key is present then collection MUST contain at least one timestamping certificate.
+- **Certificates**: The `x509/ca` trust store contains named stores that contain Certificate Authority (CA) root and intermediate certificates.
+- **Timestamping Certificates**: The `x509/tsa_roots` trust store contains named stores with Time Stamping Authority (TSA) root and intermediate certificates. **NOTE** TSA based timestamping will not be available in Notation RC1.
+
+Any additional sub directories under names stores and certificates in it are ignored.
+
+A user references the named trust store in the trust policy to indicate that the specific trust store should be used during signature evaluation. Without this reference, none of the named stores are trusted by default.
 
 ## Trust Policy
 
-Users who consume and execute the signed artifact from a registry need a mechanism to specify how the artifacts should be evaluated for trust, this is where a trust policy is used.
+Describes how signatures are evaluated using the policy, to determine if a signed artifact is authentic. Users who consume and execute the signed artifact from a registry need a mechanism to specify how the artifacts should be evaluated for trust, this is where a trust policy is used.
 Trust policy allows users to control the artifact's integrity, expiry, and revocation aspect of signature evaluation.
 
-### Artifact Integrity
+### Artifact Integrity 
 
 The artifact MUST be signed and has not been altered.
 
@@ -99,56 +84,36 @@ If revocation validations are enforced implementation MUST perform the following
 The implementation MUST support both [OCSP](https://datatracker.ietf.org/doc/html/rfc6960) and [CRL](https://datatracker.ietf.org/doc/html/rfc5280) based revocations.
 Since revocation check requires network call and network call can fail because of a variety of reasons such as revocation endpoint is unavailable, network connectivity issue, DDoS attack, etc the implementation MUST support both `fail-open` or `fail-close` use cases.
 
-- `fail-open`: If revocation endpoint is not reachable, consider artifact as not revoked.
-- `fail-close`: If revocation endpoint is not reachable, consider artifact as revoked.
-
 ### Trust Policy Schema
 
-The trust policy is represented as JSON data structure as shown below:
+The trust policy is as JSON document, example shown below:
 
 ```jsonc
 {
     "version": "1.0",
     "trustPolicies": [
         {
-            "name": "verify-signature",
-            "scopes": [
-                "registry.wabbit-networks.io/software/net-monitor"
-                "registry.wabbit-networks.io/software/net-logger" ],
-            "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
-            "trustAnchors": [
-                "subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io"
+            "name": "policy-for-wabbit-networks-images",
+            "registryScopes": [
+                "registry.acme-rockets.io/software/net-monitor"
+                "registry.acme-rockets.io/software/net-logger" ],
+            "signatureVerification" : "strict",
+            "trustStore": "ca/wabbit-networks",
+            "trustedIdentity": [
+                "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io"
             ],
-            "expiryValidations": {
-                "signatureExpiry": "enforce | warn",
-                "signingIdentityExpiry": "enforce | warn",
-                "timestampExpiry": "enforce | warn"
-            },
-            "revocationValidations": {
-                "signingIdentityRevocation": "enforceWithFailOpen | enforceWithFailClose | warn | skip",
-                "timestampRevocation": "enforceWithFailOpen | enforceWithFailClose | warn | skip"
-            }
         },
         {
-            "name": "skip-signature-verification",
-            "scopes": [ "wabbit-networks.io/software/unsigned/productA" ],
-            "skipSignatureVerification": true,
+            "name": "policy-for-unsigned-image",
+            "registryScopes": [ "registry.wabbit-networks.io/software/unsigned/productA" ],
+            "signatureVerification": "skip",
         },
         {
-            "name": "global-trust-policy",
-            "scopes": [ "*" ],
-            "trustStores": [ "trust-store-name-1", "trust-store-name-2" ],
-            "expiryValidations": {
-                "signatureExpiry": "enforce | warn",
-                "signingIdentityExpiry": "enforce | warn",
-                "timestampExpiry": "enforce | warn"
-            },
-            "revocationValidations": {
-                "signingIdentityRevocation": "enforceWithFailOpen | enforceWithFailClose | warn | skip",
-                "timestampRevocation": "enforceWithFailOpen | enforceWithFailClose | warn | skip"
-            }
+            "name": "global-policy-for-all-other-images",
+            "registryScopes": [ "*" ],
+            "signatureVerification" : "audit",
+            "trustStores": "ca/acme-rockets"
         }
-
     ]
 }
 ```
@@ -159,38 +124,30 @@ The trust policy is represented as JSON data structure as shown below:
   The supported value is `1.0`.
 - **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
   - **`name`**(*string*): This REQUIRED propert represents the name of the trust policy.
-  - **`scopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
+  - **`registryScopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
     The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
     For more information, see [scopes constraints](#scope-constraints) section.
-  - **`skipSignatureVerification`**(*boolean*): This OPTIONAL property dictates whether Notary v2 should skip signature verification or not.
-    If set to `true` Notary v2 MUST NOT perform any signature validations including the custom validations performed using plugins.
-    This is required to support the gradual rollout of signature validation i.e the case when the user application has a mix of signed and unsigned artifacts.
-    When set to `false`, the following properties  MUST be present `trustStores`, `expiryValidations`, `revocationValidations`.
-    The default value is `false`.
-  - **`trustStores`**(*array of strings*): This OPTIONAL property specifies a list of names of trust stores that the user trusts.
+  - **`signatureVerification`**(*string*): This REQUIRED property dictates how signature verification is performed. Supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each value is present [here](#signatureverification-details).
+  - **`trustStore`**(*string*): This REQUIRED property specifies named trust store.
   - **`trustAnchors`**(*array of strings*): This OPTIONAL property specifies a list of elements/attributes of the signing certificate's subject.
     If present, the collection MUST contain at least one value.
     For more information, see [trust anchors constraints](#trust-anchors-constraints) section.
-  - **`expiryValidations`**(*object*): This OPTIONAL property represents a collection of artifact expiry-related validations.
-    - **`signatureExpiry`**(*string*): This REQUIRED property specifies what implementation must do if the signature is expired.
-      Supported values are `enforce` and `warn`.
-    - **`signingIdentityExpiry`**(*string*): This REQUIRED property specifies what implementation must do if signing identity(certificate and certificate-chain) is expired.
-      Supported values are `enforce` and `warn`.
-    - **`timestampExpiry`**(*string*): This REQUIRED property specifies what implementation must do if timestamping certificate and certificate-chain are expired.
-      Supported values are `enforce` and `warn`.
-  - **`revocationValidations`**(*object*): This OPTIONAL property represents collection of artifact revocation related validations.
-    - **`signingIdentityRevocation`**(*string*): This REQUIRED property specifies whether implementation should check for signing identity(certificate and certificate-chain) revocation status or not and what implementation must do if this revocation check fails.
-      Supported values are `enforceWithFailOpen`, `enforceWithFailClose`, `warn` and `skip`.
-    - **`timestampRevocation`**(*string*): This REQUIRED property specifies whether implementation should check for timestamping certificate and certificate-chain revocation status or not and what implementation must do if this revocation check fails.
-      Supported values are `enforceWithFailOpen`, `enforceWithFailClose`, `warn` and `skip`.
 
-#### Value descriptions
+#### SignatureVerification details
 
-- **`enforce`**: This means implementation MUST perform validation and throw an error if validation fails.
-- **`enforceWithFailOpen`**: This means implementation MUST perform validation and if validation fails because the endpoint is not reachable, the implementation MUST log an error and MUST NOT fail the validation.
-- **`enforceWithFailClose`**: This means implementation MUST perform validation and if validation fails because the endpoint is not reachable, the implementation MUST throw an error and MUST fail the validation.
-- **`warn`**: This means implementation MUST perform the validation and if validation fails(because of any reason) the implementation MUST log an error and MUST NOT fail validation.
-- **`skip`**: This means implementation MUST NOT perform the validation.
+- `strict` : Signature verification is performed at `strict` level, which enforces all of the signature verification checks - integrity, authenticity, revocation check. If any of these checks fails, the signature verification fails. This is the recommended level in environments where a signature verification failure does not have high impact to other concerns (like application avaiability). It is recommended that build and development environments where images are initially injested use `strict` level.
+- `permissive` : The `permissive` level enforces integrity and authenticity, but will only audit for revocation and expiry, whose failures are only logged. The `permissive` level is recommended to be used if signature verification is done at deploytime or runtime, and the user only needs integrity and authenticity guarantees.
+- `audit` : The `audit` level only enforces integrity check if a signature is present. Failure of all other checks are only logged.
+The default value is `false`.
+The default value is `false`.
+- `skip` : The `skip` level does not fetch signatures for artifacts and does not perform any signature verification. This is useful when an application uses multiple artifacts, and has a mix of signed and unsigned artifacts. Note that `skip` cannot be used with a global scope (`*`), the value of `registryScopes` MUST contain fully qualified registry URL(s).
+
+|Level|   |Integrity[1]|Authenticity[2]|Trusted timestamp[3]|Revocation check[4]|
+|---|---|---|---|---|---|
+|strict|   |Enforce|Enforce|Enforce|Enforce|
+|permissive|   |Enforce|Enforce|Audit|Audit|
+|audit|   |Enforce|Audit|Audit|Audit|
+|skip|   |Skip|Skip|Skip|Skip|
 
 #### Scopes Constraints
 
