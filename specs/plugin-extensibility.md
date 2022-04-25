@@ -36,11 +36,12 @@ To enumerate all available plugins the following paths are scanned:
 
 Each plugin executable and dependencies are installed under directory `~/.notation/plugins/{plugin-name}` with an executable under that directory `~/.notation/plugins/{plugin-name}/notation-{plugin-name}`. 
 
-Any directory found inside `~/.notation/plugins` is considered potential plugin "candidates". Anything found which is not a directory or symbolic link is ignored and is not considered as a plugin candidate. On Windows files which do not have a `.exe` suffix are not considered candidates and are ignored.
+Any directory found inside `~/.notation/plugins` is considered potential plugin "candidates". Anything found which is not a directory is ignored and is not considered as a plugin candidate.
 
 To be considered a valid plugin a candidate must pass each of these "plugin candidate tests":
 
 * The directory must contain an executable named `notation-{plugin-name}`.
+* The executable can be a regular file or a symbolic link.
 * On Windows, executables must have a `.exe` suffix.
 * Must, where relevant, have appropriate OS "execute" permissions (e.g. Unix x bit set) for the current user.
 * Must actually be executed successfully and when executed with the subcommand `discover` must produce a valid JSON metadata (and nothing else) on its standard output (schema to be discussed later).
