@@ -43,7 +43,7 @@ Any directory found inside `~/.notation/plugins` is considered potential plugin 
 To be considered a valid plugin a candidate must pass each of these "plugin candidate tests":
 
 * The directory must contain an executable named `notation-{plugin-name}`.
-* The executable can be a regular file or a symbolic link.
+* The executable must be a regular file.
 * On Windows, executables must have a `.exe` suffix.
 * Must, where relevant, have appropriate OS "execute" permissions (e.g. Unix x bit set) for the current user.
 * Must actually be executed successfully and when executed with the subcommand `discover` must produce a valid JSON metadata (and nothing else) on its standard output (schema to be discussed later).
