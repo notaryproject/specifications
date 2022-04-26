@@ -116,8 +116,8 @@ All response attributes are required.
   // Plugin name that matches its install dir
   // e.g. "com.example.nv2plugin".
   "name" : "<plugin name>",  
-  // Plugin friendly name.
-  "friendlyName" : "<friendly name>",
+  // Plugin description.
+  "description" : "description>",
   // Plugin publisher controlled version.
   "version" : "<version>",
   // Plugin webpage for support or documentation.
