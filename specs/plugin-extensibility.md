@@ -49,18 +49,18 @@ Notation will invoke plugins as executable, pass parameters using command line a
 
 * Notation will invoke the plugin executable for each command (e.g. sign, verify), pass inputs through `stdin` and get output through `stdout` and `stderr`.
 * The command will be passed as the first argument to the plugin e.g. `notary-{plugin-name} <command>`. A JSON request is passed using `stdin`. The plugin is expected to return a JSON response through `stdout` with a `0` exit code for successful response, and a non-zero exit code with a JSON error response in `stderr` for error response. Each command defines its request, response and error contract. To avoid any additional content like debug or info level logging from dependencies and inbuilt libraries, the plugin implementation should redirect any output to `stdout` on initialization, and only send the JSON response away from `stdout` when the command execution completes. E.g. For golang, set [`os.Stdout`](https://pkg.go.dev/os#pkg-variables) to point to a log file.
-* Every request JSON will contain a `contract-version` top level attribute whose value will indicate the plugin contract version. Contract version is revised when there are changes to command request/response, new plugin commands are introduced, and supported through Notation.
+* Every request JSON will contain a `contractVersion` top level attribute whose value will indicate the plugin contract version. Contract version is revised when there are changes to command request/response, new plugin commands are introduced, and supported through Notation.
 * For an error response, every command returns a non-zero exit code 1, with an OPTIONAL JSON error response in `stderr`. It is recommended to return an error response to help user troubleshoot the error.  There is no need to send different exit codes for different error conditions, as Notation (which will call the plugin and parse the response) will use `error-code` in the error response to interpret different error conditions if needed. Notation will attempt to parse the error response in `stderr` when exit code is 1, else treat it as a general error for any other non-zero exit codes. An implementation can 
 
 ```jsonc
 {
   // Each command defines expected error codes
-  "error-code" : "<error code>",  
+  "errorCode" : "<error code>",  
   // Plugin defined error message.
-  "error-message" : "User friendly error message"
+  "errorMessage" : "User friendly error message",
 
   // Optional plugin defined additional key value pairs related to the error.
-  "error-metadata" : {
+  "errorMetadata" : {
     "key1" : "value1",
     "key2" : "value2"
   }
@@ -83,16 +83,16 @@ All response attributes are required.
 {
   // Plugin name that matches its install dir
   // e.g. "com.example.nv2plugin".
-  "plugin-name" : "<plugin name>",  
+  "name" : "<plugin name>",  
   // Plugin friendly name.
-  "plugin-friendly-name" : "<friendly name>",
+  "friendlyName" : "<friendly name>",
   // Plugin publisher controlled version.
-  "plugin-version" : "<version>",
+  "version" : "<version>",
   // Plugin webpage for support or documentation.
-  "plugin-url" : "<URL>",
+  "url" : "<URL>",
   
   // List of contract versions supported by the plugin, one per major version
-  "supported-contract-versions" : [ ],
+  "supportedContractVersions" : [ ],
   
   // Currently one of 
   // SIGNATURE_GENERATOR or
@@ -146,13 +146,13 @@ This interface targets plugins that integrate with providers of basic cryptograp
 
 ```jsonc
 {
-  "contract-version" : <major-version.minor-version>,
+  "contractVersion" : "<major-version.minor-version>",
 
   // Complete key definition from
   // /notation/config.json /signingKeys/keys with matching key name
-  "keyDefinition" : <key definition>,
+  "keyDefinition" : "<key definition>",
 
-  "payload" : <Base64 encoded payload to be signed>
+  "payload" : "<Base64 encoded payload to be signed>"
 }
 ```
 
@@ -175,9 +175,9 @@ All response attributes are required.
 ```jsonc
 {    
   // The same key id as passed in the request.
-  "keyId" : <key id>,
-  "signature" : <Base64 encoded signature>,
-  "signingAlgorithm" : <signing algorithm>
+  "keyId" : "<key id>",
+  "signature" : "<Base64 encoded signature>",
+  "signingAlgorithm" : "<signing algorithm>",
   "certificateChain": ["Base64(DER(leafCert))","Base64(DER(intermediateCACert))","Base64(DER(rootCert))"]
 }
 ```
@@ -226,12 +226,12 @@ All request attributes are required.
 
 ```jsonc
 {
-  "contract-version" : <major-version.minor-version>,
+  "contractVersion" : "<major-version.minor-version>",
   
   // Complete key definition from /notation/config.JSON /signingKeys/keys with matching key name
-  "keyDefinition" : <key definition>, 
+  "keyDefinition" : "<key definition>", 
 
-  "payload" : <Base64 encoded payload to be signed>,
+  "payload" : "<Base64 encoded payload to be signed>",
   
   // The type of payload - currently a descriptor
   "payloadType" : "application/vnd.oci.descriptor.v1+json",
@@ -250,8 +250,8 @@ All response attributes are required.
 
 ```jsonc
 {
-   "signatureEnvelope": <Base64 encoded signature envelope>,
-   "signatureEnvelopeType" : "application/vnd.cncf.notary.v2.jws.v1"
+   "signatureEnvelope": "<Base64 encoded signature envelope>",
+   "signatureEnvelopeType" : "application/vnd.cncf.notary.v2.jws.v1",
    
   // Annotations to be appended to Signature Manifest annotations
   "annotations" : {
