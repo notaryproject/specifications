@@ -28,6 +28,8 @@ Notation will invoke plugins as executable, pass parameters using command line a
 
 Plugin publisher will provide instructions to download and install the plugin. Plugins intended for public distribution should also include instructions for users to verify the authenticity of the plugin.
 
+**Open Item** : [Plugin install paths](https://github.com/notaryproject/notation/issues/167)
+
 To enumerate all available plugins the following paths are scanned:
 * Unix-like OSes:
   * `$HOME/.notation/plugins`
