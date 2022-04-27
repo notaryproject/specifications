@@ -14,7 +14,7 @@ Keys and associated certificates used for signing artifacts using Notary could b
 
 * A plugin publisher MUST be able to distribute and patch a Notation plugin independently of Notation’s release cycle.
 * The plugin mechanism MUST work across commonly used OS platforms like Linux, Windows and macOS.
-* The plugin interface contract MUST be versioned. This version is different from Notation's release version. It will be used to accomodate for additional capabilities and contract changes post initial release of Notation.
+* The plugin interface contract MUST be versioned. This version is different from Notation's release version. It will be used to accommodate for additional capabilities and contract changes post initial release of Notation.
 * A plugin MAY implement a subset of capabilities (features) available in plugin contract. E.g A plugin may implement signing feature, but not verification.
 * Notation and plugins MAY be updated independently in an environment.
   * Notation MUST work with a plugin that implements a matching or lower minor version of the plugin contract. Notation SHALL NOT support using a plugin with higher version of plugin contract.
@@ -22,10 +22,42 @@ Keys and associated certificates used for signing artifacts using Notary could b
 
 Notation will invoke plugins as executable, pass parameters using command line arguments, and use standard IO streams to pass request/response payloads. This mechanism is used as Go language (used to develop [Notation library](https://github.com/notaryproject/notation-go-lib)) does not have a [in built support](https://github.com/golang/go/issues/19282) to load and execute plugins that works across OS platforms. Other mechanisms like gRPC require every plugin to be implemented as a service/daemon.
 
-### Plugin installation and config
+### Plugin lifecycle management
 
-* Plugin publisher will provide instructions to download and install the plugin. Plugins intended for public distribution should also include instructions for users to verify the authenticity of the plugin.
-* Each plugin executable and dependencies are installed under directory `~/.notation/plugins/{plugin-name}` with an executable under that directory `~/.notation/plugins/{plugin-name}/notation-{plugin-name}`. The executable can be a shim which calls plugin dependecies installed elsewhere on the file system.
+#### Installation
+
+Plugin publisher will provide instructions to download and install the plugin. Plugins intended for public distribution should also include instructions for users to verify the authenticity of the plugin.
+
+**Open Item** : [Plugin install paths](https://github.com/notaryproject/notation/issues/167)
+
+To enumerate all available plugins the following paths are scanned:
+* Unix-like OSes:
+  * `$HOME/.notation/plugins`
+* On Windows:
+  * `%USERPROFILE%\.notation\plugins`
+
+Each plugin executable and dependencies are installed under directory `~/.notation/plugins/{plugin-name}` with an executable under that directory `~/.notation/plugins/{plugin-name}/notation-{plugin-name}`. 
+
+Any directory found inside `~/.notation/plugins` is considered potential plugin "candidates". Anything found which is not a directory is ignored and is not considered as a plugin candidate.
+
+To be considered a valid plugin a candidate must pass each of these "plugin candidate tests":
+
+* The directory must contain an executable named `notation-{plugin-name}`.
+* The executable MUST be a regular file, symlinks are not supported. Implementation MUST validate that the executable is a regular file, before executing it, and fail it it does not meet this condition.
+* On Windows, executables must have a `.exe` suffix.
+* Must, where relevant, have appropriate OS "execute" permissions (e.g. Unix x bit set) for the current user.
+* Must actually be executed successfully and when executed with the subcommand `get-plugin-metadata` must produce a valid JSON metadata (and nothing else) on its standard output (schema to be discussed later).
+
+#### Commands
+
+* List
+
+`notation plugin list`
+
+List all valid plugins.
+
+### Plugin configuration
+
 * To use a plugin for signing, the user associates the plugin as part of registering a signing key. E.g.
   * `notation key add --name "mysigningkey" --id "keyid" --plugin "com.example.nv2plugin"`
   * In the example, the command registers a signing key in `/notation/config.json`, where `mysigningkey` is a friendly key name to refer during signing operation from the CLI, `id` is an key identifier known to plugin that is used for signing, and the value of `plugin` specifies it's using a plugin located at `~/.notation/plugins/com.example.nv2plugin/notation-com.example.nv2plugin`.
@@ -69,10 +101,10 @@ Notation will invoke plugins as executable, pass parameters using command line a
 
 ### Plugin metadata
 
-* Every plugin MUST implement a metadata discovery command called `discover`. 
-* Notation will invoke this command as part of signing and verification workflows to discover the capabilities of the plugin and subsequently invoke commands corresponding to the capabilities. Notation will invoke the `discover` command every time a signing or verification workflow is invoked to discover metadata. Notation will not cache the response of `discover` command as it involves invalidating cache when a plugin is updated, detecting a plugin update can be non trivial. The `discover` command is expected to return only static data, and plugin implementors should avoid making remote calls in this command.
+* Every plugin MUST implement a metadata discovery command called `get-plugin-metadata`. 
+* Notation will invoke this command as part of signing and verification workflows to discover the capabilities of the plugin and subsequently invoke commands corresponding to the capabilities. Notation will invoke the `get-plugin-metadata` command every time a signing or verification workflow is invoked to discover metadata. Notation will not cache the response of `get-plugin-metadata` command as it involves invalidating cache when a plugin is updated, detecting a plugin update can be non trivial. The `get-plugin-metadata` command is expected to return only static data, and plugin implementors should avoid making remote calls in this command.
 
-***discover***
+***get-plugin-metadata***
 
 *Request* - None
 
@@ -84,8 +116,8 @@ All response attributes are required.
   // Plugin name that matches its install dir
   // e.g. "com.example.nv2plugin".
   "name" : "<plugin name>",  
-  // Plugin friendly name.
-  "friendlyName" : "<friendly name>",
+  // Plugin description.
+  "description" : "description>",
   // Plugin publisher controlled version.
   "version" : "<version>",
   // Plugin webpage for support or documentation.
@@ -105,9 +137,9 @@ All response attributes are required.
 
 *plugin-name* - Plugin name uses reverse domain name notation to avoid plugin name collisions.
 
-*supported-contract-versions* - The list of contract versions supported by the plugin. Currently this list must include only one version, per major version. Post initial release, Notation may add new features through plugins, in the form of new commands (e.g. tsa-sign for timestamping), or additional request and response parameters. Notation will publish updates to plugin interface along with appropriate contract version update. Backwards compatible changes (changes for which older version of plugin continue to work with versions of Notation using newer contract version) like new optional parameters on existing contracts, and new commands will be supported through minor version contract updates, breaking changes through major version updates. Plugin `discover` command returns the contract version a plugin supports. Notation will evaluate the minimum plugin version required to satisfy a user's request, and reject the request if the plugin does not support the required version.
+*supported-contract-versions* - The list of contract versions supported by the plugin. Currently this list must include only one version, per major version. Post initial release, Notation may add new features through plugins, in the form of new commands (e.g. tsa-sign for timestamping), or additional request and response parameters. Notation will publish updates to plugin interface along with appropriate contract version update. Backwards compatible changes (changes for which older version of plugin continue to work with versions of Notation using newer contract version) like new optional parameters on existing contracts, and new commands will be supported through minor version contract updates, breaking changes through major version updates. Plugin `get-plugin-metadata` command returns the contract version a plugin supports. Notation will evaluate the minimum plugin version required to satisfy a user's request, and reject the request if the plugin does not support the required version.
 
-*capabilities* - Non empty list of features supported by a plugin. Each capability such as `SIGNATURE_ENVELOPE_GENERATOR` requires one of more commands to be implemented by the plugin. When new features are available for plugins to implement, an implementation may choose to not implement it, and therefore will not include the feature in capabililies. Notation will evaluate the capability required to satisfy a user’s request, and reject the request if the plugin does not support the required capability.
+*capabilities* - Non empty list of features supported by a plugin. Each capability such as `SIGNATURE_ENVELOPE_GENERATOR` requires one of more commands to be implemented by the plugin. When new features are available for plugins to implement, an implementation may choose to not implement it, and therefore will not include the feature in capabilities. Notation will evaluate the capability required to satisfy a user’s request, and reject the request if the plugin does not support the required capability.
 
 ## Signing interfaces
 
@@ -127,7 +159,7 @@ This interface targets plugins that integrate with providers of basic cryptograp
 1. Pull the image manifest using `oci-artifact` url, and construct a descriptor
 1. Append any user provided metadata and Notary metadata as descriptor annotations.
 1. Determine if the registered key uses a plugin
-1. Execute the plugin with `discover` command
+1. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR`
         1. Generate the payload to be signed. For JWS this includes [JWS](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#supported-signature-envelopes) payload with `subject` claim as descriptor, additional JWS claims, and protected headers.
         2. Execute the plugin with `generate-signature` command, set `request.keyDefinition` to key definition corresponding to `keyName`, `request.payload` to the generated payload.
@@ -205,7 +237,7 @@ This interface targets plugins that in addition to signature generation want to 
 1. Pull the image manifest using `image` url, and construct a descriptor
 1. Append any user provided metadata and Notary metadata as descriptor annotations.
 1. Determine if the registered key uses a plugin
-1. Execute the plugin with `discover` command
+1. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_ENVELOPE_GENERATOR`
         1. Execute the plugin with `generate-envelope` command, set `request.keyDefinition` to key definition (from `/notation/config.json`) corresponding to `keyName`, `request.payload` to base64 encoded descriptor, `request.payloadType` to `application/vnd.oci.descriptor.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (default to `application/vnd.cncf.notary.v2.jws.v1`).
         1. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match request.signatureEnvelopeType.
@@ -283,4 +315,4 @@ TBD [#135](https://github.com/notaryproject/notaryproject/issues/135)
 * [Issue #151](https://github.com/notaryproject/notation/issues/151) - Add Notation command line options to pass raw signature generated by existing crypto tools.
 * What standard providers should be supported?
 * Do we need to support file based plugin configuration, or pass-through plugin configuration passed as is from Notation CLI to the plugin?
-* Suport for chaining plugins. It allows us to seperate out and compose things like signing, TSA integration, push to transparency log.
+* Support for chaining plugins. It allows us to separate out and compose things like signing, TSA integration, push to transparency log.
