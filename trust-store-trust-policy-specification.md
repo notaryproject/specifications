@@ -17,7 +17,7 @@ All examples use the actors defined in Notary v2 [scenario](https://github.com/n
 
 ## Trust Store
 
-Contains a set of trusted identities through which trust is derived for the rest of the system. For X509 PKI, the trust store typically contains root certificates.
+Contains a set of trusted identities through which trust is derived for the rest of the system. For X.509 PKI, the trust store typically contains root certificates.
 
 - The Notary v2 trust store consists of multiple named collections of certificates, called named stores.
 - Following certificate formats are supported - Files with extension .pem, .crt and .cer, the files are expected to contain certificate(s) in DER (binary) format or PEM format (base-64 encoded DER).
@@ -154,7 +154,7 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
   - **`signatureVerification`**(*string*): This REQUIRED property dictates how signature verification is performed. Supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each value is present [here](#signatureverification-details). A custom level can be defined by referencing a supported level value, and overriding individual validation checks.
   - **`trustedIdentities`**(*object*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, trusted identities is specified with a combination of trust store and trust anchors.
     - **`trustStore`**(*string*): This REQUIRED property specifies a named trust store. Uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca` and `tsa`. **NOTE**: When support for publicly trusted TSA is available, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
-    - **`identities`**(*array of strings*): This REQUIRED property specifies a list of elements/attributes of the signing certificate's subject. For more information, see [trusted identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
+    - **`identities`**(*array of strings*): This REQUIRED property specifies a list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
 
 #### Signature Verification details
 
@@ -207,26 +207,26 @@ The following table shows the resultant behavior `enforced` (verification fails)
   1. *Global*: If there exists a trust policy with global scope then use that policy for signature evaluation.
      Otherwise, fail the signature verification.
 
-### Trusted Identities Constraints
+### Identities Constraints
 
-A distinguished name (usually just shortened to "DN") uniquely identifies an entry and in the case of the certificate's subject, DN uniquely identifies the requestor/holder of the certificate.
+This section defines how to specify `identities` for X.509 certificates using its distinguished name. A distinguished name (usually just shortened to "DN") uniquely identifies the requestor/holder of the certificate.
 The DN is comprised of zero or more comma-separated components called relative distinguished names, or RDNs.
-For example, the DN `C=US, ST=WA, O=wabbit-network.io, OU=org1`"` has four RDNs.
+For example, the DN `C=US, ST=WA, O=wabbit-network.io, OU=org1` has four RDNs.
 The RDN consists of an attribute type name followed by an equal sign and the string representation of the corresponding attribute value.
 
-- Trust anchor MUST support a full and partial list of all the attribute types present in [subject DN](https://www.rfc-editor.org/rfc/rfc5280.html#section-4.1.2.6) of x509 certificate.
+- The `identities` list items MUST support a full and partial list of all the attribute types present in [subject DN](https://www.rfc-editor.org/rfc/rfc5280.html#section-4.1.2.6) of x509 certificate. Alternatively, it supports a single item with value `*`, to indicate that any certificate that chains to the associated trust store (`trustedIdentities.trustStore`) is allowed.
 - If the subject DN of the signing certificate is used in the trust anchor, then it MUST meet the following requirements:
-  - The value of `trustedIdentities` MUST begin with `x509.subject:` followed by comma-separated one or more RDNs.
+  - The value of each `identities` list item MUST begin with `x509.subject:` followed by comma-separated one or more RDNs.
     For example, `x509.subject: C=${country}, ST=${state}, L=${locallity}, O={organization}, OU=${organization-unit}, CN=${common-name}`.
-  - Trust anchor MUST contain country (CN), state Or province (ST), and organization (O) RDNs.
+  - Each identity in `identities` list MUST contain country (CN), state Or province (ST), and organization (O) RDNs.
     All other RDNs are optional.
-    The minimal possible trust anchor is `x509.subject: C=${country}, ST=${state}, O={organization}`,
-  - Trust anchor MUST NOT have overlapping values.
-    Trust anchors are considered overlapping if there exists a certificate for which multiple trust anchors evaluate true.
-    For example, the following two trust anchors are overlapping:
+    The minimal possible value is `x509.subject: C=${country}, ST=${state}, O={organization}`,
+  - `identities` list items MUST NOT have overlapping values,
+    they are considered overlapping if there exists a certificate for which multiple DNs evaluate true. In such case the policy is considered invalid, and will fail at signature verification time when the policy is validated.
+    For example, the following two identity values are overlapping:
     - `x509.subject: C=US, ST=WA, O=wabbit-network.io, OU=org1`
     - `x509.subject:  C=US, ST=WA, O=wabbit-network.io`
-  - In some special cases trust anchor MUST escape one or more characters in an RDN.
+  - In some special cases values in `identities` list MUST escape one or more characters in an RDN.
     Those cases are:
     - If a value starts or ends with a space, then that space character MUST be escaped as `\`.
     - All occurrences of the comma character (`,`) MUST be escaped as `\,`.
