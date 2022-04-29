@@ -153,7 +153,7 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
   - **`registryScopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
     The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
     For more information, see [registry scopes constraints](#registry-scopes-constraints) section.
-  - **`signatureVerification`**(*string*): This REQUIRED property dictates how signature verification is performed. Supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each value is present [here](#signatureverification-details). A custom level can be defined by referencing a supported level value, and overriding individual validation checks.
+  - **`signatureVerification`**(*string*): This REQUIRED property dictates how signature verification is performed. Supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each value is present [here](#signatureverification-details). A custom level can be defined by referencing a supported level value, and overriding individual validation checks. NOTE: Custom signature verification level will not be supported in `notation` RC1.
   - **`trustedIdentities`**(*object*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, trusted identities is specified with a combination of trust store and trust anchors.
     - **`trustStore`**(*string*): This REQUIRED property specifies a named trust store. Uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca` and `tsa`. **NOTE**: When support for publicly trusted TSA is available, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
     - **`identities`**(*array of strings*): This REQUIRED property specifies a list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
@@ -304,9 +304,7 @@ This section should be considered as **DRAFT** and will be updated after RC1 rel
 
 If the certificate revocation validation is set to `skip` using policy, skip the below steps, otherwise check for revocation status for certificate and certificate chain.
 
-1. If the revocation status of any of the certificates cannot be determined (revocation unavailable) and `signingIdentityRevocation` is set to either `enforceWithFailOpen` or `warn` then log a warning and skip the below steps.
-   Otherwise, fail the signature validation and exit.
-2. If any of the certificates are revoked and `signingIdentityRevocation` is set to either `enforceWithFailOpen` or `enforceWithFailClose` then fail signature validation and exit else log a warning.
+- If the revocation status of any of the certificates is revoked or cannot be determined (revocation status unavailable), fail this step. This will fail the overall signature verification or log the error, depending on if revocations status check is `enforced` or `logged`, as per the signature verification level.
 
 Starting from Root to leaf certificate, for each certificate in the certificate chain, perform the following steps to check its revocation status:
 
@@ -400,7 +398,8 @@ Signature verification workflow succeeds if verification succeeds for at least o
 
 **Q: Does Notary v2 support overriding of revocation endpoints to support signature verification in disconnected environments?**
 
-**A:** Not natively supported but a user can configure `revocationValidations` to `skip` and then use extended validations to check for revocation.
+**A:** TODO: Update after verification extensibility spec is ready.
+Not natively supported but a user can configure `revocationValidations` to `skip` and then use extended validations to check for revocation.
 
 **Q: Why user needs to include a complete certificate chain (leading to root) in the signature?**
 
