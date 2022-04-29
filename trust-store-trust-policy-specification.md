@@ -261,7 +261,7 @@ TODO: Update this section after [verification plugin spec](https://github.com/no
       1. `logged` - validation failure is logged and the next validation step is processed.
    1. A signature verification is considered successful when all validation steps are completed without critical failure.
 1. **Validate Integrity.**
-    1. Validate that signature envelope can be parsed sucessfully based on the signature envelope type specified in the `[blobs].descriptor.mediaType` attribute of the signature artifact manifest.
+    1. Validate that signature envelope can be parsed sucessfully based on the signature envelope type specified in the `blobs[0].mediaType` attribute of the signature artifact manifest.
     1. Validate that the content type indicated by the `content type` signed attribute in the signature envelope is supported.
     1. Get the signing certificate from the parsed [signature envelope](https://github.com/notaryproject/notaryproject/blob/7b7d283038/signature-specification.md#signature-envelope).
     1. Determine the signing algorithm(hash+encryption) from the signing certificate and validate that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements)
