@@ -10,10 +10,12 @@ The document consists of the following sections:
 
 Other types of identities and trust models may be supported in future, which may introduce other constructs/policy elements to support signature evaluation.
 
+## Scenario
+
 All examples use the actors defined in Notary v2 [scenario](https://github.com/notaryproject/notaryproject/blob/main/scenarios.md#scenario-0-build-publish-consume-enforce-policy-deploy)
 
 - Wabbit Networks company builds, signs and distributes their `net-monitor` software though public registries.
-- ACME Rockets consumes the `net-monitor` software from a public registry importing the  artifacts and reference artifacts (signatures, SBoMs) into their private registry. The private registry also contains additional artifacts that ACME Rockets themselves sign.
+- ACME Rockets consumes the `net-monitor` software from a public registry importing the artifacts and reference artifacts (signatures, SBoMs) into their private registry. The private registry also contains additional artifacts that ACME Rockets themselves sign.
 
 ## Trust Store
 
@@ -22,7 +24,7 @@ Contains a set of trusted identities through which trust is derived for the rest
 - The Notary v2 trust store consists of multiple named collections of certificates, called named stores.
 - Following certificate formats are supported - Files with extension .pem, .crt and .cer, the files are expected to contain certificate(s) in DER (binary) format or PEM format (base-64 encoded DER).
 - The trust store is a directory location, under which each sub directory is considered a named store, that contains zero or more certificates. The name of this sub directory is used to reference the specific store in trust policy.
-- Symlinks are not supported for the named store directories or certificate files. Implementation MUST validate that the named store directory or certificate files are not symlinks, and fail it it does not meet this condition.
+- Symlinks are not supported for the named store directories or certificate files. Implementation MUST validate that the named store directory or certificate files are not symlinks, and fail if it does not meet this condition.
 - Certificates in a trust store are root certificates. Placing intermediate certificates in the trust store is not recommended this is a form of certificate pinning that can break signature verification unexpectedly anytime the intermediate certificate is rotated.
 
 Notary v2 uses following directory structure to represent the trust store. The example shows named stores `acme-rockets` and `wabbit-networks`, which are subseqently references in the trust policy. Without this reference, presence of a named store and certificates in it does not confer trust automatically to the named store. The trust store is configured ahead of verification time, by an out of band mechanism that is beyond the scope of this document. Different entities and organizations have their own processes and policies to configure and distribute trust stores.
@@ -259,7 +261,7 @@ TODO: Update this section after [verification plugin spec](https://github.com/no
       1. `logged` - validation failure is logged and the next validation step is processed.
    1. A signature verification is considered successful when all validation steps are completed without critical failure.
 1. **Validate Integrity.**
-    1. Validate that signature envelope can be parsed sucessfully based on the signature envelope type specified in the `[descriptors].descriptor.mediaType` attribute of the signature artifact manifest.
+    1. Validate that signature envelope can be parsed sucessfully based on the signature envelope type specified in the `[blobs].descriptor.mediaType` attribute of the signature artifact manifest.
     1. Validate that the content type indicated by the `content type` signed attribute in the signature envelope is supported.
     1. Get the signing certificate from the parsed [signature envelope](https://github.com/notaryproject/notaryproject/blob/7b7d283038/signature-specification.md#signature-envelope).
     1. Determine the signing algorithm(hash+encryption) from the signing certificate and validate that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements)
