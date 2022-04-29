@@ -28,7 +28,7 @@ Contains a set of trusted identities through which trust is derived for the rest
 Notary v2 uses following directory structure to represent the trust store. The example shows named stores `acme-rockets` and `wabbit-networks`, which are subseqently references in the trust policy. Without this reference, presence of a named store and certificates in it does not confer trust automatically to the named store. The trust store is configured ahead of verification time, by an out of band mechanism that is beyond the scope of this document. Different entities and organizations have their own processes and policies to configure and distribute trust stores.
 
 ```text
-$XDG_CONFIG_HOME/.notation/trust-store
+$XDG_CONFIG_HOME/notation/trust-store
     /x509
         /ca
             /acme-rockets
