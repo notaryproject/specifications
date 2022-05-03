@@ -67,16 +67,14 @@ Trust policy for a simple scenario where ACME Rockets uses only artifacts signed
     "version": "1.0",
     "trustPolicies": [
         {
-            # Policy for all artifacts, from any registry location.
+            // Policy for all artifacts, from any registry location.
             "name": "wabbit-networks-images",
             "registryScopes": [ "*" ],
             "signatureVerification" : "audit",
-            "trustedIdentities": {
-                "trustStore": "ca:acme-rockets",
-                "identities": [ 
-                  "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
-                ]
-            }
+            "trustStore": "ca:acme-rockets",
+            "trustedIdentities": [ 
+              "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
+            ]
         }
     ]
 }
@@ -89,29 +87,28 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
     "version": "1.0",
     "trustPolicies": [
         {
-            # Policy for set of artifacts signed by Wabbit Networks
-            # that are pulled from ACME Rockets repository
+            // Policy for set of artifacts signed by Wabbit Networks
+            // that are pulled from ACME Rockets repository
             "name": "wabbit-networks-images",
             "registryScopes": [
-                "registry.acme-rockets.io/software/net-monitor"
-                "registry.acme-rockets.io/software/net-logger" ],
+              "registry.acme-rockets.io/software/net-monitor",
+              "registry.acme-rockets.io/software/net-logger"
+            ],
             "signatureVerification" : "strict",
-            "trustedIdentities": {
-                "trustStore": "ca:acme-rockets",
-                "identities": [ 
-                  "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
-                ]
-            }
+            "trustStore": "ca:acme-rockets",
+            "trustedIdentities": [ 
+              "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
+            ]
         },
         {
-            # Exception policy for a single unsigned artifact pulled from
-            # Wabbit Networks repository
+            // Exception policy for a single unsigned artifact pulled from
+            // Wabbit Networks repository
             "name": "unsigned-image",
             "registryScopes": [ "registry.wabbit-networks.io/software/unsigned/net-utils" ],
             "signatureVerification": "skip",
         },
         {
-            # Policy for with custom verification policy
+            // Policy for with custom verification policy
             "name": "use-expired-image",
             "registryScopes": [ "registry.acme-rockets.io/software/legacy/metrics" ],
             "signatureVerification":
@@ -122,23 +119,19 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
                 "expiry" : "skip"
               }
             },
-            "trustedIdentities": {
-                "trustStore": "ca:acme-rockets",
-                "identities": ["*"]
-            }
+            "trustStore": "ca:acme-rockets",
+            "trustedIdentities": ["*"]
         },
         {
-            # Policy for all other artifacts signed by ACME Rockets
-            # from any registry location    
+            // Policy for all other artifacts signed by ACME Rockets
+            // from any registry location    
             "name": "global-policy-for-all-other-images",
             "registryScopes": [ "*" ],
             "signatureVerification" : "audit",
-            "trustedIdentities": {
-                "trustStore": "ca:acme-rockets",
-                "identities": [ 
-                  "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
-                ]
-            }
+            "trustStore": "ca:acme-rockets",
+            "trustedIdentities": [ 
+              "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
+            ]
         }
     ]
 }
@@ -154,9 +147,8 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
     The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
     For more information, see [registry scopes constraints](#registry-scopes-constraints) section.
   - **`signatureVerification`**(*string*): This REQUIRED property dictates how signature verification is performed. Supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each value is present [here](#signatureverification-details). A custom level can be defined by referencing a supported level value, and overriding individual validation checks. NOTE: Custom signature verification level will not be supported in `notation` RC1.
-  - **`trustedIdentities`**(*object*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, trusted identities is specified with a combination of trust store and trust anchors.
-    - **`trustStore`**(*string*): This REQUIRED property specifies a named trust store. Uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca` and `tsa`. **NOTE**: When support for publicly trusted TSA is available, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
-    - **`identities`**(*array of strings*): This REQUIRED property specifies a list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
+  - **`trustStore`**(*string*): This REQUIRED property specifies a named trust store. Uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca` and `tsa`. **NOTE**: When support for publicly trusted TSA is available, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
+  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
 
 #### Signature Verification details
 
@@ -209,26 +201,27 @@ The following table shows the resultant behavior `enforced` (verification fails)
   1. *Global*: If there exists a trust policy with global scope then use that policy for signature evaluation.
      Otherwise, fail the signature verification.
 
-### Identities Constraints
+### Trusted Identities Constraints
 
-This section defines how to specify `identities` for X.509 certificates using its distinguished name. A distinguished name (usually just shortened to "DN") uniquely identifies the requestor/holder of the certificate.
+This section defines how to specify `trustedIdentities` for X.509 certificates using its distinguished name. A distinguished name (usually just shortened to "DN") uniquely identifies the requestor/holder of the certificate.
 The DN is comprised of zero or more comma-separated components called relative distinguished names, or RDNs.
 For example, the DN `C=US, ST=WA, O=wabbit-network.io, OU=org1` has four RDNs.
 The RDN consists of an attribute type name followed by an equal sign and the string representation of the corresponding attribute value.
 
-- The `identities` list items MUST support a full and partial list of all the attribute types present in [subject DN](https://www.rfc-editor.org/rfc/rfc5280.html#section-4.1.2.6) of x509 certificate. Alternatively, it supports a single item with value `*`, to indicate that any certificate that chains to the associated trust store (`trustedIdentities.trustStore`) is allowed.
+- The `trustedIdentities` list items MUST support a full and partial list of all the attribute types present in [subject DN](https://www.rfc-editor.org/rfc/rfc5280.html#section-4.1.2.6) of x509 certificate. Alternatively, it supports a single item with value `*`, to indicate that any certificate that chains to the associated trust store (`trustStore`) is allowed.
 - If the subject DN of the signing certificate is used in the trust anchor, then it MUST meet the following requirements:
-  - The value of each `identities` list item MUST begin with `x509.subject:` followed by comma-separated one or more RDNs.
+  - The value of each `trustedIdentities` list item, if it begins with `x509.subject:`, MUST be followed by comma-separated one or more RDNs.
+    Other types of trusted identities may be supported, by using an alternate prefix, or a different format.
     For example, `x509.subject: C=${country}, ST=${state}, L=${locallity}, O={organization}, OU=${organization-unit}, CN=${common-name}`.
   - Each identity in `identities` list MUST contain country (CN), state Or province (ST), and organization (O) RDNs.
     All other RDNs are optional.
     The minimal possible value is `x509.subject: C=${country}, ST=${state}, O={organization}`,
-  - `identities` list items MUST NOT have overlapping values,
+  - `trustedIdentities` list items MUST NOT have overlapping values,
     they are considered overlapping if there exists a certificate for which multiple DNs evaluate true. In such case the policy is considered invalid, and will fail at signature verification time when the policy is validated.
     For example, the following two identity values are overlapping:
     - `x509.subject: C=US, ST=WA, O=wabbit-network.io, OU=org1`
     - `x509.subject:  C=US, ST=WA, O=wabbit-network.io`
-  - In some special cases values in `identities` list MUST escape one or more characters in an RDN.
+  - In some special cases values in `trustedIdentities` list MUST escape one or more characters in an RDN.
     Those cases are:
     - If a value starts or ends with a space, then that space character MUST be escaped as `\`.
     - All occurrences of the comma character (`,`) MUST be escaped as `\,`.
@@ -267,12 +260,12 @@ TODO: Update this section after [verification plugin spec](https://github.com/no
     1. Determine the signing algorithm(hash+encryption) from the signing certificate and validate that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements)
     1. Using the public key of the signing certificate and signing algorithm identified in the previous step, validate the integrity of the signature envelope.
 1. **Validate Authenticity.**
-    1. For the applicable trust policy, **validate trusted identities:**
+    1. For the applicable trust policy, **validate trust store and identities:**
         1. Validate that the signature envelope contains a complete certificate chain that starts from a code signing certificate and terminates with a root certificate. Also, validate that code signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
-        1. For the `trustedIdentities.trustStore` configured in applicable trust-policy perform the following steps.
+        1. For the `trustStore` configured in applicable trust-policy perform the following steps.
             1. Validate that certificate and certificate-chain lead to a trusted certificate present in the named store.
             1. If all the certificates in the named store have been evaluated without a match, then fail this step.
-        1. If `trustedIdentities.Identities` is `*`, any signing certificate issued by a CA in `trustStore` is allowed, skip to the next validation (Validate Expiry).
+        1. If `trustedIdentities` is `*`, any signing certificate issued by a CA in `trustStore` is allowed, skip to the next validation (Validate Expiry).
         1. Else validate if the X.509 subject (`x509.subject`) in the `trustedIdentities` list matches with the value of corresponding attributes in the signing certificate’s subject, refer [this section](#trusted-identities-constraints) for details. If a match is not found, fail this step.
 1. **Validate Expiry:**
     1. If an `expiry time` signed attribute is present in the signature envelope, check if the local machine’s current time(in UTC) is greater than `expiry time`. If yes, fail this step.
