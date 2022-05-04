@@ -179,10 +179,13 @@ This interface targets plugins that integrate with providers of basic cryptograp
     1. If plugin supports capability `SIGNATURE_GENERATOR`
         1. Execute the plugin with `describe-key` command, set `request.keyName`, `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
         2. Generate the payload to be signed for [JWS](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#supported-signature-envelopes) envelope format.
-           1. Create the protected headers collection and set `alg` to value corresponding to `describe-key.response.keySpec` as per [signature algorithm selection](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection).
+           1. Create the JWS protected headers collection and set `alg` to value corresponding to `describe-key.response.keySpec` as per [signature algorithm selection](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection).
            2. Create the `JWSPayload` with appropriate private (`subject`) and public (`iat,exp`) claims.
            3. The payload to sign is then created as - `ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
-        3. Execute the plugin with `generate-signature` command. Set `request.keyName`, `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` as the payload to sign.
+        3. Execute the plugin with `generate-signature` command.
+           1. Set `request.keyName`, `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
+           2. Set `request.payload` as the payload to sign.
+           3. Set `keySpec` to value returned by `describe-key` command in `response.keySpec` and `hashAlgorithm` to hash algorithm corresponding to the key spec, as per [signature algorithm selection](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection). The algorithm specified in `hashAlgorithm` MUST be used by the plugin to hash the payload (`request.payload`) as part of signature generation.
         4. Validate the generated signature, return an error if any of the checks fails.
            1. Check if `response.signingAlgorithm` is one of [supported signing algorithms](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection).
            2. Check that the plugin did not modify `request.payload` before generating the signature, and the signature is valid for the given payload. Verify the hash of the `request.payload` against `response.signature`, using the public key of signing certificate (leaf certificate) in `response.certificateChain` along with the `response.signingAlgorithm`. This step does not include certificate chain validation (certificate chain leads to a trusted root configured in Notation's Trust Store), or revocation check.
@@ -250,13 +253,23 @@ This command is used to generate the raw signature for a given payload.
   "keyName": "<key name>",
   "keyId": "<key id>",
 
+
   // Optional plugin configuration, map of string-string
   "pluginConfig" : { },
+
+  // The key spec for the given key id
+  "keySpec" : "<key type and size>",
+
+  // Hash algorithm associated with the key spec, plugin must 
+  // hash the payload using this hash algorithm
+  "hashAlgorithm" : "SHA_256" | "SHA_384" | "SHA_512",
 
   // The signature envelope type associated with the payload.
   "signatureEnvelopeType" : "application/vnd.cncf.notary.v2.jws.v1",
   
-  "payload" : "<payload to be signed>"
+  // Payload to sign, it's encoded based on the signature envelope type
+  "payload" : "<payload to be signed>",
+
 }
 ```
 
@@ -264,7 +277,11 @@ This command is used to generate the raw signature for a given payload.
 
 *pluginConfig* : Optional field for plugin configuration. For details, see [Plugin Configuration section](#plugin-configuration).
 
-*signatureEnvelopeType* - The signature envelope type associated with the payload. This is used by the plugin to appropriately decode the payload in case a binary payload is passed.
+*keySpec* : Required field that as one of following [supported key types](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection) - `RSA_2048`, `RSA_3072`, `RSA_4096`, `EC_256`, `EC_384`, `EC_512`. Specifies the key type and size for the key.
+
+*hashAlgorithm* : Required field that specifies Hash algorithm corresponding to the signature algorithm determined by `keySpec` for the key.
+
+*signatureEnvelopeType* - Required field that specifies signature envelope type associated with the payload. This is used by the plugin to appropriately decode the payload in case a binary payload is passed.
 
 *payload* : Required field that contains payload to be signed. For JWS envelope type, the payload to sign is sent as is, without any additional encoding.
 
