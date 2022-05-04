@@ -2,6 +2,7 @@
 
 JWS JSON Serialization ([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)) data is stored as either claims or headers (protected and unprotected).
 Notary v2 supports JWS JSON Serialization as a signature envelope with some additional constraints on the structure of claims and headers.
+It is conceptually similar to [JWT](https://datatracker.ietf.org/doc/html/rfc7519) in that it reuses its claim registry but differs from it in that it uses the JWS JSON Serialization instead of the JWS Compact Serialization to allow including unprotected header parameters.
 
 A JWS based signature will be persisted with a blob `mediaType` of `"application/jose+json"`
 
@@ -21,7 +22,7 @@ A JWS based signature will be persisted with a blob `mediaType` of `"application
         "size": 16724
     },
     "annotations": {
-        "io.cncf.notary.x509certs.fingerprint.sha256": "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\" \"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+        "io.cncf.notary.x509.fingerprint.sha256": "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\" \"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
     }
 }
 ```
@@ -30,7 +31,7 @@ Unless explicitly specified as OPTIONAL, all fields are required.
 Also, there shouldn’t be any additional fields other than ones specified in JWSPayload, ProtectedHeader, and UnprotectedHeader.
 
 **JWSPayload a.k.a. Claims**:
-Notary v2 is using one private claim (`notary`) and two public claims (`iat` and `exp`).
+Notary v2 is using one private claim (`subject`) and two public claims (`iat` and `exp`).
 An example of the claim is described below
 
 ```jsonc
@@ -52,20 +53,19 @@ An example of the claim is described below
 
 The payload contains the subject manifest and other attributes that have to be integrity protected.
 
-- **`subject`**(*descriptor*): A REQUIRED top-level node consisting of the manifest that needs to be integrity protected.
-  Please refer [Payload](#payload) section for more details.
-- **`iat`**(*number*): The REQUIRED property Issued-at(`iat`) identifies the time at which the signature was issued.
-- **`exp`**(*number*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid.
+- **`subject`**(*descriptor*): A REQUIRED top-level property consisting of the manifest that needs to be integrity protected.
+  Please refer to the [Payload](#payload) section for more details.
+- **`iat`**(*number*): The REQUIRED property Issued-at(`iat`) identifies the time at which the signature was issued. See RFC 7519 for details.
+- **`exp`**(*number*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid. See RFC 7519 for details.
 
-To leverage JWS claims validation functionality already provided by libraries, we have defined `iat`, `exp` as top-level nodes.
+To leverage JWS claims validation functionality already provided by libraries, we have defined `iat`, `exp` as top-level properties.
 
 **ProtectedHeaders**: Notary v2 supports only three protected headers: `alg`, `cty`, and `crit`.
 
 ```jsonc
 {
-    "alg": "RS256",
-    "cty": "application/vnd.cncf.notary.v2.jws.v1",
-    "crit":["cty"]
+    "alg": "PS256",
+    "cty": "application/vnd.cncf.notary.v2.jws.v1"
 }
 ```
 
@@ -74,8 +74,6 @@ To leverage JWS claims validation functionality already provided by libraries, w
 - **`cty`**(*string*): The REQUIRED property content-type(cty) is used to declare the media type of the secured content(the payload).
   This will be used to version different variations of JWS signature.
   The supported value is `application/vnd.cncf.notary.v2.jws.v1`.
-- **`crit`**(*array of strings*): This REQUIRED property lists the headers that implementation MUST understand and process.
-  The value MUST be `["cty"]`.
 
 **UnprotectedHeaders**: Notary v2 supports only two unprotected headers: timestamp and x5c.
 
@@ -85,11 +83,6 @@ To leverage JWS claims validation functionality already provided by libraries, w
     "x5c": ["<Base64(DER(leafCert))>", "<Base64(DER(intermediateCACert))>", "<Base64(DER(rootCert))>"]
 }
 ```
-
-- **`timestamp`** (*string*): This OPTIONAL property is used to store time stamp token.
-  Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
-- **`x5c`** (*array of strings*): This REQUIRED property contains the list of X.509 certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the JWS.
-  The certificate containing the public key corresponding to the key used to digitally sign the JWS MUST be the first certificate.
 
 - **`timestamp`** (*string*): This OPTIONAL property is used to store time stamp token.
   Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
