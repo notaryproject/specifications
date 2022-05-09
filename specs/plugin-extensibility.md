@@ -177,15 +177,15 @@ This interface targets plugins that integrate with providers of basic cryptograp
 4. Determine if the registered key uses a plugin
 5. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR`
-        1. Execute the plugin with `describe-key` command, set `request.keyName`, `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
+        1. Execute the plugin with `describe-key` command, set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
         2. Generate the payload to be signed for [JWS](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#supported-signature-envelopes) envelope format.
            1. Create the JWS protected headers collection and set `alg` to value corresponding to `describe-key.response.keySpec` as per [signature algorithm selection](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection).
            2. Create the `JWSPayload` with appropriate private (`subject`) and public (`iat,exp`) claims.
            3. The payload to sign is then created as - `ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
         3. Execute the plugin with `generate-signature` command.
-           1. Set `request.keyName`, `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
+           1. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
            2. Set `request.payload` as the payload to sign.
-           3. Set `keySpec` to value returned by `describe-key` command in `response.keySpec` and `hashAlgorithm` to hash algorithm corresponding to the key spec, as per [signature algorithm selection](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection). The algorithm specified in `hashAlgorithm` MUST be used by the plugin to hash the payload (`request.payload`) as part of signature generation.
+           3. Set `keySpec` to value returned by `describe-key` command in `response.keySpec`, and `hashAlgorithm` to hash algorithm corresponding to the key spec, as per [signature algorithm selection](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection). The algorithm specified in `hashAlgorithm` MUST be used by the plugin to hash the payload (`request.payload`) as part of signature generation.
         4. Validate the generated signature, return an error if any of the checks fails.
            1. Check if `response.signingAlgorithm` is one of [supported signing algorithms](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection).
            2. Check that the plugin did not modify `request.payload` before generating the signature, and the signature is valid for the given payload. Verify the hash of the `request.payload` against `response.signature`, using the public key of signing certificate (leaf certificate) in `response.certificateChain` along with the `response.signingAlgorithm`. This step does not include certificate chain validation (certificate chain leads to a trusted root configured in Notation's Trust Store), or revocation check.
@@ -205,9 +205,8 @@ This command is used to get metadata for a given key.
 {
   "contractVersion" : "<major-version.minor-version>",
 
-  // Key name, key id for the key associated with the plugin
+  // Key id associated with signing key (keyName)
   // in config.json /signingKeys/keys
-  "keyName": "<key name>",
   "keyId": "<key id>",
 
   // Optional plugin configuration, map of string-string
@@ -215,7 +214,7 @@ This command is used to get metadata for a given key.
 }
 ```
 
-*keyName* and *keyId* : Required fields that contain the friendly signing key name (`keyName`) and key identifier (`keyId`) as specified in `config.json`.
+*keyId* : Required field that has the key identifier (`keyId`) associated with signing key `keyName` in `config.json`.
 
 *pluginConfig* : Optional field for plugin configuration. For details, see [Plugin Configuration](#plugin-configuration) section.
 
@@ -248,11 +247,9 @@ This command is used to generate the raw signature for a given payload.
 {
   "contractVersion" : "<major-version.minor-version>",
 
-  // Key name, key id for the key associated with the plugin
+  // Key id associated with signing key (keyName)
   // in config.json /signingKeys/keys
-  "keyName": "<key name>",
   "keyId": "<key id>",
-
 
   // Optional plugin configuration, map of string-string
   "pluginConfig" : { },
@@ -273,11 +270,11 @@ This command is used to generate the raw signature for a given payload.
 }
 ```
 
-*keyName* and *keyId* : Required fields that contain the friendly key name (`keyName`), key identifier (`keyId`) as specified in `config.json`.
+*keyId* : Required field that has the key identifier (`keyId`) associated with signing key `keyName` in `config.json`.
 
 *pluginConfig* : Optional field for plugin configuration. For details, see [Plugin Configuration section](#plugin-configuration).
 
-*keySpec* : Required field that as one of following [supported key types](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection) - `RSA_2048`, `RSA_3072`, `RSA_4096`, `EC_256`, `EC_384`, `EC_512`. Specifies the key type and size for the key.
+*keySpec* : Required field that has one of following [supported key types](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection) - `RSA_2048`, `RSA_3072`, `RSA_4096`, `EC_256`, `EC_384`, `EC_512`. Specifies the key type and size for the key.
 
 *hashAlgorithm* : Required field that specifies Hash algorithm corresponding to the signature algorithm determined by `keySpec` for the key.
 
@@ -324,7 +321,7 @@ This interface targets plugins that in addition to signature generation want to 
 1. Determine if the registered key uses a plugin
 1. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_ENVELOPE_GENERATOR`
-        1. Execute the plugin with `generate-envelope` command. Set `request.keyName`, `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded descriptor, `request.payloadType` to `application/vnd.oci.descriptor.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (default to `application/vnd.cncf.notary.v2.jws.v1`).
+        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded descriptor, `request.payloadType` to `application/vnd.oci.descriptor.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (default to `application/vnd.cncf.notary.v2.jws.v1`).
         1. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match `request.signatureEnvelopeType`.
         1. Validate the generated signature, return an error if of the checks fails.
            1. Check if `response.signatureEnvelopeType` is a supported envelope type and `response.signatureEnvelope`'s format matches `response.signatureEnvelopeType`. 
@@ -347,9 +344,8 @@ All request attributes are required.
 {
   "contractVersion" : "<major-version.minor-version>",
   
-  // Key name, key id for the key associated with the plugin
+  // Key id associated with signing key (keyName)
   // in config.json /signingKeys/keys
-  "keyName": "<key name>",
   "keyId": "<key id>",
 
   // Optional plugin configuration, map of string-string
@@ -365,7 +361,7 @@ All request attributes are required.
 }
 ```
 
-*keyName* and *keyId* : Required fields that contain the friendly key name (`keyName`), key identifier (`keyId`) as specified in `config.json`.
+*keyId* : Required field that has the key identifier (`keyId`) associated with signing key `keyName` in `config.json`.
 
 *pluginConfig* : Optional field for plugin configuration. For details, see [Plugin Configuration section](#plugin-configuration).
 
