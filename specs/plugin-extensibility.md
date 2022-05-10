@@ -73,7 +73,8 @@ List all valid plugins.
           "plugin": "com.example.nv2plugin",
           // Optional configuration as required by the plugin
           "pluginConfig" : {   
-            "key1" : "value1" 
+            "key1" : "value1",
+            "key 2" : "value 2"
           }
         }
     ]  
@@ -88,10 +89,13 @@ Plugins may require additional configuration to work correctly, that could be se
 * To use this feature, plugin authors MUST define and document the set of plugin configuration keys-values, which is set by users when they associate a plugin with signing key.
 * Plugin authors SHOULD NOT use plugin configuration to store sensitive configuration in plaintext, such as authentication keys used by the plugin etc.
 
-In the previous example, plugin config can be set using command line arguments as part of registring a key, or while signing using the key. Plugin config values provided by `notation sign` override values already set in `config.json` E.g.
+For the previous example, plugin config can be set using command line arguments as part of registering a key with the `notation key add` command. E.g.
 
-* `notation key add --name "mysigningkey" --id "keyid" --plugin "com.example.nv2plugin" --pluginConfig.key1 "value1"`
-* `notation sign $IMAGE --key "mysigningkey" --pluginConfig.key1 "value2"`
+* `notation key add --name "mysigningkey" --id "keyid" --plugin "com.example.nv2plugin" --pluginConfig key1=value1,"key 2"="value 2"`
+
+Plugin config can be also set/overriden during signing with the `notation sign` command. Following example overrides value for `key 2` already set in `config.json` by previous command.
+
+* `notation sign $IMAGE --key "mysigningkey" --pluginConfig "key 2"=newValue2`
 
 ### Plugin contract
 
