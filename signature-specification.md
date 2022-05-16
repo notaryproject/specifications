@@ -16,7 +16,8 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
 
 - **`artifactType`** (*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.v2.signature`.
 - **`blobs`** (*array of objects*): This REQUIRED property contains collection of only one [artifact descriptor][artifact-descriptor] referencing signature envelope.
-  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. The currently supported values is `application/jose+json`.
+  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
+    - `application/jose+json`
 - **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
 - **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest.
   It is being used to store information about the signature.
@@ -56,30 +57,35 @@ Notary v2 supports the following envelope formats:
 
 ### Payload
 
-Notary v2 requires Payload to be the content **descriptor** of the subject manifest that is being signed.
+Notary v2 payload is a JSON document with media type `application/vnd.cncf.notary.payload.v1+json` and has following properties.
 
-1. Descriptor MUST contain `mediaType`, `digest`, `size` fields.
-2. Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. Notary v2 uses annotations for storing both Notary specific and user defined signed attributes. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary v2 and MUST NOT be used outside this specification.
-3. Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
+- `subject` : Required property whose value is the **OCI descriptor** of the subject manifest that is being signed, with media type of `application/vnd.cncf.oras.artifact.descriptor.v1+json`.
+  - Descriptor MUST contain `mediaType`, `digest`, `size` fields.
+  - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. Notary v2 uses annotations for storing both Notary specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary v2 and MUST NOT be used outside this specification.
+  - Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
 
-**Examples**: The media type of the content descriptor is `application/vnd.cncf.oras.artifact.descriptor.v1+json`.
+#### Examples
 
 ```jsonc
 {
-   "mediaType": "application/vnd.oci.image.manifest.v1+json",
-   "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-   "size": 16724,
-   "annotations": {
-      "io.wabbit-networks.buildId": "123"  // user defined metadata
-   }
+  "subject": {
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+    "size": 16724,
+    "annotations": {
+        "io.wabbit-networks.buildId": "123"  // user defined metadata
+    }
+  }
 }
 ```
 
 ```jsonc
 {
-   "mediaType": "sbom/example",
-   "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
-   "size": 32654
+  "subject": {
+    "mediaType": "sbom/example",
+    "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+    "size": 32654
+  }
 }
 ```
 
@@ -97,8 +103,8 @@ Notary v2 requires the signature envelope to support the following signed attrib
 #### Standard attributes
 
 - **Signing time**: The time at which the signature was generated. Though this claim is signed by the signing key, it’s considered unauthenticated as a signer can modify local time and manipulate this claim. More details [here](#signing-time).
-- **Expiry** (critical): An OPTIONAL claim that indicates that the artifact referenced in the payload is within “best by use” date, as defined by the signer. More details [here](#expiry).
-- **Content type** (critical): The content type of the payload. Notary currently supports OCI descriptor of a subject manifest as the payload, supported value is `application/vnd.cncf.oras.artifact.descriptor.v1+json`, other payload types MAY be supported in future. This is a REQUIRED claim.
+- **Expiry** (critical): An OPTIONAL claim that provides a “best by use” time for the artifact, as defined by the signer. More details [here](#expiry).
+- **Content type** (critical): A REQUIRED clain that indicates the content type of the payload. Notary currently a payload that contains the OCI descriptor of a subject manifest as the payload, the supported value is `application/vnd.cncf.notary.payload.v1+json`, other payload types MAY be supported in future.
 - **Client identifier**: The version of a client (e.g. Notation) that produced the signature. This is an OPTIONAL claim. It uses the following format `{client}/{version}` e.g. “notation/1.0.0”. This claim in intended to be used for diagnostic and troubleshooting purposes.
 
 ### Unsigned Attributes
@@ -107,6 +113,19 @@ These attributes are considered unsigned with respect to the signing key that ge
 
 - **Certificate Chain**: This property contains the list of X.509 certificate or certificate chain. This is a REQUIRED attribute. The certificate chain is authenticated using against a trust store as part of signature validation.
 - **TSA counter signature** : The time stamp token generated for a given signature. Only [RFC3161](ietf-rfc3161) compliant TimeStampToken are supported. This is an OPTIONAL attribute.
+
+## Signature Algorithm Requirements
+
+The implementation MUST support the following set of algorithms:
+
+1. RSASSA-PSS with SHA-256
+1. RSASSA-PSS with SHA-384
+1. RSASSA-PSS with SHA-512
+1. ECDSA on secp256r1 with SHA-256
+1. ECDSA on secp384r1 with SHA-384
+1. ECDSA on secp521r1 with SHA-512
+
+For ECDSA equivalent NIST curves and ANSI curves can be found at [RFC4492 Appendix A](https://tools.ietf.org/search/rfc4492#appendix-A).
 
 ### Algorithm Selection
 
@@ -151,10 +170,10 @@ The **timestamping certificate** MUST meet the following minimum requirements:
 **A:** The `mediaType` of artifact manifest's blob identifies the signature envelope type.  
 The client implementation can use the aforementioned `mediaType` to parse the signature envelope.
 
-**Q: How will Notary v2 handle non-backward compatible changes to signature format?**
+**Q: How will Notary v2 support multiple payload formats?**
 
-**A:** The Signature envelope MUST have a versioning mechanism to support non-backward compatible changes.
-[JWS JSON serialization](./signature-envelope-jwt.md) signature envelope versioning is achieved by the `cty` field in ProtectedHeaders.
+**A:** The Signature envelope MUST have a versioning mechanism to support multiple payload formats.
+For [JWS JSON serialization](./signature-envelope-jwt.md) signature envelope, versioning is achieved by the `cty` field in ProtectedHeaders.
 
 ## Appendix
 
@@ -164,7 +183,7 @@ The signing time denotes the time at which the signature was generated. A X509 c
 
 ### Expiry
 
-This is an optional feature that guarantees that artifact is within “best by use” date indicated in the signature. Notary v2 allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
+This is an optional feature that provides a “best by use” time for the artifact, as defined by the signer. Notary v2 allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
 [annotation-rules]: https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules
 [artifact-descriptor]: https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md
