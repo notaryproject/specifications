@@ -14,7 +14,31 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
 
 ![Signature storage inside registry](media/signature-specification.svg)
 
-- **`artifactType`** (*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.v2.signature`.
+Signature Manifest Example
+
+```jsonc
+{
+    "artifactType": "application/vnd.cncf.notary.signature",
+    "blobs": [
+        {
+            "mediaType": "application/jose+json",
+            "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+            "size": 32654
+        }
+    ],
+    "subject": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+        "size": 16724
+    },
+    "annotations": {
+        "io.cncf.notary.x509chain.thumbprint#S256": 
+        "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\",\"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+    }
+}
+```
+
+- **`artifactType`** (*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.signature`.
 - **`blobs`** (*array of objects*): This REQUIRED property contains collection of only one [artifact descriptor][artifact-descriptor] referencing signature envelope.
   - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
     - `application/jose+json`
@@ -22,8 +46,8 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
 - **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest.
   It is being used to store information about the signature.
   Keys using the `io.cncf.notary` namespace are reserved for use in Notary and MUST NOT be used by other specifications.
-  - **`io.cncf.notary.x509.fingerprint.sha256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain used for signature generation.
-    The list of fingerprints is present as a JSON array string.
+  - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain (including root) used for signature generation. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
+    The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope.
 
 ### Signature Discovery
 
@@ -35,7 +59,7 @@ Each Notary signature artifact refers to a signature envelope blob.
 ### Signature Filtering
 
 An OCI artifact can have multiple signatures, Notary v2 uses annotations of the signature artifact to filter relevant signatures based on the applicable trust policy.
-The Notary v2 signature artifact's `io.cncf.notary.x509.fingerprint.sha256` annotations key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
+The Notary v2 signature artifact's `io.cncf.notary.x509chain.thumbprint#S256` annotations key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
 
 ## Signature Envelope
 
@@ -44,7 +68,7 @@ A signature envelope consists of the following components:
 
 - Payload/Message `m`: The data that is integrity protected - e.g. descriptor of the artifact being signed.
 - Signed attributes `v`: The signature metadata that is integrity protected - e.g. signature expiration time, creation time, etc.
-- Unsigned attributes `u`: Unsigned attributes `u`: These attributes are not signed by the signing key that generates the signature. We anticipate unsigned attributes contain content that may be signed by an different party e.g. Certificate chain signed by a CA, or TSA countersignature signed by the TSA.
+- Unsigned attributes `u`: These attributes are not signed by the signing key that generates the signature. We anticipate unsigned attributes contain content that may be signed by an different party e.g. Certificate chain signed by a CA, or TSA countersignature signed by the TSA.
 - Cryptographic signatures `s`: The digital signatures computed on payload and signed attributes.
 
 A signature envelope is `e = {m, v, u, s}` where `s` is signature.
@@ -59,7 +83,7 @@ Notary v2 supports the following envelope formats:
 
 Notary v2 payload is a JSON document with media type `application/vnd.cncf.notary.payload.v1+json` and has following properties.
 
-- `subject` : Required property whose value is the **OCI descriptor** of the subject manifest that is being signed, with media type of `application/vnd.cncf.oras.artifact.descriptor.v1+json`.
+- `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed. Both [OCI descriptor][oci-descriptor] and [ORAS artifact descriptors][artifact-descriptor] are supported.
   - Descriptor MUST contain `mediaType`, `digest`, `size` fields.
   - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. Notary v2 uses annotations for storing both Notary specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary v2 and MUST NOT be used outside this specification.
   - Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
@@ -68,7 +92,7 @@ Notary v2 payload is a JSON document with media type `application/vnd.cncf.notar
 
 ```jsonc
 {
-  "subject": {
+  "targetArtifact": {
     "mediaType": "application/vnd.oci.image.manifest.v1+json",
     "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
     "size": 16724,
@@ -81,7 +105,7 @@ Notary v2 payload is a JSON document with media type `application/vnd.cncf.notar
 
 ```jsonc
 {
-  "subject": {
+  "targetArtifact": {
     "mediaType": "sbom/example",
     "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
     "size": 32654
@@ -93,26 +117,26 @@ Notary v2 payload is a JSON document with media type `application/vnd.cncf.notar
 
 Signed attributes/claims are additional metadata apart from the payload, which are required to support the signature verification process.
 
-- Any claims MUST NOT be stored/appended in the payload itself, as the payload is only parsed and processed once the signature has been verified (signature is valid, and from a trusted key) and trust is established.
+- Any metadata that is used to verify the payload itself, and establish trust MUST be stored separately from the payload itself, as signed attributes or claims. Such metadata MUST NOT be stored/appended in the payload, as the payload is only parsed and processed once the signature has been verified and trust is established.
 - Specific claims can be either required or optional.
-- Claims that if present, MUST be processed by a verifier MUST be marked as critical.
+- Claims that MUST be processed by a verifier MUST be marked as critical. Some claims may be optional and critical, i.e. they MUST be processed by a verifier only if they are present.
 - Claims which are informational and do not influence signature verification MUST NOT be marked critical.
 
 Notary v2 requires the signature envelope to support the following signed attributes/claims.
 
 #### Standard attributes
 
-- **Signing time**: The time at which the signature was generated. Though this claim is signed by the signing key, it’s considered unauthenticated as a signer can modify local time and manipulate this claim. More details [here](#signing-time).
+- **Signing time**: A REQUIRED claim that indicates the time at which the signature was generated. Though this claim is signed by the signing key, it’s considered unauthenticated as a signer can modify local time and manipulate this claim. More details [here](#signing-time).
 - **Expiry** (critical): An OPTIONAL claim that provides a “best by use” time for the artifact, as defined by the signer. More details [here](#expiry).
-- **Content type** (critical): A REQUIRED clain that indicates the content type of the payload. Notary currently a payload that contains the OCI descriptor of a subject manifest as the payload, the supported value is `application/vnd.cncf.notary.payload.v1+json`, other payload types MAY be supported in future.
-- **Client identifier**: The version of a client (e.g. Notation) that produced the signature. This is an OPTIONAL claim. It uses the following format `{client}/{version}` e.g. “notation/1.0.0”. This claim in intended to be used for diagnostic and troubleshooting purposes.
+- **Content type** (critical): A REQUIRED claim that indicates the content type of the [payload](#payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`. Other payload types MAY be supported in future.
 
 ### Unsigned Attributes
 
 These attributes are considered unsigned with respect to the signing key that generates the signature. These attributes are typically signed by a third party (e.g. CA, TSA).
 
-- **Certificate Chain**: This property contains the list of X.509 certificate or certificate chain. This is a REQUIRED attribute. The certificate chain is authenticated using against a trust store as part of signature validation.
-- **TSA counter signature** : The time stamp token generated for a given signature. Only [RFC3161](ietf-rfc3161) compliant TimeStampToken are supported. This is an OPTIONAL attribute.
+- **Certificate Chain**: This is a REQUIRED attribute that contains the ordered list of X.509 public certificates associated with the signing key used to generate the signature. The ordered list starts with the signing certificates, any intermediate certificates and ends with the root certificate. The certificate chain MUST be authenticated against a trust store as part of signature validation. Specific requirements for the certificates in the chain are provided [here](#certificate-requirements).
+- **TSA counter signature** : An OPTIONAL counter signature which provides [trusted timestamp](#signing-time). Only [RFC3161](ietf-rfc3161) compliant TimeStampToken are currently supported.
+- **Signing Agent**: An OPTIONAL claim that provides the identifier of the software (e.g. Notation) that produced the signature on behalf of the user. It is an opaque string set by the software that produces the signature. It's intended primarily for diagnostic and troubleshooting purposes, this attribute is unsigned, the verifier MUST NOT validate formatting, or fail validation based on the content of this claim. The suggested format is one or more tokens of the form `{id}/{version}` containing identifier and version of the software, seperated by spaces. E.g. “notation/1.0.0”, “notation/1.0.0 com.example.nv2plugin/0.8”.
 
 ## Signature Algorithm Requirements
 
@@ -138,7 +162,7 @@ The signing certificate's public key algorithm and size MUST be used to determin
 | RSA                  | 4096            | RSASSA-PSS with SHA-512         |
 | EC                   | 256             | ECDSA on secp256r1 with SHA-256 |
 | EC                   | 384             | ECDSA on secp384r1 with SHA-384 |
-| EC                   | 512             | ECDSA on secp521r1 with SHA-512 |
+| EC                   | 521             | ECDSA on secp521r1 with SHA-512 |
 
 ### Certificate Requirements
 
@@ -186,6 +210,7 @@ The signing time denotes the time at which the signature was generated. A X509 c
 This is an optional feature that provides a “best by use” time for the artifact, as defined by the signer. Notary v2 allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
 [annotation-rules]: https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules
+[oci-descriptor]: https://github.com/opencontainers/image-spec/blob/main/descriptor.md
 [artifact-descriptor]: https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
 [oras-artifact-manifest]: https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
