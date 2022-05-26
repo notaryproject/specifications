@@ -47,8 +47,7 @@ Unless explicitly specified as OPTIONAL, all fields are required.
 
 Note: The above example is represented using the [extended CBOR diagnostic notation](https://datatracker.ietf.org/doc/html/rfc8152#appendix-C).
 
-- **`crit`** (*array of integers or strings*): This REQUIRED property (label: `2`) lists the headers that implementation MUST understand and process.
-  The array MUST contain `3` (`cty`), and `signingtime`. If `expiry` is presented, the array MUST also contain `expiry`.
+- **`crit`** (*array of integers or strings*): This OPTIONAL property (label: `2`) lists the headers that implementation MUST understand and process.
 - **`cty`** (*string*): The REQUIRED property content-type (label: `3`) is used to declare the media type of the secured content (the payload).
 - **`signingtime`** (*datetime*): The REQUIRED property identifies the time at which the signature was generated.
 - **`expiry`** (*datetime*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid.
