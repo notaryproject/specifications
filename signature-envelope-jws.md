@@ -62,16 +62,16 @@ Example
 {
     "alg": "PS384",
     "cty": "application/vnd.cncf.notary.payload.v1+json",
-    "io.cncf.notary.signingTime": "2022-04-06 07:01:20Z",
-    "io.cncf.notary.expiry": "2022-10-06 07:01:20Z",
+    "io.cncf.notary.signingTime": "2022-04-06T07:01:20Z",
+    "io.cncf.notary.expiry": "2022-10-06T07:01:20Z",
     "crit":["io.cncf.notary.expiry"]
 }
 ```
 
 - **[`alg`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.1)**(*string*): This REQUIRED header defines which signing algorithm was used to generate the signature. JWS specification defines `alg` as a required header, that MUST be present and MUST be understood and processed by verifier. The signature algorithm of the signing key (first certificate in `x5c`) is the source of truth, and during signing the value of `alg` MUST be set corresponding to signature algorithm of the signing key using [this mapping](#supported-alg-header-values) that lists the Notary v2 allowed subset of `alg` values supported by JWS. Similarly verifier of the signature MUST match `alg` with signature algorithm of the signing key to mitigate algorithm substitution attacks.
 - **[`cty`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.10)**(*string*): The REQUIRED header content-type is used to declare the media type of the secured content (the payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`.
-- **`io.cncf.notary.signingTime`**(*string*): This REQUIRED header specifies the time at which the signature was generated. This is an untrusted timestamp, and therefore not used in trust decisions. Its value is a RFC 3339 formatted date time, the optional fractional second ([time-secfrac](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)[[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
-- **`io.cncf.notary.expiry`**(*string*): This OPTIONAL header provides a “best by use” time for the artifact, as defined by the signer. Its value is a RFC 3339 formatted date time, the optional fractional second ([time-secfrac](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)[[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
+- **`io.cncf.notary.signingTime`**(*string*): This REQUIRED header specifies the time at which the signature was generated. This is an untrusted timestamp, and therefore not used in trust decisions. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)[[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
+- **`io.cncf.notary.expiry`**(*string*): This OPTIONAL header provides a “best by use” time for the artifact, as defined by the signer. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)[[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
 - **[`crit`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.11)**(*array of strings*): This OPTIONAL header lists the headers that implementation MUST understand and process. It MUST only contain headers apart from registered headers (e.g. `alg`, `cty`) in JWS specification, therefore this header is only present when the optional `io.cncf.notary.expiry` header is present in the protected headers collection.
   If present, the value MUST be `["io.cncf.notary.expiry"]`.
 
@@ -163,3 +163,4 @@ Notary v2 implementation MUST enforce the following constraints on signature gen
 **A:** Unlike JWT which always contains a JSON payload, Notary v2 envelope can support payloads other than JSON, like binary. Reusing the JWT payload structure and claims, limits the Notary v2 JWS envelope to only support JSON payload, which is undesirable. Also, reusing JWT claims requires following same claim semantics as defined in JWT specifications. The [`exp`](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4) claim requires that verifier MUST reject the signature if current time equals or is greater than `exp`, where as Notary v2 allows verification policy to define how expiry is handled.
 
 [jws-alg-values]: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
+[rfc3339]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
