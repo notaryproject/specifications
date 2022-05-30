@@ -70,8 +70,8 @@ Example
 
 - **[`alg`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.1)**(*string*): This REQUIRED header defines which signing algorithm was used to generate the signature. JWS specification defines `alg` as a required header, that MUST be present and MUST be understood and processed by verifier. The signature algorithm of the signing key (first certificate in `x5c`) is the source of truth, and during signing the value of `alg` MUST be set corresponding to signature algorithm of the signing key using [this mapping](#supported-alg-header-values) that lists the Notary v2 allowed subset of `alg` values supported by JWS. Similarly verifier of the signature MUST match `alg` with signature algorithm of the signing key to mitigate algorithm substitution attacks.
 - **[`cty`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.10)**(*string*): The REQUIRED header content-type is used to declare the media type of the secured content (the payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`.
-- **`io.cncf.notary.signingTime`**(*string*): This REQUIRED header specifies the time at which the signature was generated. This is an untrusted timestamp, and therefore not used in trust decisions. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)[[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
-- **`io.cncf.notary.expiry`**(*string*): This OPTIONAL header provides a “best by use” time for the artifact, as defined by the signer. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)[[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
+- **`io.cncf.notary.signingTime`**(*string*): This REQUIRED header specifies the time at which the signature was generated. This is an untrusted timestamp, and therefore not used in trust decisions. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
+- **`io.cncf.notary.expiry`**(*string*): This OPTIONAL header provides a “best by use” time for the artifact, as defined by the signer. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
 - **[`crit`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.11)**(*array of strings*): This OPTIONAL header lists the headers that implementation MUST understand and process. It MUST only contain headers apart from registered headers (e.g. `alg`, `cty`) in JWS specification, therefore this header is only present when the optional `io.cncf.notary.expiry` header is present in the protected headers collection.
   If present, the value MUST be `["io.cncf.notary.expiry"]`.
 
@@ -103,6 +103,8 @@ The process is described below:
 1. Compute the Base64Url value of JWSPayload, this is the value of `payload` property in the signature envelope.
 1. Build *JWS Signing Input* to be signed by concatenating the values generated in step 1 and step 2 using '.'
 `ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
+
+Base64Url encoding used by JWS (*Base64url Encoding* in [RFC 7515 section 2][jws-terminology]) is a URL safe Base64 encoding as defined in [RFC 4648][rfc4648], with all trailing '=' characters omitted and without the inclusion of any additional characters.
 
 ### Generate the signature
 
@@ -164,3 +166,5 @@ Notary v2 implementation MUST enforce the following constraints on signature gen
 
 [jws-alg-values]: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
 [rfc3339]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
+[rfc4648]: https://datatracker.ietf.org/doc/html/rfc4648#section-5
+[jws-terminology]: https://datatracker.ietf.org/doc/html/rfc7515#section-2
