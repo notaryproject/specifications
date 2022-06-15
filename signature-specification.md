@@ -166,26 +166,42 @@ The signing certificate's public key algorithm and size MUST be used to determin
 
 ### Certificate Requirements
 
-The **signing certificate** MUST meet the following minimum requirements:
+The codesigning and timestamping certificates MUST meet the following requirements. These requirements are validated both at signature generation time and signature verification time, and are applied to the certificate chain in the signature envelope. These validations are independent of certificate chain validation against a trust store.
 
-- The keyUsage extension MUST be present and MUST be marked critical.
-  The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
-- The extKeyUsage extension MUST be present and its value MUST be id-kp-codeSigning ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
-- If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
-- The certificate MUST abide by the following key length restrictions:
-- For RSA public key, the key length MUST be 2048 bits or higher.
-  - For ECDSA public key, the key length MUST be 256 bits or higher.
+#### Root and Intermediate CA Certificates
 
-The **timestamping certificate** MUST meet the following minimum requirements:
+The CA certificates MUST meet the following requirements
 
-- The keyUsage extension MUST be present and MUST be marked critical.
-  The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
-- The extKeyUsage extension MUST be present and MUST be marked critical.
-  The value of extension MUST be id-kp-timeStamping ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
-- If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
-- The certificate MUST abide by the following key length restrictions:
-  - For RSA public key, the key length MUST be 2048 bits or higher.
-  - For ECDSA public key, the key length MUST be 256 bits or higher.
+1. **[Basic Constraints:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)**
+The `basicConstraints` extension MUST be present and MUST be marked as critical. The `cA` field MUST be set `true`.
+The [`pathLenConstraint`](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9) field is OPTIONAL. If present, it MUST be verified against the depth of the chain below that CA certificate. (If value is null consider it as not present)
+1. **[Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)**
+The `keyUsage` extension MUST be present and MUST be marked critical. Bit positions for `keyCertSign` MUST be set.
+
+#### Leaf Certificates
+
+The leaf or end certificates MUST meet the following requirements
+
+1. **[Basic Constraints:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)**
+The `basicConstraints` extension is OPTIONAL and can OPTIONALLY be marked as critical. If present, the `cA` field MUST be set to `false`.
+1. **[Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)**
+The `keyUsage` extension MUST be present and MUST be marked critical. Bit positions for `digitalSignature` MUST be set. The Bit positions for `keyCertSign` and `cRLSign` MUST NOT be set.
+1. **[Extended Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)**  The `extendedKeyUsage` extension is OPTIONAL and can OPTIONALLY be marked as critical.
+    - **For codesigning certificate:** If present, the value MUST contain `id-kp-codeSigning` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `emailProtection` and `timeStamping`.
+    - **For timestamping certificate:** If present, the value MUST contain `id-kp-timeStamping` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `emailProtection` and `codeSigning`.
+1. **Key Length** The certificate MUST abide by the following key length restrictions:
+    - For RSA public key, the key length MUST be 2048 bits or higher.
+    - For ECDSA public key, the key length MUST be 256 bits or higher.
+
+#### Other requirements
+
+1. The certificates in the signature MUST be ordered list of X.509 certificate or certificate chain i.e. the certificate containing the public key used to digitally sign the payload must be the first certificate, followed by the intermediate and root certificates in the correct order. This also means
+    - The certificate MUST NOT chain to multiple parents/roots.
+    - The certificate chain MUST NOT contain a certificate that is unrelated to the certificate chain.
+1. A valid certificate chain MUST contain a minimum of two certificates - a leaf and a root certificate.
+1. Any certificate in the certificate chain MUST NOT use SHA1WithRSA and ECDSAWithSHA1 signatures.
+1. Only Basic Constraints, Key Usage, and Extended Key Usage extensions of X.509 certificates are honored. For rest of the extensions, Notary MUST fail open i.e. they MUST NOT be evaluated or honored.
+1. The certificates in the certificate chain MUST be valid at signing time. Notary MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
 
 ## FAQ
 
