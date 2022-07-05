@@ -71,7 +71,7 @@ Trust policy for a simple scenario where ACME Rockets uses only artifacts signed
             "name": "wabbit-networks-images",
             "registryScopes": [ "*" ],
             "signatureVerification" : "audit",
-            "trustStore": "ca:acme-rockets",
+            "trustStores": ["ca:acme-rockets"],
             "trustedIdentities": [ 
               "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
             ]
@@ -94,8 +94,8 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
               "registry.acme-rockets.io/software/net-monitor",
               "registry.acme-rockets.io/software/net-logger"
             ],
-            "signatureVerification" : "strict",
-            "trustStore": "ca:acme-rockets",
+            "verificationLevel" : "strict",
+            "trustStores": ["ca:acme-rockets"],
             "trustedIdentities": [ 
               "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
             ]
@@ -105,21 +105,20 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
             // Wabbit Networks repository
             "name": "unsigned-image",
             "registryScopes": [ "registry.wabbit-networks.io/software/unsigned/net-utils" ],
-            "signatureVerification": "skip",
+            "verificationLevel": "skip",
         },
         {
             // Policy for with custom verification policy
             "name": "use-expired-image",
             "registryScopes": [ "registry.acme-rockets.io/software/legacy/metrics" ],
-            "signatureVerification":
-            {
+            "verification": {
               "level" : "strict",
-              "override" :
-              {
-                "expiry" : "skip"
+              "override" : {
+                "expiry" : "log",
+                "revocationCheck" : "skip"
               }
             },
-            "trustStore": "ca:acme-rockets",
+            "trustStores": ["ca:acme-rockets"],
             "trustedIdentities": ["*"]
         },
         {
@@ -127,8 +126,8 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
             // from any registry location    
             "name": "global-policy-for-all-other-images",
             "registryScopes": [ "*" ],
-            "signatureVerification" : "audit",
-            "trustStore": "ca:acme-rockets",
+            "verificationLevel" : "audit",
+            "trustStores": ["ca:acme-rockets"],
             "trustedIdentities": [ 
               "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
             ]
@@ -146,37 +145,70 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
   - **`registryScopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
     The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
     For more information, see [registry scopes constraints](#registry-scopes-constraints) section.
-  - **`signatureVerification`**(*string*): This REQUIRED property dictates how signature verification is performed. Supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each value is present [here](#signatureverification-details). A custom level can be defined by referencing a supported level value, and overriding individual validation checks. NOTE: Custom signature verification level will not be supported in `notation` RC1.
-  - **`trustStore`**(*string*): This REQUIRED property specifies a named trust store. Uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca` and `tsa`. **NOTE**: When support for publicly trusted TSA is available, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
+  - **`verificationLevel`**(*string*): This OPTIONAL property dictates how signature verification is performed. Either `verificationLevel` or `verification` property MUST be specified. Supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each value is present [here](#signatureverification-details).
+  - **`verification`**(*object*): This OPTIONAL property dictates how signature verification is performed using a [custom verification level](#custom-verification-level). Either `verificationLevel` or `verification` property MUST be specified.
+  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca` and `tsa`.
+    - **NOTE**: When support for publicly trusted TSA is available, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
+
   - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
 
 #### Signature Verification details
 
-Notary v2 defines the following signature verification levels, to provide different levels of enforcement for different scenarios. Signature verification is a multi step process performs the following validation checks - integrity (artifact is unaltered, signature is not corrupted), authenticity (the signature is really from the identity that claims to have signed it), trusted timestamping (the signature was generated when the key/certificate were unexpired), expiry (an optional check if the artifact specifies an expiry time), revocation check (is the signing identity still trusted at the present time). Based on the signature verification level, each of these validation checks is `enforced` or `logged`. If a validation check is `enforced`, a failure is treated as critical failure, and causes the overall signature verification to fail.  If a validation check is `logged`, a failure causes details to be logged, and the next validation check is evaluated till all checks succeed or a critical failure is encountered. NOTE: Implementations may change the ordering of these checks based on efficiency, but all validation checks MUST to be performed till the first critical failure is encountered, or all checks succeed, for signature verification process to be considered complete.
+ Signature verification is a multi step process performs the following validations - integrity (artifact is unaltered, signature is not corrupted), authenticity (the signature is really from the identity that claims to have signed it), trusted timestamping (the signature was generated when the key/certificate were unexpired), expiry (an optional check if the artifact specifies an expiry time), revocation check (is the signing identity still trusted at the present time). Based on the signature verification level, each of these validations is *enforced* or *logged*. If a validation is *enforced*, a failure is treated as critical failure, and causes the overall signature verification to fail.  If a validation is *logged*, a failure causes details to be logged, and the next validation is evaluated till all validations succeed or a critical failure is encountered. NOTE: Implementations may change the ordering of these validations based on efficiency, but all validation MUST to be performed till the first critical failure is encountered, or all validation succeed, for the overall signature verification process to be considered complete.
 
-- `strict` : Signature verification is performed at `strict` level, which enforces all of the signature verification checks. If any of these checks fails, the signature verification fails. This is the recommended level in environments where a signature verification failure does not have high impact to other concerns (like application availability). It is recommended that build and development environments where images are initially injested, or at high assurance at deploy time  use `strict` level.
-- `permissive` : The `permissive` level enforces most signature verification checks, but will only logs failures for revocation and expiry. The `permissive` level is recommended to be used if signature verification is done at deploy time or runtime, and the user only needs integrity and authenticity guarantees.
-- `audit` : The `audit` level only enforces integrity check if a signature is present. Failure of all other checks are only logged.
+ Notary v2 defines the following signature verification levels to provide different levels of enforcement for different scenarios.
+
+- `strict` : Signature verification is performed at `strict` level, which enforces all validations. If any of these validations fail, the signature verification fails. This is the recommended level in environments where a signature verification failure does not have high impact to other concerns (like application availability). It is recommended that build and development environments where images are initially injested, or for high assurance at deploy time use `strict` level.
+- `permissive` : The `permissive` level enforces most validations, but will only logs failures for revocation and expiry. The `permissive` level is recommended to be used if signature verification is done at deploy time or runtime, and the user only needs integrity and authenticity guarantees.
+- `audit` : The `audit` level only enforces signature integrity if a signature is present. Failure of all other validations are only logged.
 - `skip` : The `skip` level does not fetch signatures for artifacts and does not perform any signature verification. This is useful when an application uses multiple artifacts, and has a mix of signed and unsigned artifacts. Note that `skip` cannot be used with a global scope (`*`), the value of `registryScopes` MUST contain fully qualified registry URL(s).
 
-The following table shows the resultant behavior `enforced` (verification fails), or `logged` for each of the checks, based on signature verification level.
+The following table shows the resultant validation action, either *enforced* (verification fails), or *logged* for each of the checks, based on signature verification level.
 
-|Signature Verification Level|Recommended Usage|Integrity|Authenticity|Trusted timestamp|Expiry|Revocation check|
+|Signature Verification Level|Recommended Usage|||Validations|||
 |----------------------------|-----------------|---------|------------|-----------------|------|----------------|
-|strict    |Use at development, build and deploy time|enforced|enforced|enforced|enforced|enforced|
-|permissive|Use at deploy time or runtime|enforced|enforced|logged|logged|logged|
-|audit     |Use when adopting signed images, without breaking existing workflows|enforced|logged|logged|logged|logged|
-|skip      |Use to exclude verification for unsigned images|skipped|skipped|skipped|skipped|skipped|
+|||*Integrity*|*Authenticity*|*Authentic timestamp*|*Expiry*|*Revocation check*|
+|*strict*    |Use at development, build and deploy time|enforced|enforced|enforced|enforced|enforced|
+|*permissive*|Use at deploy time or runtime|enforced|enforced|logged|logged|logged|
+|*audit*     |Use when adopting signed images, without breaking existing workflows|enforced|logged|logged|logged|logged|
+|*skip*      |Use to exclude verification for unsigned images|skipped|skipped|skipped|skipped|skipped|
 
 **Integrity** : Guarantees that the artifact wasn't altered after it was signed, or the signature isn't corrupted. All signature verification levels always enforce integrity.
 
 **Authenticity** : Guarantees that the artifact was signed by an identity trusted by the verifier. Its definition does not include revocation, which is when a trusted identity is subsequently untrusted because of a compromise.
 
-**Trusted timestamp** : Guarantees that the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature be treated as valid when a certificate is revoked, if the certificate was revoked after the signature was generated. In the absence of a trusted timestamp, signatures are considered invalid after certificate expires, and all signatures are considered revoked when a certificate is revoked. **NOTE**: `notation` RC1 will generate trusted timestamp using a TSA when the signature is generated, but will not support verification of TSA countersignatures.
+**Authentic timestamp** : Guarantees that the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature be treated as valid when a certificate is revoked, if the certificate was revoked after the signature was generated. In the absence of a authentic timestamp, signatures are considered invalid after certificate expires, and all signatures are considered revoked when a certificate is revoked.
+
+- **NOTE**: `notation` RC1 will generate trusted timestamp using a TSA when the signature is generated, but will not support verification of TSA countersignatures. Related issue - [#59](https://github.com/notaryproject/roadmap/issues/59).
 
 **Expiry** : This is an optional feature that guarantees that artifact is within “best by use” date indicated in the signature. Notary v2 allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
-**Revocation check** : Guarantees that the signing identity is still trusted at signature verification time. Events such as key or system compromise can make a signing identity that was previously trusted, to be subsequently untrusted. This guarantee typically requires a verification-time call to an external system, which may not be consistently reliable. The `permissive` verification level only logs failures of revocation check and does not enforce it. If a particular revocation mechanism is reliable, use `strict` verification level instead. **NOTE** `notation` RC1 will not support revocation check.
+**Revocation check** : Guarantees that the signing identity is still trusted at signature verification time. Events such as key or system compromise can make a signing identity that was previously trusted, to be subsequently untrusted. This guarantee typically requires a verification-time call to an external system, which may not be consistently reliable. The `permissive` verification level only logs failures of revocation check and does not enforce it. If a particular revocation mechanism is reliable, use `strict` verification level instead.
+
+- **NOTE** : `notation` RC1 will not have in built support for Revocation Check feature. When this feature is subsequently implemented, the `strict` verification level will **enforce** this validation, and will fail signatures which would previously pass signature verification when revocation checks were not supported. This is considered a **breaking change**, but is the appropriate behavior for a `strict` verification level.
+
+#### Custom Verification Level
+
+Signature verification levels provide preset behavior for each validation e.g. `strict` will always *enforce* authenticity validation. For fine grained control over validations that occur during signature verification, users can define a custom level which overrides the behavior of an existing verification level.
+
+- To use this feature, set the `verification` property instead of `verificationLevel` property in a trust policy.
+- The `level` property MUST be specified and the `override` map property is OPTIONAL.
+- Supported values for `level` are - `strict`, `permissive` and `audit`. A `skip` level cannot be customized.
+- Supported keys for `override` map and their supported values are as follows.
+  - `integrity` validation cannot be overriden, and therefore cannot be specified as a key.
+  - `authenticity` - Supported values are `enforce` and `log`.
+  - `authenticTimestamp` - Supported values are `enforce` and `log`.
+  - `expiry` - Supported values are `enforce` and `log`.
+  - `revocationCheck` - Supported values are `enforce`, `log`, and `skip`.
+
+```jsonc
+    "verification": {
+      "level" : "strict",
+      "override" : {
+        "expiry" : "log"
+      }
+    }
+```
 
 #### Registry Scopes Constraints
 
