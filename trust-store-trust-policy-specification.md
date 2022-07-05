@@ -94,7 +94,7 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
               "registry.acme-rockets.io/software/net-monitor",
               "registry.acme-rockets.io/software/net-logger"
             ],
-            "verificationLevel" : "strict",
+            "signatureVerification" : "strict",
             "trustStores": ["ca:acme-rockets"],
             "trustedIdentities": [ 
               "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
@@ -105,17 +105,17 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
             // Wabbit Networks repository
             "name": "unsigned-image",
             "registryScopes": [ "registry.wabbit-networks.io/software/unsigned/net-utils" ],
-            "verificationLevel": "skip",
+            "signatureVerification": "skip",
         },
         {
             // Policy for with custom verification policy
             "name": "use-expired-image",
             "registryScopes": [ "registry.acme-rockets.io/software/legacy/metrics" ],
-            "verification": {
+            "signatureVerification": {
               "level" : "strict",
               "override" : {
                 "expiry" : "log",
-                "revocationCheck" : "skip"
+                "revocation" : "skip"
               }
             },
             "trustStores": ["ca:acme-rockets"],
@@ -126,7 +126,7 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
             // from any registry location    
             "name": "global-policy-for-all-other-images",
             "registryScopes": [ "*" ],
-            "verificationLevel" : "audit",
+            "signatureVerification" : "audit",
             "trustStores": ["ca:acme-rockets"],
             "trustedIdentities": [ 
               "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
@@ -145,8 +145,9 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
   - **`registryScopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
     The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
     For more information, see [registry scopes constraints](#registry-scopes-constraints) section.
-  - **`verificationLevel`**(*string*): This OPTIONAL property dictates how signature verification is performed. Either `verificationLevel` or `verification` property MUST be specified. Supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each value is present [here](#signatureverification-details).
-  - **`verification`**(*object*): This OPTIONAL property dictates how signature verification is performed using a [custom verification level](#custom-verification-level). Either `verificationLevel` or `verification` property MUST be specified.
+  - **`signatureVerification`**(*string* or *object*): This REQUIRED property dictates how signature verification is performed. This is a multi-typed attribute, whose value can be one of the following
+    - A *string* that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each level is present [here](#signatureverification-details).
+    - An *object* that specifies a [custom verification level](#custom-verification-level), this allows the user to override a Notary v2 defined verification level.
   - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca` and `tsa`.
     - **NOTE**: When support for publicly trusted TSA is available, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
 
@@ -189,17 +190,16 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 #### Custom Verification Level
 
-Signature verification levels provide preset behavior for each validation e.g. `strict` will always *enforce* authenticity validation. For fine grained control over validations that occur during signature verification, users can define a custom level which overrides the behavior of an existing verification level.
+Signature verification levels provide Notary v2 defined behavior for each validation e.g. `strict` will always *enforce* authenticity validation. For fine grained control over validations that occur during signature verification, users can define a custom level which overrides the behavior of an existing verification level.
 
-- To use this feature, set the `verification` property instead of `verificationLevel` property in a trust policy.
-- The `level` property MUST be specified and the `override` map property is OPTIONAL.
+- To use this feature, the `level` property MUST be specified along with an OPTIONAL `override` map.
 - Supported values for `level` are - `strict`, `permissive` and `audit`. A `skip` level cannot be customized.
 - Supported keys for `override` map and their supported values are as follows.
   - `integrity` validation cannot be overriden, and therefore cannot be specified as a key.
   - `authenticity` - Supported values are `enforce` and `log`.
   - `authenticTimestamp` - Supported values are `enforce` and `log`.
   - `expiry` - Supported values are `enforce` and `log`.
-  - `revocationCheck` - Supported values are `enforce`, `log`, and `skip`.
+  - `revocation` - Supported values are `enforce`, `log`, and `skip`.
 
 ```jsonc
     "verification": {
