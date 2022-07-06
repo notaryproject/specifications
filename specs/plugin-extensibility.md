@@ -425,31 +425,31 @@ All response attributes are required.
 
 ### Signature Verifier
 
-Verification workflow using plugin
+#### Verification workflow using plugin
 
-1. If signature envelope contains Verification Plugin attribute, check if the plugin with the given name exists, else fail signature verification.
-    1. For the resolved plugin, call the get-plugin-metadata plugin command to get plugin version and capabilities.
-    2. If signature envelope contains Verification plugin minimum version attribute.
-        1. Validate that  Verification plugin minimum version and plugin version are SemVer format
-        2. Validate that plugin version is greater than or equal to Verification plugin minimum version
+1. If signature envelope contains *Verification Plugin* attribute, check if the plugin with the given name exists, else fail signature verification.
+    1. For the resolved plugin, call the `get-plugin-metadata` plugin command to get plugin version and capabilities.
+    2. If signature envelope contains *Verification plugin minimum version* attribute.
+        1. Validate that *Verification plugin minimum version* and plugin version are in SemVer format
+        2. Validate that plugin version is greater than or equal to *Verification plugin minimum version*
         3. Fail signature verification if these validations fail
-    3. Validate if plugin capabilities contains any SIGNATURE_VERIFIER capabilities
-        1. Fail signature verification if a matching plugin with SIGNATURE_VERIFIER capability cannot be found. If signature envelope contains the Verification Plugin Name attribute, include it as a hint in error response.
+    3. Validate if plugin capabilities contains any `SIGNATURE_VERIFIER` capabilities
+        1. Fail signature verification if a matching plugin with `SIGNATURE_VERIFIER` capability cannot be found. If signature envelope contains the *Verification Plugin Name* attribute, include it as a hint in error response.
 2. Complete steps *Identify applicable trust policy* and *Proceed based on signature verification level* from [signature verification workflow](../trust-store-trust-policy-specification.md#steps).
 3. Complete steps *Validate Integrity, Validate Expiry* and *Validate Trust Store* from [signature verification workflow](../trust-store-trust-policy-specification.md#steps).
-4. Based on the signature verification level, each verification check may be enforced, logged or skipped.
-5. Populate  verify-signature request. NOTE: The processing order of remaining known attributes does not matter as long as they are processed before the end of signature verification workflow.
+4. Based on the signature verification level, each validation may be enforced, logged or skipped.
+5. Populate `verify-signature` request. NOTE: The processing order of remaining known attributes does not matter as long as they are processed before the end of signature verification workflow.
     1. Set `request.signature.criticalAttributes` to the set of [standard Notary v2 attributes](../signature-specification.md#standard-attributes) that are marked critical, from the signature envelope.
-    2. Set `request.signature.criticalAttributes.extendedAttributes` to extended attributes that Notation does not recognize. Notation only supports JSON primitive types for critical extended attributes. If a signature producer required complex types, it MUST set the value to a primitive type by encoding it (e.g. Base64) , and MUST be decoded by the plugin which processed the attribute. Attribute values which are not JSON primitive types are base 64 encoded.
+    2. Set `request.signature.criticalAttributes.extendedAttributes` to extended attributes that Notation does not recognize. Notation only supports JSON primitive types for critical extended attributes. If a signature producer required complex types, it MUST set the value to a primitive type by encoding it (e.g. Base64), and MUST be decoded by the plugin which processed the attribute.
     3. Set `request.signature.unprocessedAttributes` to set of critical attribute names that are marked critical, but unknown to Notation, and therefore cannot be processed by Notation.
     4. Set `request.signature.certificateChain` to ordered array of certificates from signing envelope.
     5. Set `request.trustPolicy.trustedIdentities` to corresponding values from user configured trust policy that is applicable for given artifact and was identified in step 2.
-    6. Set `request.trustPolicy.signatureVerification` to the set of verification checks that are supported by the plugin, and are required to be performed as per step 2. Notation may not populate some checks in this array, it it determined them as “skipped” as per user’s trust policy.
+    6. Set `request.trustPolicy.signatureVerification` to the set of verification checks that are supported by the plugin, and are required to be performed as per step 2. Notation may not populate some checks in this array, if it determined them as “skipped” as per user’s trust policy.
 6. Process `verify-signature.response`
     1. Validate `response.verificationResults` map keys match the set of verifications requested in  `request.trustPolicy.signatureVerification` . Fail signature verification if they don't match.
     2. For each element in `response.verificationResults` map, process each result as follows
         1. If `verificationResult.success` is true, proceed to next element.
-        2. Else if verificationResult.success is false, check if the failure should be enforced or logged based on value of signatureVerification level in Trust Policy. Proceed to next element if failure is logged, else fail signature verification with verificationResult.reason.
+        2. Else if `verificationResult.success` is `false`, check if the failure should be enforced or logged based on value of `signatureVerification` level in Trust Policy. Proceed to next element if failure is logged, else fail signature verification with `verificationResult.reason`.
     3. Validate values in `response.processedAttributes` match the set of values in `request.signature.unprocessedAttributes`. If they don't, fail signature verification, as the plugin did not process a critical attribute that is unknown to the caller.
 7. Perform any remaining steps in [signature verification workflow](../trust-store-trust-policy-specification.md#signature-verification) which are not covered by plugin's verification capabilities. These steps MUST process any remaining critical attributes. Fail signature verification if any critical attributes are unprocessed at the end of this step.
 
@@ -474,7 +474,7 @@ Verification workflow using plugin
        "expiry": "2022-10-06T07:01:20Z", 
        "extendedAttributes" : {
            // Map of extended attributes
-          // Extended attributes are always encoded as string values
+          // Extended attributes values support JSON primitive values string, number and null.
            "name" : primitive-value 
        }
     },
@@ -545,7 +545,7 @@ All response attributes are required.
 * *success* (required): The `boolean` verification result.
 * *reason* (optional): Reason associated with verification being successful or not, REQUIRED if value of success field is `false`.
 
-*processedAttributes* (required): Array of strings containing critical attributes processed by the plugin. Values must be one or more of attribute names in *request.signature.unprocessedAttributes*.
+*processedAttributes* (required): Array of strings containing critical attributes processed by the plugin. Values must be one or more of attribute names in `request.signature.unprocessedAttributes`.
 
 #### Error codes for verify-signature**
 
