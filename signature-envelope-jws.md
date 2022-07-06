@@ -80,8 +80,8 @@ Example
 
 See [Extended attributes for *Notation* Plugins](./signature-specification.md#extended-attributes-for-notation-plugins) for detailed description og these headers.
 
--**`io.cncf.notary.verificationPlugin`**(*string*)(critical): An OPTIONAL header that specifies the name of the verification plugin that MAY be used to verify the signature.
--**`io.cncf.notary.verificationPluginMinVersion`**(*string*)(critical): An OPTIONAL header that specifies the minimum version of the verification plugin that MUST be used to verify the signature.
+- **`io.cncf.notary.verificationPlugin`**(*string*)(critical): An OPTIONAL header that specifies the name of the verification plugin that MAY be used to verify the signature.
+- **`io.cncf.notary.verificationPluginMinVersion`**(*string*)(critical): An OPTIONAL header that specifies the minimum version of the verification plugin that MUST be used to verify the signature.
 
 ## Unprotected Headers
 

@@ -102,6 +102,7 @@ Plugin config can be also set/overriden during signing with the `notation sign` 
 * Notation will invoke the plugin executable for each command (e.g. sign, verify), pass inputs through `stdin` and get output through `stdout` and `stderr`.
 * The command will be passed as the first argument to the plugin e.g. `notary-{plugin-name} <command>`. A JSON request is passed using `stdin`. The plugin is expected to return a JSON response through `stdout` with a `0` exit code for successful response, and a non-zero exit code with a JSON error response in `stderr` for error response. Each command defines its request, response and error contract. To avoid any additional content like debug or info level logging from dependencies and inbuilt libraries, the plugin implementation should redirect any output to `stdout` on initialization, and only send the JSON response away from `stdout` when the command execution completes. E.g. For golang, set [`os.Stdout`](https://pkg.go.dev/os#pkg-variables) to point to a log file.
 * Every request JSON will contain a `contractVersion` top level attribute whose value will indicate the plugin contract version. Contract version is revised when there are changes to command request/response, new plugin commands are introduced, and supported through Notation.
+* To maintain forward compatibility plugin implementors MUST ignore unrecognized attributes in command request which are introduced in minor version updates of the plugin contract.
 * For an error response, every command returns a non-zero exit code 1, with an OPTIONAL JSON error response in `stderr`. It is recommended to return an error response to help user troubleshoot the error.  There is no need to send different exit codes for different error conditions, as Notation (which will call the plugin and parse the response) will use `error-code` in the error response to interpret different error conditions if needed. Notation will attempt to parse the error response in `stderr` when exit code is 1, else treat it as a general error for any other non-zero exit codes.
 
 ```jsonc
@@ -173,9 +174,9 @@ All response attributes are required.
 
 *plugin-name* - Plugin name uses reverse domain name notation to avoid plugin name collisions.
 
-*supported-contract-versions* - The list of contract versions supported by the plugin. Currently this list must include only one version, per major version. Post initial release, Notation may add new features through plugins, in the form of new commands (e.g. tsa-sign for timestamping), or additional request and response parameters. Notation will publish updates to plugin interface along with appropriate contract version update. Backwards compatible changes (changes for which older version of plugin continue to work with versions of Notation using newer contract version) like new optional parameters on existing contracts, and new commands will be supported through minor version contract updates, breaking changes through major version updates. Plugin `get-plugin-metadata` command returns the contract version a plugin supports. Notation will evaluate the minimum plugin version required to satisfy a user's request, and reject the request if the plugin does not support the required version.
+*supported-contract-versions* - The list of contract versions supported by the plugin. Currently this list must include only one version, per major version. Post initial release, Notation may add new features through plugins, in the form of new commands (e.g. tsa-sign for timestamping), or additional request and response parameters. Notation will publish updates to plugin interface along with appropriate contract version update. Backwards compatible changes (changes for which older version of plugin continue to work with versions of Notation using newer contract version) like new optional parameters on existing contracts, and new commands will be supported through minor version contract updates, breaking changes through major version updates. To maintain forward compatibility plugin implementors MUST ignore unrecognized attributes in command request which are introduced in minor version updates of the plugin contract. Plugin `get-plugin-metadata` command returns the contract version a plugin supports. Notation will evaluate the minimum plugin version required to satisfy a user's request, and reject the request if the plugin does not support the required version.
 
-*capabilities* - Non empty list of features supported by a plugin. Each capability such as `SIGNATURE_ENVELOPE_GENERATOR` requires one of more commands to be implemented by the plugin. When new features are available for plugins to implement, an implementation may choose to not implement it, and therefore will not include the feature in capabilities. Notation will evaluate the capability required to satisfy a user’s request, and reject the request if the plugin does not support the required capability.
+*capabilities* - Non empty list of features supported by a plugin. Each capability such as `SIGNATURE_GENERATOR.RAW` requires one of more commands to be implemented by the plugin. When new features are available for plugins to implement, an implementation may choose to not implement it, and therefore will not include the feature in capabilities. Notation will evaluate the capability required to satisfy a user’s request, and reject the request if the plugin does not support the required capability.
 
 ## Signing interfaces
 
@@ -423,6 +424,10 @@ All response attributes are required.
 * The interface MUST be agnostic of sequencing of steps in signature verification workflow as implemented in Notation or other implementations.
 * The interface MUST allow processing of [extended attributes](../signature-specification.md#extended-attributes) that are not part of Notary v2 [standard attributes](../signature-specification.md#standard-attributes).
 
+### Guidelines for Verification plugin publishers
+
+* Signatures which require a plugin for verification may be distributed privately (e.g. within an organization) or publicly (e.g. via a public registry). If the plugin publisher wants their plugin used publicly they SHOULD publish specifications for the verification logic the plugin performs and test vectors. This allows Notary v2 implementations to perform the same logic themselves, if they choose to.
+
 ### Signature Verifier
 
 #### Verification workflow using plugin
@@ -547,7 +552,7 @@ All response attributes are required.
 
 *processedAttributes* (required): Array of strings containing critical attributes processed by the plugin. Values must be one or more of attribute names in `request.signature.unprocessedAttributes`.
 
-#### Error codes for verify-signature**
+#### Error codes for *verify-signature*
 
 * VALIDATION_ERROR - Any of the required request fields was empty, or a value was malformed/invalid.
 * UNSUPPORTED_CONTRACT_VERSION - The contract version used in the request is unsupported.
