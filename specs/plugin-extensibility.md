@@ -1,6 +1,6 @@
 # Notation Extensibility for Signing and Verification
 
-Keys and associated certificates used for signing artifacts using Notary could be available to users through varied solutions that provide secure key generation, storage and cryptographic operations. Some are well established with standards like [PIV](https://csrc.nist.gov/projects/piv/piv-standards-and-supporting-documentation) and [PKCS #11](https://docs.oasis-open.org/pkcs11/pkcs11-base/v3.0/os/pkcs11-base-v3.0-os.html) implemented by hardware tokens, smart cards. More recent options which use varied authentication and API protocols are remote key management services and signing services by third party vendors and cloud service providers. Notation will support a few built-in integrations with standard providers, and will provide plugin interfaces for users, and vendors to implement their own integrations with the solutions they use. This allows a plugin publisher to implement, test, release and patch their solutions independent of Notation’s development and release cycle. This document provides specification for the plugin model, and interfaces to implement. This specification aims to work both for [existing](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md) and future signature formats adopted by Notary.
+Keys and associated certificates used for signing artifacts using Notary could be available to users through varied solutions that provide secure key generation, storage and cryptographic operations. Some are well established with standards like [PIV](https://csrc.nist.gov/projects/piv/piv-standards-and-supporting-documentation) and [PKCS #11](https://docs.oasis-open.org/pkcs11/pkcs11-base/v3.0/os/pkcs11-base-v3.0-os.html) implemented by hardware tokens, smart cards. More recent options which use varied authentication and API protocols are remote key management services and signing services by third party vendors and cloud service providers. Notation will support a few built-in integrations with standard providers, and will provide plugin interfaces for users, and vendors to implement their own integrations with the solutions they use. This allows a plugin publisher to implement, test, release and patch their solutions independent of Notation’s development and release cycle. This document provides specification for the plugin model, and interfaces to implement. This specification aims to work both for [existing](../signature-specification.md) and future signature formats adopted by Notary.
 
 ## Terminology
 
@@ -199,18 +199,18 @@ This interface targets plugins that integrate with providers of basic cryptograp
 5. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR.RAW`
         1. Execute the plugin with `describe-key` command, set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
-        2. Generate the payload to be signed for [JWS](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#supported-signature-envelopes) envelope format.
-           1. Create the JWS protected headers collection and set `alg` to value corresponding to `describe-key.response.keySpec` as per [signature algorithm selection](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection).
-           2. Create the Notary v2 Payload (JWS Payload) as defined [here](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#payload).
+        2. Generate the payload to be signed for [JWS](../signature-specification.md#supported-signature-envelopes) envelope format.
+           1. Create the JWS protected headers collection and set `alg` to value corresponding to `describe-key.response.keySpec` as per [signature algorithm selection](../signature-specification.md#algorithm-selection).
+           2. Create the Notary v2 Payload (JWS Payload) as defined [here](../signature-specification.md#payload).
            3. The *payload to sign* is then created as - `ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
         3. Execute the plugin with `generate-signature` command.
            1. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
            2. Set `request.payload` as base64 encoded *payload to sign* (the JWS *payload to sign* is double encoded, this is a shortcoming of using plugin contract with JSON encoding).
-           3. Set `keySpec` to value returned by `describe-key` command in `response.keySpec`, and `hashAlgorithm` to hash algorithm corresponding to the key spec, as per [signature algorithm selection](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection). The algorithm specified in `hashAlgorithm` MUST be used by the plugin to hash the payload (`request.payload`) as part of signature generation.
+           3. Set `keySpec` to value returned by `describe-key` command in `response.keySpec`, and `hashAlgorithm` to hash algorithm corresponding to the key spec, as per [signature algorithm selection](../signature-specification.md#algorithm-selection). The algorithm specified in `hashAlgorithm` MUST be used by the plugin to hash the payload (`request.payload`) as part of signature generation.
         4. Validate the generated signature, return an error if any of the checks fails.
-           1. Check if `response.signingAlgorithm` is one of [supported signing algorithms](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection).
+           1. Check if `response.signingAlgorithm` is one of [supported signing algorithms](../signature-specification.md#algorithm-selection).
            2. Check that the plugin did not modify `request.payload` before generating the signature, and the signature is valid for the given payload. Verify the hash of the `request.payload` against `response.signature`, using the public key of signing certificate (leaf certificate) in `response.certificateChain` along with the `response.signingAlgorithm`. This step does not include certificate chain validation (certificate chain leads to a trusted root configured in Notation's Trust Store), or revocation check.
-           3. Check that the `response.certificateChain` conforms to [Certificate Requirements](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#certificate-requirements).
+           3. Check that the `response.certificateChain` conforms to [Certificate Requirements](../signature-specification.md#certificate-requirements).
         5. Assemble the JWS Signature envelope using `response.signature`, `response.signingAlgorithm` and `response.certificateChain`. Notation may also generate and include timestamp signature in this step.
         6. Generate a signature manifest for the given signature envelope.
     2. Else if, plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE` *(covered in next section)*
@@ -249,7 +249,7 @@ This command is used to get metadata for a given key.
 }
 ```
 
-*keySpec* : One of following [supported key types](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection) - `RSA_2048`, `RSA_3072`, `RSA_4096`, `EC_256`, `EC_384`, `EC_512`.
+*keySpec* : One of following [supported key types](../signature-specification.md#algorithm-selection) - `RSA_2048`, `RSA_3072`, `RSA_4096`, `EC_256`, `EC_384`, `EC_512`.
 
 NOTE: This command can also be used as part of `notation key describe {key-name}` which will include the following output
 
@@ -292,7 +292,7 @@ This command is used to generate the raw signature for a given payload.
 
 *pluginConfig* : Optional field for plugin configuration. For details, see [Plugin Configuration section](#plugin-configuration).
 
-*keySpec* : Required field that has one of following [supported key types](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection) - `RSA_2048`, `RSA_3072`, `RSA_4096`, `EC_256`, `EC_384`, `EC_512`. Specifies the key type and size for the key.
+*keySpec* : Required field that has one of following [supported key types](../signature-specification.md#algorithm-selection) - `RSA_2048`, `RSA_3072`, `RSA_4096`, `EC_256`, `EC_384`, `EC_512`. Specifies the key type and size for the key.
 
 *hashAlgorithm* : Required field that specifies Hash algorithm corresponding to the signature algorithm determined by `keySpec` for the key.
 
@@ -312,7 +312,7 @@ All response attributes are required.
 }
 ```
 
-*signingAlgorithm* : One of following [supported signing algorithms](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection), Notation uses this validate the signature, and to set the appropriate attribute in signature envelope (e.g. JWS `alg`). `RSASSA_PSS_SHA_256`, `RSASSA_PSS_SHA_384`, `RSASSA_PSS_SHA_512`,  `ECDSA_SHA_256`, `ECDSA_SHA_384`, `ECDSA_SHA_512`.
+*signingAlgorithm* : One of following [supported signing algorithms](../signature-specification.md#algorithm-selection), Notation uses this validate the signature, and to set the appropriate attribute in signature envelope (e.g. JWS `alg`). `RSASSA_PSS_SHA_256`, `RSASSA_PSS_SHA_384`, `RSASSA_PSS_SHA_512`,  `ECDSA_SHA_256`, `ECDSA_SHA_384`, `ECDSA_SHA_512`.
 
 *certificateChain* : Ordered list of certificates starting with leaf certificate and ending with root certificate.
 
@@ -337,12 +337,12 @@ This interface targets plugins that in addition to signature generation want to 
 1. Determine if the registered key uses a plugin
 1. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE`
-        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded [Notary v2 Payload](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/vnd.cncf.notary.v2.jws.v1` for JWS).
+        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded [Notary v2 Payload](../signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/vnd.cncf.notary.v2.jws.v1` for JWS).
         2. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match `request.signatureEnvelopeType`.
         3. Validate the generated signature, return an error if of the checks fails.
            1. Check if `response.signatureEnvelopeType` is a supported envelope type and `response.signatureEnvelope`'s format matches `response.signatureEnvelopeType`.
-           2. Check if the signing algorithm in the signature envelope is one of [supported signing algorithms](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection).
-           3. Check that the [`targetArtifact` descriptor](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#payload) in JWSPayload in `response.signatureEnvelope` matches `request.payload`. Plugins MAY append additional annotations but MUST NOT replace/override existing descriptor attributes and annotations.
+           2. Check if the signing algorithm in the signature envelope is one of [supported signing algorithms](../signature-specification.md#algorithm-selection).
+           3. Check that the [`targetArtifact` descriptor](../signature-specification.md#payload) in JWSPayload in `response.signatureEnvelope` matches `request.payload`. Plugins MAY append additional annotations but MUST NOT replace/override existing descriptor attributes and annotations.
            4. Check that `response.signatureEnvelope` can be verified using the public key and signing algorithm specified in the signing certificate, which is embedded as part of certificate chain in `response.signatureEnvelope` . This step does not include certificate chain validation (certificate chain leads to a trusted root configure in Notation), or revocation check.
            5. Check that the certificate chain in `response.signatureEnvelope` confirm to [Certificate Requirements].
         4. Generate a signature manifest for the given signature envelope, and append `response.annotations` to manifest annotations.
