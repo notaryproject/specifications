@@ -126,7 +126,14 @@ Plugin config can be also set/overriden during signing with the `notation sign` 
 
 ***get-plugin-metadata***
 
-*Request* - None
+*Request*
+
+```jsonc
+{
+  // Optional plugin configuration, map of string-string
+  "pluginConfig" : { }
+}
+```
 
 *Response*
 All response attributes are required.
@@ -146,9 +153,18 @@ All response attributes are required.
   // List of contract versions supported by the plugin, one per major version
   "supportedContractVersions" : [ ],
   
-  // Currently one of 
-  // SIGNATURE_GENERATOR or
-  // SIGNATURE_ENVELOPE_GENERATOR
+  // List of one or more capabilities supported by plugin.
+  // Valid values are 
+  //    SIGNATURE_GENERATOR.RAW
+  //    SIGNATURE_GENERATOR.ENVELOPE
+  //    SIGNATURE_VERIFIER.TRUSTED_IDENTITY
+  //    SIGNATURE_VERIFIER.REVOCATION_CHECK
+  //
+  // A signing plugin implements either SIGNATURE_GENERATOR.RAW
+  // or SIGNATURE_GENERATOR.ENVELOPE capability.
+  //
+  // A verification plugin implements 
+  // one or more of SIGNATURE_VERIFIER capabilities.
   "capabilities" : [
     
   ]
@@ -180,11 +196,11 @@ This interface targets plugins that integrate with providers of basic cryptograp
 3. Append any user provided metadata and Notary metadata as descriptor annotations.
 4. Determine if the registered key uses a plugin
 5. Execute the plugin with `get-plugin-metadata` command
-    1. If plugin supports capability `SIGNATURE_GENERATOR`
+    1. If plugin supports capability `SIGNATURE_GENERATOR.RAW`
         1. Execute the plugin with `describe-key` command, set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
         2. Generate the payload to be signed for [JWS](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#supported-signature-envelopes) envelope format.
            1. Create the JWS protected headers collection and set `alg` to value corresponding to `describe-key.response.keySpec` as per [signature algorithm selection](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection).
-           2. Create the `JWSPayload` with appropriate private (`subject`) and public (`iat,exp`) claims.
+           2. Create the Notary v2 Payload (JWS Payload) as defined [here](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#payload).
            3. The *payload to sign* is then created as - `ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
         3. Execute the plugin with `generate-signature` command.
            1. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
@@ -196,7 +212,7 @@ This interface targets plugins that integrate with providers of basic cryptograp
            3. Check that the `response.certificateChain` conforms to [Certificate Requirements](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#certificate-requirements).
         5. Assemble the JWS Signature envelope using `response.signature`, `response.signingAlgorithm` and `response.certificateChain`. Notation may also generate and include timestamp signature in this step.
         6. Generate a signature manifest for the given signature envelope.
-    2. Else if, plugin supports capability `SIGNATURE_ENVELOPE_GENERATOR` *(covered in next section)*
+    2. Else if, plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE` *(covered in next section)*
     3. Return an error
 
 #### describe-key
@@ -319,18 +335,18 @@ This interface targets plugins that in addition to signature generation want to 
 1. Append any user provided metadata and Notary metadata as descriptor annotations.
 1. Determine if the registered key uses a plugin
 1. Execute the plugin with `get-plugin-metadata` command
-    1. If plugin supports capability `SIGNATURE_ENVELOPE_GENERATOR`
-        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded descriptor, `request.payloadType` to `application/vnd.oci.descriptor.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (default to `application/vnd.cncf.notary.v2.jws.v1`).
-        1. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match `request.signatureEnvelopeType`.
-        1. Validate the generated signature, return an error if of the checks fails.
-           1. Check if `response.signatureEnvelopeType` is a supported envelope type and `response.signatureEnvelope`'s format matches `response.signatureEnvelopeType`. 
-           1. Check if the signing algorithm in the signature envelope is one of [supported signing algorithms](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection).
-           1. Check that the [`subject` descriptor](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#supported-signature-envelopes) in JWSPayload in `response.signatureEnvelope` matches `request.payload`. Plugins MAY append additional annotations but MUST NOT replace/override existing descriptor attributes and annotations.
-           1. Check that `response.signatureEnvelope` can be verified using the public key and signing algorithm specified in the signing certificate, which is embedded as part of certificate chain in `response.signatureEnvelope` . This step does not include certificate chain validation (certificate chain leads to a trusted root configure in Notation), or revocation check.
-           1. Check that the certificate chain in `response.signatureEnvelope` confirm to [Certificate Requirements].
-        1. Generate a signature manifest for the given signature envelope, and append `response.annotations` to manifest annotations.
-    1. Else if plugin supports capability `SIGNATURE_GENERATOR` *(covered in previous section)*
-    1. Return an error
+    1. If plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE`
+        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded [Notary v2 Payload](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/vnd.cncf.notary.v2.jws.v1` for JWS).
+        2. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match `request.signatureEnvelopeType`.
+        3. Validate the generated signature, return an error if of the checks fails.
+           1. Check if `response.signatureEnvelopeType` is a supported envelope type and `response.signatureEnvelope`'s format matches `response.signatureEnvelopeType`.
+           2. Check if the signing algorithm in the signature envelope is one of [supported signing algorithms](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#algorithm-selection).
+           3. Check that the [`targetArtifact` descriptor](https://github.com/notaryproject/notaryproject/blob/main/signature-specification.md#payload) in JWSPayload in `response.signatureEnvelope` matches `request.payload`. Plugins MAY append additional annotations but MUST NOT replace/override existing descriptor attributes and annotations.
+           4. Check that `response.signatureEnvelope` can be verified using the public key and signing algorithm specified in the signing certificate, which is embedded as part of certificate chain in `response.signatureEnvelope` . This step does not include certificate chain validation (certificate chain leads to a trusted root configure in Notation), or revocation check.
+           5. Check that the certificate chain in `response.signatureEnvelope` confirm to [Certificate Requirements].
+        4. Generate a signature manifest for the given signature envelope, and append `response.annotations` to manifest annotations.
+    2. Else if plugin supports capability `SIGNATURE_GENERATOR.RAW` *(covered in previous section)*
+    3. Return an error
 
 #### generate-envelope
 
@@ -353,7 +369,7 @@ All request attributes are required.
   "payload" : "<Base64 encoded payload to be signed>",
   
   // The type of payload - currently a descriptor
-  "payloadType" : "application/vnd.oci.descriptor.v1+json",
+  "payloadType" : "application/vnd.cncf.notary.payload.v1+json",
   
   // The expected response signature envelope
   "signatureEnvelopeType" : "application/vnd.cncf.notary.v2.jws.v1"
@@ -394,7 +410,151 @@ All response attributes are required.
 
 ## Verification extensibility
 
-TBD [notaryproject/roadmap#27](https://github.com/notaryproject/roadmap/issues/27)
+[notaryproject/roadmap#27](https://github.com/notaryproject/roadmap/issues/27)
+
+### Requirements
+
+* The interface MUST NOT be tied to a specific signature envelope format.
+* The interface MUST NOT allow a plugin to customize the complete [signature verification workflow](../trust-store-trust-policy-specification.md#signature-verification). Certain steps like identifying the applicable trust policy for the artifact, signature envelope schema validation, integrity checks, certificate chain validation against trust store will be performed by Notation, and cannot be customized by a plugin.
+* The interface MUST allow plugins to customize verification logic for specific supported steps
+  * Trusted Identity validation
+  * Revocation check validation
+* The interface MAY be extended in future to support additional steps which can be customized through a plugin.
+* The interface MUST be agnostic of sequencing of steps in signature verification workflow as implemented in Notation or other implementations.
+* The interface MUST allow processing of [extended attributes](../signature-specification.md#extended-attributes) that are not part of Notary v2 [standard attributes](../signature-specification.md#standard-attributes).
+
+### Signature Verifier
+
+Verification workflow using plugin
+
+1. If signature envelope contains Verification Plugin attribute, check if the plugin with the given name exists, else fail signature verification.
+    1. For the resolved plugin, call the get-plugin-metadata plugin command to get plugin version and capabilities.
+    2. If signature envelope contains Verification plugin minimum version attribute.
+        1. Validate that  Verification plugin minimum version and plugin version are SemVer format
+        2. Validate that plugin version is greater than or equal to Verification plugin minimum version
+        3. Fail signature verification if these validations fail
+    3. Validate if plugin capabilities contains any SIGNATURE_VERIFIER capabilities
+        1. Fail signature verification if a matching plugin with SIGNATURE_VERIFIER capability cannot be found. If signature envelope contains the Verification Plugin Name attribute, include it as a hint in error response.
+2. Complete steps *Identify applicable trust policy* and *Proceed based on signature verification level* from [signature verification workflow](../trust-store-trust-policy-specification.md#steps).
+3. Complete steps *Validate Integrity, Validate Expiry* and *Validate Trust Store* from [signature verification workflow](../trust-store-trust-policy-specification.md#steps).
+4. Based on the signature verification level, each verification check may be enforced, logged or skipped.
+5. Populate  verify-signature request. NOTE: The processing order of remaining known attributes does not matter as long as they are processed before the end of signature verification workflow.
+    1. Set `request.signature.criticalAttributes` to the set of [standard Notary v2 attributes](../signature-specification.md#standard-attributes) that are marked critical, from the signature envelope.
+    2. Set `request.signature.criticalAttributes.extendedAttributes` to extended attributes that Notation does not recognize. Notation only supports JSON primitive types for critical extended attributes. If a signature producer required complex types, it MUST set the value to a primitive type by encoding it (e.g. Base64) , and MUST be decoded by the plugin which processed the attribute. Attribute values which are not JSON primitive types are base 64 encoded.
+    3. Set `request.signature.unprocessedAttributes` to set of critical attribute names that are marked critical, but unknown to Notation, and therefore cannot be processed by Notation.
+    4. Set `request.signature.certificateChain` to ordered array of certificates from signing envelope.
+    5. Set `request.trustPolicy.trustedIdentities` to corresponding values from user configured trust policy that is applicable for given artifact and was identified in step 2.
+    6. Set `request.trustPolicy.signatureVerification` to the set of verification checks that are supported by the plugin, and are required to be performed as per step 2. Notation may not populate some checks in this array, it it determined them as “skipped” as per user’s trust policy.
+6. Process `verify-signature.response`
+    1. Validate `response.verificationResults` map keys match the set of verifications requested in  `request.trustPolicy.signatureVerification` . Fail signature verification if they don't match.
+    2. For each element in `response.verificationResults` map, process each result as follows
+        1. If `verificationResult.success` is true, proceed to next element.
+        2. Else if verificationResult.success is false, check if the failure should be enforced or logged based on value of signatureVerification level in Trust Policy. Proceed to next element if failure is logged, else fail signature verification with verificationResult.reason.
+    3. Validate values in `response.processedAttributes` match the set of values in `request.signature.unprocessedAttributes`. If they don't, fail signature verification, as the plugin did not process a critical attribute that is unknown to the caller.
+7. Perform any remaining steps in [signature verification workflow](../trust-store-trust-policy-specification.md#signature-verification) which are not covered by plugin's verification capabilities. These steps MUST process any remaining critical attributes. Fail signature verification if any critical attributes are unprocessed at the end of this step.
+
+#### *verify-signature* command
+
+*Response*
+
+```jsonc
+{
+  "contractVersion" : "<major-version.minor-version>",
+  
+   "signature" : {
+    // Array of all Notary V2 defined critical attributes and their values
+    // in the signature envelope. Agnostic of header names and value serialization
+    // in specific envelope formats like JWS or COSE.
+    "criticalAttributes" : 
+    { 
+       "contentType" : "application/vnd.cncf.notary.payload.v1+json",
+       // One of notary.default.x509 or notary.signingAuthority.x509
+       "signingScheme" : "notary.default.x509",
+       // Value is always RFC 3339 formatted date time string
+       "expiry": "2022-10-06T07:01:20Z", 
+       "extendedAttributes" : {
+           // Map of extended attributes
+          // Extended attributes are always encoded as string values
+           "name" : primitive-value 
+       }
+    },
+   
+    // Array of names of critical attributes that plugin 
+    // caller does not understand and does not intend to process.
+    "unprocessedAttributes" : [ ],
+
+    // Certificate chain from signature envelope.
+    "certificateChain" : [ ]
+  },
+
+  "trustPolicy" : {
+    // Array of trusted identities as specified in 
+    // trust policy.
+    "trustedIdentities": [],
+    // Array of verification checks to be performed by the plugin
+    "signatureVerification" : [ 
+        "SIGNATURE_VERIFIER.TRUSTED_IDENTITY",
+        "SIGNATURE_VERIFIER.REVOCATION_CHECK"
+        ]
+  },
+  
+  // Optional plugin configuration, map of string-string
+  "pluginConfig" : { }
+}
+```
+
+The request can be extended in future by including other elements of signature envelope and trust policy as required to customize additional steps in verification.
+
+*Response*
+All response attributes are required.
+
+```jsonc
+{
+  "verificationResults" : {
+    // Map of results. Key must match the set of
+    // verification capabilities 
+    // in verify-signature command's request.signatureVerification attribute.
+    //  SIGNATURE_VERIFIER.TRUSTED_IDENTITY
+    //  SIGNATURE_VERIFIER.REVOCATION_CHECK
+        "SIGNATURE_VERIFIER.TRUSTED_IDENTITY" :
+        {
+            // The result of a verification check
+            "success" : true | false,
+            // Reason for check being successful or not,
+            // required if value of success attribute is false.
+            "reason" : ""
+        },
+        "SIGNATURE_VERIFIER.REVOCATION_CHECK" :
+        {
+            // The result of a verification check
+            "success" : true | false,
+            // Reason for check being successful or not,
+            // required if value of success attribute is false.
+            "reason" : ""
+        }
+  },
+  // Array of strings containing critical attributes processed by the plugin.
+  "processedAttributes" : [ 
+  ]
+}
+```
+
+*verificationResults* : Array of verification results performed by the plugin. Each array element has following properties.
+
+* *verificationType* (required): The type of verification, values MUST match the set of verification capabilities advertised by the plugin in `get-plugin-metadata` command response.
+* *success* (required): The `boolean` verification result.
+* *reason* (optional): Reason associated with verification being successful or not, REQUIRED if value of success field is `false`.
+
+*processedAttributes* (required): Array of strings containing critical attributes processed by the plugin. Values must be one or more of attribute names in *request.signature.unprocessedAttributes*.
+
+#### Error codes for verify-signature**
+
+* VALIDATION_ERROR - Any of the required request fields was empty, or a value was malformed/invalid.
+* UNSUPPORTED_CONTRACT_VERSION - The contract version used in the request is unsupported.
+* ACCESS_DENIED - Authentication/authorization during signature verification, this may be due to external calls made by the plugin.
+* TIMEOUT - The verification process timed out and can be retried by Notation.
+* THROTTLED - The verification process was throttled and can be retried by Notation.
+* ERROR - Any general error that does not fall into previous error categories.
 
 ## Threat Model
 
