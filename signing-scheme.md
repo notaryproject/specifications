@@ -21,7 +21,7 @@ Notary v2 currently defines the following Signing Schemes.
 
 `notary.default.x509` - Defines a signing scheme that uses the traditional signing workflow in which an end user generates signatures using X.509 certificates.
 
-`notary.signingAuthority.x509` - Defines a signing scheme in which a `signing authority` generates signatures on behalf of an end user using X.509 certificates. A trusted signing authority is defined as a third party service not controlled by the signing entity (end user), and is trusted by both the signing entity and verifying entity to generate signatures.
+`notary.signingAuthority.x509` - Defines a signing scheme in which a `signing authority` generates signatures on behalf of an end user (the signature requestor) using X.509 certificates. A trusted signing authority is defined as a third party service that is trusted both by the end user (the signature requestor) and verifying entity to generate signatures.
 
 * A signature envelope can only specify one Signing Scheme
 * When Notary supports an additional Signing Scheme
