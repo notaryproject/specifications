@@ -439,7 +439,7 @@ All response attributes are required.
         2. Validate that plugin version is greater than or equal to *Verification plugin minimum version*
         3. Fail signature verification if these validations fail
     3. Validate if plugin capabilities contains any `SIGNATURE_VERIFIER` capabilities
-        1. Fail signature verification if a matching plugin with `SIGNATURE_VERIFIER` capability cannot be found. If signature envelope contains the *Verification Plugin Name* attribute, include it as a hint in error response.
+        1. Fail signature verification if a matching plugin with `SIGNATURE_VERIFIER` capability cannot be found. Include *Verification Plugin Name* attribute as a hint in error response.
 2. Complete steps *Identify applicable trust policy* and *Proceed based on signature verification level* from [signature verification workflow](../trust-store-trust-policy-specification.md#steps).
 3. Complete steps *Validate Integrity, Validate Expiry* and *Validate Trust Store* from [signature verification workflow](../trust-store-trust-policy-specification.md#steps).
 4. Based on the signature verification level, each validation may be enforced, logged or skipped.
@@ -518,7 +518,7 @@ All response attributes are required.
   "verificationResults" : {
     // Map of results. Key must match the set of
     // verification capabilities 
-    // in verify-signature command's request.signatureVerification attribute.
+    // in verify-signature request's trustPolicy.signatureVerification attribute.
     //  SIGNATURE_VERIFIER.TRUSTED_IDENTITY
     //  SIGNATURE_VERIFIER.REVOCATION_CHECK
         "SIGNATURE_VERIFIER.TRUSTED_IDENTITY" :
@@ -544,13 +544,12 @@ All response attributes are required.
 }
 ```
 
-*verificationResults* : Array of verification results performed by the plugin. Each array element has following properties.
+*verificationResults* : Verifications performed by the plugin. This is a map where the keys MUST match set of verify capabilities in `verify-signature` request's `trustPolicy.signatureVerification` attribute, and values are objects with following attributes
 
-* *verificationType* (required): The type of verification, values MUST match the set of verification capabilities advertised by the plugin in `get-plugin-metadata` command response.
 * *success* (required): The `boolean` verification result.
 * *reason* (optional): Reason associated with verification being successful or not, REQUIRED if value of success field is `false`.
 
-*processedAttributes* (required): Array of strings containing critical attributes processed by the plugin. Values must be one or more of attribute names in `request.signature.unprocessedAttributes`.
+*processedAttributes* (required): Array of strings containing critical attributes processed by the plugin. Values must be one or more of attribute names in `verify-signature` request's `signature.unprocessedAttributes`.
 
 #### Error codes for *verify-signature*
 
