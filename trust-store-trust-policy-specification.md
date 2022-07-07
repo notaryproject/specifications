@@ -202,7 +202,7 @@ Signature verification levels provide Notary v2 defined behavior for each valida
   - `revocation` - Supported values are `enforce`, `log`, and `skip`.
 
 ```jsonc
-    "verification": {
+    "signatureVerification": {
       "level" : "strict",
       "override" : {
         "expiry" : "log"
