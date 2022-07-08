@@ -38,7 +38,7 @@ Example of Notary v2 payload
 
 ```jsonc
 {
-  "targetArtifact": {
+  "subject": {
     "mediaType": "application/vnd.oci.image.manifest.v1+json",
     "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
     "size": 16724,
