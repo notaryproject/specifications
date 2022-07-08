@@ -460,7 +460,7 @@ All response attributes are required.
 
 #### *verify-signature* command
 
-*Response*
+*Request*
 
 ```jsonc
 {
