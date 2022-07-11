@@ -83,7 +83,7 @@ Notary v2 supports the following envelope formats:
 
 Notary v2 payload is a JSON document with media type `application/vnd.cncf.notary.payload.v1+json` and has following properties.
 
-- `subject` : Required property whose value is the descriptor of the target artifact manifest that is being signed. Both [OCI descriptor][oci-descriptor] and [ORAS artifact descriptors][artifact-descriptor] are supported.
+- `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed. Both [OCI descriptor][oci-descriptor] and [ORAS artifact descriptors][artifact-descriptor] are supported.
   - Descriptor MUST contain `mediaType`, `digest`, `size` fields.
   - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. Notary v2 uses annotations for storing both Notary specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary v2 and MUST NOT be used outside this specification.
   - Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
@@ -92,7 +92,7 @@ Notary v2 payload is a JSON document with media type `application/vnd.cncf.notar
 
 ```jsonc
 {
-  "subject": {
+  "targetArtifact": {
     "mediaType": "application/vnd.oci.image.manifest.v1+json",
     "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
     "size": 16724,
@@ -105,7 +105,7 @@ Notary v2 payload is a JSON document with media type `application/vnd.cncf.notar
 
 ```jsonc
 {
-  "subject": {
+  "targetArtifact": {
     "mediaType": "sbom/example",
     "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
     "size": 32654
