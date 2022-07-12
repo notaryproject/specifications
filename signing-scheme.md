@@ -13,7 +13,7 @@ Notary v2 will initially support X.509 PKI identity based signing, but provide t
 *Signature verification*
 
 1. Mechanism to establish trust in end users and other entities (like CAs).
-2. Set of guarantees available to the verifier apart from integrity and authenticity.
+1. Set of guarantees available to the verifier apart from integrity and authenticity.
 
 ## Signing Scheme
 
