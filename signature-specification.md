@@ -18,6 +18,7 @@ Signature Manifest Example
 
 ```jsonc
 {
+    "mediaType": "application/vnd.cncf.oras.artifact.manifest.v1+json",
     "artifactType": "application/vnd.cncf.notary.signature",
     "blobs": [
         {
