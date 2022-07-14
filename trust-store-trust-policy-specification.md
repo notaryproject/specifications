@@ -38,6 +38,8 @@ $XDG_CONFIG_HOME/notation/trust-store
                 cert2.pem
                   /sub-dir       # sub directory is ignored
                     cert-3.pem   # certs under sub directory is ignored
+            /acme-rockets-ca2
+                cert1.pem
             /wabbit-networks
                 cert3.crt
         /tsa
@@ -95,7 +97,7 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
               "registry.acme-rockets.io/software/net-logger"
             ],
             "signatureVerification" : "strict",
-            "trustStores": ["ca:acme-rockets"],
+            "trustStores": ["ca:acme-rockets", "acme-rockets-ca2"],
             "trustedIdentities": [ 
               "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
             ]
@@ -155,7 +157,16 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
 
 #### Signature Verification details
 
- Signature verification is a multi step process performs the following validations - integrity (artifact is unaltered, signature is not corrupted), authenticity (the signature is really from the identity that claims to have signed it), trusted timestamping (the signature was generated when the key/certificate were unexpired), expiry (an optional check if the artifact specifies an expiry time), revocation check (is the signing identity still trusted at the present time). Based on the signature verification level, each of these validations is *enforced* or *logged*. If a validation is *enforced*, a failure is treated as critical failure, and causes the overall signature verification to fail.  If a validation is *logged*, a failure causes details to be logged, and the next validation is evaluated till all validations succeed or a critical failure is encountered. NOTE: Implementations may change the ordering of these validations based on efficiency, but all validation MUST to be performed till the first critical failure is encountered, or all validation succeed, for the overall signature verification process to be considered complete.
+ - Signature verification is a multi step process performs the following validations 
+    - integrity (artifact is unaltered, signature is not corrupted)
+    - authenticity (the signature is really from the identity that claims to have signed it)
+    - trusted timestamping (the signature was generated when the key/certificate were unexpired)
+    - expiry (an optional check if the artifact specifies an expiry time)
+    - revocation check (is the signing identity still trusted at the present time). 
+ - Based on the signature verification level, each of these validations is *enforced* or *logged*. 
+    - If a validation is *enforced*, a failure is treated as critical failure, and causes the overall signature verification to fail.
+    - If a validation is *logged*, a failure causes details to be logged, and the next validation is evaluated till all validations succeed or a critical failure is encountered. 
+- Implementations may change the ordering of these validations based on efficiency, but all validation MUST be performed till the first critical failure is encountered, or all validation succeed, for the overall signature verification process to be considered complete.
 
  Notary v2 defines the following signature verification levels to provide different levels of enforcement for different scenarios.
 
@@ -178,7 +189,7 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 **Authenticity** : Guarantees that the artifact was signed by an identity trusted by the verifier. Its definition does not include revocation, which is when a trusted identity is subsequently untrusted because of a compromise.
 
-**Authentic timestamp** : Guarantees that the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature be treated as valid when a certificate is revoked, if the certificate was revoked after the signature was generated. In the absence of a authentic timestamp, signatures are considered invalid after certificate expires, and all signatures are considered revoked when a certificate is revoked.
+**Authentic timestamp** : Guarantees that the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature must be treated as valid when a certificate is revoked, if the certificate was revoked after the signature was generated. In the absence of a authentic timestamp, signatures are considered invalid after certificate expires, and all signatures are considered revoked when a certificate is revoked.
 
 - **NOTE**: `notation` RC1 will generate trusted timestamp using a TSA when the signature is generated, but will not support verification of TSA countersignatures. Related issue - [#59](https://github.com/notaryproject/roadmap/issues/59).
 
@@ -186,7 +197,7 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 **Revocation check** : Guarantees that the signing identity is still trusted at signature verification time. Events such as key or system compromise can make a signing identity that was previously trusted, to be subsequently untrusted. This guarantee typically requires a verification-time call to an external system, which may not be consistently reliable. The `permissive` verification level only logs failures of revocation check and does not enforce it. If a particular revocation mechanism is reliable, use `strict` verification level instead.
 
-- **NOTE** : `notation` RC1 will not have in built support for Revocation Check feature. When this feature is subsequently implemented, the `strict` verification level will **enforce** this validation, and will fail signatures which would previously pass signature verification when revocation checks were not supported. This is considered a **breaking change**, but is the appropriate behavior for a `strict` verification level.
+- **NOTE** : `notation` RC1 will not have in built support for Revocation Check feature, see [Key Management - Rescinding Signatures (CRL)](https://github.com/notaryproject/notaryproject/issues/72) for details. When this feature is subsequently implemented, the `strict` verification level will **enforce** this validation, and will fail signatures which would previously pass signature verification when revocation checks were not supported. This is considered a **breaking change**, but is the appropriate behavior for a `strict` verification level.
 
 #### Custom Verification Level
 
