@@ -30,6 +30,9 @@ Notary v2 currently defines the following Signing Schemes.
 
 `notary.x509.signingAuthority` - Defines a signing scheme in which a `signing authority` generates signatures on behalf of an end user (the signature requestor) using X.509 certificates. 
 A trusted signing authority is defined as a third party service that is trusted both by the end user (the signature requestor) and verifying entity to generate signatures.
+Authorities trusted by users should have mechanisms for validating, logging, monitoring, and auditing access to their systems and publish incidence response plans. 
+A certificate authority (CA) will need to demonstrate only validated entities were issued an X.509 certificate that chains to their root, and a time stamp authority (TSA) will need to demonstrate the time-stamp signing keys were only used within their service.
+Similarly, a signing authority (SA) will need to demonstrate signing keys were only used within their service and only validated entities were allowed to generate signatures using the service.
 
 * A signature envelope can only specify one Signing Scheme
 * When Notary supports an additional Signing Scheme
