@@ -84,10 +84,12 @@ The signing time is determined using the *Authentic Signing time* attribute in t
 ## FAQ
 
 *Q:* What is the relationship of Signing Scheme with Signature Envelope format?
+
 *A:* Signing Scheme aims to be agnostic of the Signature Envelope format.
 A given signing scheme can be implemented through any signature envelope format (such as JWS or COSE) as long as it can support the required signature schema used by the signing scheme.
 
 *Q:* Why is the trust store used for Signing Authority (`x509/signingAuthority`) distinct from trust store for Certificate Authority (`x509/ca`), why can’t they share the same trust store?
+
 *A:* Signing Authority is a different type of trusted entity as compared to Certificate Authority (CA) or Timestamping Authority (TSA).
 A CA is trusted for verifying the identity of a signing entity (end user) and issuing it a certificate, whereas a TSA is trusted to generate authentic timestamp.
 In contrast, an SA is trusted to generate signatures on behalf of an end user (signature requestor) and also to generate authentic timestamp as part of the signature.
