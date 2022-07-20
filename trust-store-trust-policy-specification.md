@@ -70,11 +70,13 @@ Trust policy for a simple scenario where ACME Rockets uses only artifacts signed
     "trustPolicies": [
         {
             // Policy for all artifacts, from any registry location.
-            "name": "wabbit-networks-images",
-            "registryScopes": [ "*" ],
-            "signatureVerification" : "audit",
-            "trustStores": ["ca:acme-rockets"],
-            "trustedIdentities": [ 
+            "name": "wabbit-networks-images",   // Name of the policy.
+            "registryScopes": [ "*" ],          // The registry artifacts to which the policy applies.
+            "signatureVerification": {          // The level of verification - strict, permissive, audit, skip.
+              "level" : "audit" 
+            },
+            "trustStores": ["ca:acme-rockets"], // The trust stores that contains the X.509 trusted roots.
+            "trustedIdentities": [              // Identities that are trusted to sign the artifact.
               "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
             ]
         }
@@ -82,7 +84,7 @@ Trust policy for a simple scenario where ACME Rockets uses only artifacts signed
 }
 ```
 
-Trust policy for the scenario where ACME Rockets uses artifacts signed by themselves, and signed and unsigned artifacts from Wabbit Networks:
+Trust policy for the scenario where ACME Rockets uses some artifacts signed by Wabbit Networks and some signed by ACME Rockets.
 
 ```jsonc
 {
@@ -96,8 +98,10 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
               "registry.acme-rockets.io/software/net-monitor",
               "registry.acme-rockets.io/software/net-logger"
             ],
-            "signatureVerification" : "strict",
-            "trustStores": ["ca:acme-rockets", "acme-rockets-ca2"],
+            "signatureVerification": {
+              "level" : "strict" 
+            },
+            "trustStores": ["wabbit-networks"],
             "trustedIdentities": [ 
               "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
             ]
@@ -107,10 +111,13 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
             // Wabbit Networks repository
             "name": "unsigned-image",
             "registryScopes": [ "registry.wabbit-networks.io/software/unsigned/net-utils" ],
-            "signatureVerification": "skip",
+            "signatureVerification": {
+              "level" : "skip" 
+            }
         },
         {
-            // Policy for with custom verification policy
+            // Policy that uses custom verification level to relax the strict verification.
+            // It logs expiry and skips recovocation check for a specific artifact.
             "name": "use-expired-image",
             "registryScopes": [ "registry.acme-rockets.io/software/legacy/metrics" ],
             "signatureVerification": {
@@ -125,11 +132,13 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
         },
         {
             // Policy for all other artifacts signed by ACME Rockets
-            // from any registry location    
+            // from any registry location. The policy also specified multiple trust stores.
             "name": "global-policy-for-all-other-images",
             "registryScopes": [ "*" ],
-            "signatureVerification" : "audit",
-            "trustStores": ["ca:acme-rockets"],
+            "signatureVerification": {
+              "level" : "audit" 
+            },
+            "trustStores": ["ca:acme-rockets", "ca:acme-rockets-ca2"],
             "trustedIdentities": [ 
               "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
             ]
@@ -147,9 +156,10 @@ Trust policy for the scenario where ACME Rockets uses artifacts signed by themse
   - **`registryScopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
     The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
     For more information, see [registry scopes constraints](#registry-scopes-constraints) section.
-  - **`signatureVerification`**(*string* or *object*): This REQUIRED property dictates how signature verification is performed. This is a multi-typed attribute, whose value can be one of the following
-    - A *string* that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each level is present [here](#signatureverification-details).
-    - An *object* that specifies a [custom verification level](#custom-verification-level), this allows the user to override a Notary v2 defined verification level.
+  - **`signatureVerification`**(*object*): This REQUIRED property dictates how signature verification is performed. 
+  An *object* that specifies a predefined verification level, with an option to override Notary v2 defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
+      - **`level` **(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each level is present [here](#signatureverification-details).
+      - **`override` **(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
   - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca` and `tsa`.
     - **NOTE**: When support for publicly trusted TSA is available, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
 
