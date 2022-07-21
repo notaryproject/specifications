@@ -10,6 +10,7 @@ Signature Manifest Example
 
 ```jsonc
 {
+    "mediaType": "application/vnd.cncf.oras.artifact.manifest.v1+json",
     "artifactType": "application/vnd.cncf.notary.signature",
     "blobs": [
         {
@@ -38,7 +39,7 @@ Example of Notary v2 payload
 
 ```jsonc
 {
-  "targetArtifact": {
+  "subject": {
     "mediaType": "application/vnd.oci.image.manifest.v1+json",
     "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
     "size": 16724,
@@ -54,26 +55,51 @@ Example of Notary v2 payload
 The JWS envelope for Notary v2 uses following headers
 
 - Registered headers - `alg`, `cty`, and `crit`
-- [Public headers](https://datatracker.ietf.org/doc/html/rfc7515#section-4.2) with collision resistant names - `io.cncf.notary.signingTime`, `io.cncf.notary.expiry`
+- [Public headers](https://datatracker.ietf.org/doc/html/rfc7515#section-4.2) with collision resistant names.
+  - `io.cncf.notary.signingScheme`
+  - `io.cncf.notary.signingTime`
+  - `io.cncf.notary.authenticSigningTime`
+  - `io.cncf.notary.expiry`
 
-Example
+Example with Signing Scheme `notary.x509`
 
 ```jsonc
 {
     "alg": "PS384",
     "cty": "application/vnd.cncf.notary.payload.v1+json",
+    "io.cncf.notary.signingScheme": "notary.x509",
     "io.cncf.notary.signingTime": "2022-04-06T07:01:20Z",
     "io.cncf.notary.expiry": "2022-10-06T07:01:20Z",
-    "crit":["io.cncf.notary.expiry"]
+    "crit":[
+      "io.cncf.notary.signingScheme",
+      "io.cncf.notary.expiry"
+    ]
+}
+```
+
+Example with Signing Scheme `notary.x509.signingAuthority`
+
+```jsonc
+{
+    "alg": "PS384",
+    "cty": "application/vnd.cncf.notary.payload.v1+json",
+    "io.cncf.notary.signingScheme": "notary.x509.signingAuthority",
+    "io.cncf.notary.authenticSigningTime": "2022-04-06T07:01:20Z",
+    "io.cncf.notary.expiry": "2022-10-06T07:01:20Z",
+    "crit":[
+      "io.cncf.notary.signingScheme",
+      "io.cncf.notary.authenticSigningTime",
+      "io.cncf.notary.expiry"]
 }
 ```
 
 - **[`alg`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.1)**(*string*): This REQUIRED header defines which signing algorithm was used to generate the signature. JWS specification defines `alg` as a required header, that MUST be present and MUST be understood and processed by verifier. The signature algorithm of the signing key (first certificate in `x5c`) is the source of truth, and during signing the value of `alg` MUST be set corresponding to signature algorithm of the signing key using [this mapping](#supported-alg-header-values) that lists the Notary v2 allowed subset of `alg` values supported by JWS. Similarly verifier of the signature MUST match `alg` with signature algorithm of the signing key to mitigate algorithm substitution attacks.
 - **[`cty`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.10)**(*string*): The REQUIRED header content-type is used to declare the media type of the secured content (the payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`.
-- **`io.cncf.notary.signingTime`**(*string*): This REQUIRED header specifies the time at which the signature was generated. This is an untrusted timestamp, and therefore not used in trust decisions. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
-- **`io.cncf.notary.expiry`**(*string*): This OPTIONAL header provides a “best by use” time for the artifact, as defined by the signer. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
-- **[`crit`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.11)**(*array of strings*): This OPTIONAL header lists the headers that implementation MUST understand and process. It MUST only contain headers apart from registered headers (e.g. `alg`, `cty`) in JWS specification, therefore this header is only present when the optional `io.cncf.notary.expiry` header is present in the protected headers collection.
-  If present, the value MUST be `["io.cncf.notary.expiry"]`.
+- **`io.cncf.notary.signingScheme`**(*string*)(critical): This REQUIRED header specifies the [Notary v2 Signing Scheme](./signing-scheme.md) used by the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
+- **`io.cncf.notary.signingTime`**(*string*): This header specifies the time at which the signature was generated. This is an untrusted timestamp, and therefore not used in trust decisions. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509`.
+- **`io.cncf.notary.authenticSigningTime`**(*string*)(critical): This header specifies the authenticated time at which the signature was generated. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority` .
+- **`io.cncf.notary.expiry`**(*string*)(critical): This OPTIONAL header provides a “best by use” time for the artifact, as defined by the signer. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
+- **[`crit`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.11)**(*array of strings*): This REQUIRED (optional as per JWS spec, but required in Notary v2 JWS signature) header lists the headers that implementation MUST understand and process. It MUST only contain headers apart from registered headers (e.g. `alg`, `cty`) in JWS specification. This header MUST contain `io.cncf.notary.signingScheme` which is a required critical header, and optionally contain `io.cncf.notary.authenticSigningTime` and `io.cncf.notary.expiry` if these critical headers are present in the signature.
 
 ## Unprotected Headers
 
