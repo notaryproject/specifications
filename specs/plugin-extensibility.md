@@ -426,7 +426,13 @@ All response attributes are required.
 
 ### Guidelines for Verification plugin publishers
 
-* Signatures which require a plugin for verification may be distributed privately (e.g. within an organization) or publicly (e.g. via a public registry). If the plugin publisher wants their plugin used publicly they SHOULD publish specifications for the verification logic the plugin performs and test vectors. This allows Notary v2 implementations to perform the same logic themselves, if they choose to.
+* Usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature.
+The environment where verification occurs will require dependencies on either a compatible verification plugin in addition to Notation, or a compliant verification tool that understands the extended signed attributes.
+Therefore, signatures intended for public distribution which require broad signature portability SHOULD avoid extended signed attributes which are marked critical.
+
+* Signatures which require a plugin for verification may be distributed privately (e.g. within an organization) or publicly (e.g. via a public registry).
+If the plugin publisher wants their plugin used publicly they SHOULD publish specifications for the verification logic the plugin performs and test vectors.
+This allows Notary v2 implementations to perform the same logic themselves, if they choose to.
 
 ### Signature Verifier
 
