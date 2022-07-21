@@ -261,7 +261,7 @@ E.g. Public images for software distributed by software vendors, and open source
 Signatures associated with these artifacts require broad portability.
 1. *Private Artifacts* - Artifacts that are private to a user or organization, and may be shared with limited parties. 
 E.g. Images for containerized applications and services used within an organization, or shared with limited authorized parties. 
-These applications and services may be either intended to run in any infrastructure or may run on specific infrastructure e.g. integration with a cloud service provider. 
+These applications and services may be either intended to run in any infrastructure (e.g. on-prem, multi-cloud, hybrid with on-prem) or may run on specific infrastructure (e.g. use features specific to a cloud provider). 
 Therefore, the signature’s portability should at least as much as the artifact’s portability.
 
 *Notary v2 signature portability* is based on the following
@@ -269,9 +269,8 @@ Therefore, the signature’s portability should at least as much as the artifact
 **Signature discovery**
 
 Notary v2 addressed signature discovery by storing signatures in the same registry (location) where an artifact is present.
-This is currently supported through [ORAS artifact spec](https://github.com/oras-project/artifacts-spec/blob/main/manifest-referrers-api.md) which allows reference artifacts such as signatures, SBOMs to be associated with existing artifacts like Images.
+This is supported through [ORAS artifact spec](https://github.com/oras-project/artifacts-spec/blob/main/manifest-referrers-api.md) which allows reference artifacts such as signatures, SBOMs to be associated with existing artifacts like Images.
 Notary v2 allows multiple signatures to be associated with an artifact, and clients may automatically push signatures for an artifact to a destination registry when a signed artifact moves from one registry to other.
-**TBD** Notation may allow users to filter certain signatures if they are meant for private usage and not for public consumption.
 
 **Verification requirements**
 
@@ -285,10 +284,9 @@ This allows users to implement security controls required for their organization
 E.g. Integration with a signature transparency log as part of signature verification.
 
 Based on user’s requirements, a user can select appropriate signing mechanism that produces signatures with desired portability.
-Notation generated signatures using local keys and signing plugins of type *Raw Signature Generator* always produce signatures which can be verified without any additional dependencies.
-Notation generated signatures using signing plugins of type *Envelope Generator* may include extended signed attributes which require a Notary v2 compliant verification plugin for signature verification.
+Notation signatures without any critical extended attributes do not impose any additional dependency requirements for verifiers as these can be validated with just the Notation client.
+Whereas, Notation signatures that contain critical extended attributes will require additional dependencies for signature validation, either on Notary v2 compliant plugins or equivalent tooling which may not be available in all environments.
 Similarly, Notary v2 compliant plugin vendors should be aware that usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature.
-The environment where verification occurs, will require dependencies on either a compatible verification plugin in addition to Notation, or a compliant verification tool that understands the extended signed attributes.
 
 ### Guidelines for Notary v2 Implementors
 
