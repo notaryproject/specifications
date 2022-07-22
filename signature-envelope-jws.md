@@ -1,13 +1,17 @@
-# JWS Signature Envelope Serialization
+# JWS Signature Envelope
 
-JWS JSON Serialization ([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)) data is stored as either claims or headers (protected and unprotected).
-Notary v2 supports JWS JSON Serialization as a signature envelope with some additional constraints on the structure of claims and headers.
+This specification implements the [Notary v2 Signature specification](signature-specification.md) using JSON Web Signature (JWS). JWS ([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)) is a JSON based envelope format for digital signatures over any type of payload (e.g. JSON, binary). JWS is a Notary v2 supported signature format and specifically uses the *JWS JSON Serialization* representation.
 
-A JWS based signature will be persisted with a blob `mediaType` of `"application/jose+json"`
+## Storage
+
+A JWS signature envelope will be stored in an OCI registry as a blob, and referenced in the signature manifest as a blob with `mediaType` of `"application/jose+json"`.
+
+Signature Manifest Example
 
 ```jsonc
 {
-   "artifactType": "application/vnd.cncf.notary.v2.signature",
+    "mediaType": "application/vnd.cncf.oras.artifact.manifest.v1+json",
+    "artifactType": "application/vnd.cncf.notary.signature",
     "blobs": [
         {
             "mediaType": "application/jose+json",
@@ -21,93 +25,122 @@ A JWS based signature will be persisted with a blob `mediaType` of `"application
         "size": 16724
     },
     "annotations": {
-        "io.cncf.notary.x509certs.fingerprint.sha256": "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\" \"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+        "io.cncf.notary.x509chain.thumbprint#S256": 
+        "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\",\"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
     }
 }
 ```
 
-Unless explicitly specified as OPTIONAL, all fields are required.
-Also, there shouldn’t be any additional fields other than ones specified in JWSPayload, ProtectedHeader, and UnprotectedHeader.
+## JWS Payload
 
-**JWSPayload a.k.a. Claims**:
-Notary v2 is using one private claim (`notary`) and two public claims (`iat` and `exp`).
-An example of the claim is described below
+The JWS envelope contains a [Notary v2 Payload](./signature-specification.md#payload).
 
-```jsonc
-{
-   "subject": {
-      "mediaType": "application/vnd.oci.image.manifest.v1+json",
-      "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-      "size": 16724,
-      "annotations": {
-         "key1": "value1",
-         "key2": "value2",
-         ...
-      }
-   },
-   "iat": 1234567891000,
-   "exp": 1234567891011
-}
-```
-
-The payload contains the subject manifest and other attributes that have to be integrity protected.
-
-- **`subject`**(*descriptor*): A REQUIRED top-level node consisting of the manifest that needs to be integrity protected.
-  Please refer [Payload](#payload) section for more details.
-- **`iat`**(*number*): The REQUIRED property Issued-at(`iat`) identifies the time at which the signature was issued.
-- **`exp`**(*number*): This OPTIONAL property contains the expiration time on or after which the signature must not be considered valid.
-
-To leverage JWS claims validation functionality already provided by libraries, we have defined `iat`, `exp` as top-level nodes.
-
-**ProtectedHeaders**: Notary v2 supports only three protected headers: `alg`, `cty`, and `crit`.
+Example of Notary v2 payload
 
 ```jsonc
 {
-    "alg": "RS256",
-    "cty": "application/vnd.cncf.notary.v2.jws.v1",
-    "crit":["cty"]
+  "subject": {
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+    "size": 16724,
+    "annotations": {
+        "io.wabbit-networks.buildId": "123"  // user defined metadata
+    }
+  }
 }
 ```
 
-- **`alg`**(*string*): This REQUIRED property defines which algorithm was used to generate the signature.
-  JWS needs an algorithm(`alg`) to be present in the header, so we have added it as a protected header.
-- **`cty`**(*string*): The REQUIRED property content-type(cty) is used to declare the media type of the secured content(the payload).
-  This will be used to version different variations of JWS signature.
-  The supported value is `application/vnd.cncf.notary.v2.jws.v1`.
-- **`crit`**(*array of strings*): This REQUIRED property lists the headers that implementation MUST understand and process.
-  The value MUST be `["cty"]`.
+## Protected Headers
 
-**UnprotectedHeaders**: Notary v2 supports only two unprotected headers: timestamp and x5c.
+The JWS envelope for Notary v2 uses following headers
+
+- Registered headers - `alg`, `cty`, and `crit`
+- [Public headers](https://datatracker.ietf.org/doc/html/rfc7515#section-4.2) with collision resistant names.
+  - `io.cncf.notary.signingScheme`
+  - `io.cncf.notary.signingTime`
+  - `io.cncf.notary.authenticSigningTime`
+  - `io.cncf.notary.expiry`
+
+Example with Signing Scheme `notary.x509`
 
 ```jsonc
 {
-    "timestamp": "<Base64(TimeStampToken)>",
-    "x5c": ["<Base64(DER(leafCert))>", "<Base64(DER(intermediateCACert))>", "<Base64(DER(rootCert))>"]
+    "alg": "PS384",
+    "cty": "application/vnd.cncf.notary.payload.v1+json",
+    "io.cncf.notary.signingScheme": "notary.x509",
+    "io.cncf.notary.signingTime": "2022-04-06T07:01:20Z",
+    "io.cncf.notary.expiry": "2022-10-06T07:01:20Z",
+    "crit":[
+      "io.cncf.notary.signingScheme",
+      "io.cncf.notary.expiry"
+    ]
 }
 ```
 
-- **`timestamp`** (*string*): This OPTIONAL property is used to store time stamp token.
-  Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
-- **`x5c`** (*array of strings*): This REQUIRED property contains the list of X.509 certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the JWS.
-  The certificate containing the public key corresponding to the key used to digitally sign the JWS MUST be the first certificate.
+Example with Signing Scheme `notary.x509.signingAuthority`
 
-- **`timestamp`** (*string*): This OPTIONAL property is used to store time stamp token.
-  Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant TimeStampToken are supported.
-- **`x5c`** (*array of strings*): This REQUIRED property contains the list of X.509 certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the JWS.
-  The certificate containing the public key corresponding to the key used to digitally sign the JWS MUST be the first certificate.
+```jsonc
+{
+    "alg": "PS384",
+    "cty": "application/vnd.cncf.notary.payload.v1+json",
+    "io.cncf.notary.signingScheme": "notary.x509.signingAuthority",
+    "io.cncf.notary.authenticSigningTime": "2022-04-06T07:01:20Z",
+    "io.cncf.notary.expiry": "2022-10-06T07:01:20Z",
+    "crit":[
+      "io.cncf.notary.signingScheme",
+      "io.cncf.notary.authenticSigningTime",
+      "io.cncf.notary.expiry"]
+}
+```
 
-**Signature**: In JWS signature is calculated by combining JWSPayload and protected headers.
+- **[`alg`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.1)**(*string*): This REQUIRED header defines which signing algorithm was used to generate the signature. JWS specification defines `alg` as a required header, that MUST be present and MUST be understood and processed by verifier. The signature algorithm of the signing key (first certificate in `x5c`) is the source of truth, and during signing the value of `alg` MUST be set corresponding to signature algorithm of the signing key using [this mapping](#supported-alg-header-values) that lists the Notary v2 allowed subset of `alg` values supported by JWS. Similarly verifier of the signature MUST match `alg` with signature algorithm of the signing key to mitigate algorithm substitution attacks.
+- **[`cty`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.10)**(*string*): The REQUIRED header content-type is used to declare the media type of the secured content (the payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`.
+- **`io.cncf.notary.signingScheme`**(*string*)(critical): This REQUIRED header specifies the [Notary v2 Signing Scheme](./signing-scheme.md) used by the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
+- **`io.cncf.notary.signingTime`**(*string*): This header specifies the time at which the signature was generated. This is an untrusted timestamp, and therefore not used in trust decisions. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509`.
+- **`io.cncf.notary.authenticSigningTime`**(*string*)(critical): This header specifies the authenticated time at which the signature was generated. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority` .
+- **`io.cncf.notary.expiry`**(*string*)(critical): This OPTIONAL header provides a “best by use” time for the artifact, as defined by the signer. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
+- **[`crit`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.11)**(*array of strings*): This REQUIRED (optional as per JWS spec, but required in Notary v2 JWS signature) header lists the headers that implementation MUST understand and process. It MUST only contain headers apart from registered headers (e.g. `alg`, `cty`) in JWS specification. This header MUST contain `io.cncf.notary.signingScheme` which is a required critical header, and optionally contain `io.cncf.notary.authenticSigningTime` and `io.cncf.notary.expiry` if these critical headers are present in the signature.
+
+## Unprotected Headers
+
+Notary v2 supports following unprotected headers: `timestamp`, `x5c` and `io.cncf.notary.signingAgent`
+
+```jsonc
+{
+    "x5c": ["<Base64(DER(leafCert))>", "<Base64(DER(intermediateCACert))>", "<Base64(DER(rootCert))>"],
+    "io.cncf.notary.timestampSignature": "<Base64(TimeStampToken)>",
+    "io.cncf.notary.signingAgent": "notation/1.0.0"
+}
+```
+
+- **[`x5c`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.6)** (*array of strings*): This REQUIRED header contains the ordered list of X.509 certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the JWS. The certificate chain is represented as a JSON array of certificate value strings, each string in the array is a base64-encoded DER certificate value. The certificate containing the public key corresponding to the key used to digitally sign the JWS MUST be the first certificate, followed by the intermediate and root certificates in the correct order. Refer [*Certificate Chain* unsigned attribute](signature-specification.md#unsigned-attributes) for more details.
+- **`io.cncf.notary.timestampSignature`** (*string*): This OPTIONAL header is used to store countersignature that provides authentic signing time. Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant `TimeStampToken` are supported.
+  - **TODO** Define the opaque datum (hash of envelope) that is sent to TSA, and how TSA response (time stamp token) is represented in this header.
+- **`io.cncf.notary.signingAgent`**(*string*): This OPTIONAL header provides the identifier of a client (e.g. Notation) that produced the signature. E.g. “notation/1.0.0”. Refer [*Signing Agent* unsigned attribute](signature-specification.md#unsigned-attributes) for more details.
+
+## Signature
+
+In JWS signature is calculated by combining JWSPayload and protected headers.
 The process is described below:
 
-1. Compute the Base64Url value of ProtectedHeaders.
-2. Compute the Base64Url value of JWSPayload.
-3. Build message to be signed by concatenating the values generated in step 1 and step 2 using '.'
-`ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
-1. Compute the signature on the message constructed in the previous step by using the signature algorithm defined in the corresponding header element: `alg`.
-1. Compute the Base64Url value of the signature produced in the previous step.
-   This is the value of the signature property used in the signature envelope.
+### Create the *JWS Signing Input*
 
-**Signature Envelope**: The final signature envelope comprises of Claims, ProtectedHeaders, UnprotectedHeaders, and signature.
+1. Compute the Base64Url value of ProtectedHeaders, this is the value of `protected` property in the signature envelope.
+1. Compute the Base64Url value of JWSPayload, this is the value of `payload` property in the signature envelope.
+1. Build *JWS Signing Input* to be signed by concatenating the values generated in step 1 and step 2 using '.'
+`ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
+
+Base64Url encoding used by JWS (*Base64url Encoding* in [RFC 7515 section 2][jws-terminology]) is a URL safe Base64 encoding as defined in [RFC 4648][rfc4648], with all trailing '=' characters omitted and without the inclusion of any additional characters.
+
+### Generate the signature
+
+1. Compute the signature on the *JWS Signing Input* constructed in the previous step by using the signature algorithm of the signing key, which MUST match the corresponding protected header `alg`.
+2. Compute the Base64Url value of the signature produced in the previous step.
+   This is the value of the `signature` property in the signature envelope.
+
+## Signature Envelope
+
+The final signature envelope comprises of Payload, ProtectedHeaders, UnprotectedHeaders, and Signature, no additional top level fields are supported.
 
 Since Notary v2 restricts one signature per signature envelope, the compliant signature envelope MUST be in flattened JWS JSON format.
 
@@ -116,20 +149,26 @@ Since Notary v2 restricts one signature per signature envelope, the compliant si
     "payload": "<Base64Url(JWSPayload)>",
     "protected": "<Base64Url(ProtectedHeaders)>",
     "header": {
-        "timestamp": "<Base64(TimeStampToken)>",
+        "io.cncf.notary.timestamp": "<Base64(TimeStampToken)>",
         "x5c": ["<Base64(DER(leafCert))>", "<Base64(DER(intermediateCACert))>", "<Base64(DER(rootCert))>"]
     },
     "signature": "Base64Url( sign( ASCII( <Base64Url(ProtectedHeader)>.<Base64Url(JWSPayload)> )))"  
 }
 ```
 
-**Implementation Constraints**: Notary v2 implementation MUST enforce the following constraints on signature generation and verification:
+## Implementation Constraints
+
+### Supported `alg` header values
+
+Notary v2 implementation MUST enforce the following constraints on signature generation and verification:
 
 1. `alg` header value MUST NOT be `none` or any symmetric-key algorithm such as `HMAC`.
 1. `alg` header value MUST be same as that of signature algorithm identified using signing certificate's public key algorithm and size.
-1. `alg` header values for various signature algorithms:
+1. `alg` header values for various signature algorithms is a subset of values supported by [JWS][jws-alg-values].
 
-  | Signature Algorithm             | `alg` Param Value |
+**Mapping of Notary v2 approved algorithms to JWS `alg` header values**
+
+  | Signature Algorithm             | `alg` Header Value|
   | ------------------------------- | ----------------- |
   | RSASSA-PSS with SHA-256         | PS256             |
   | RSASSA-PSS with SHA-384         | PS384             |
@@ -138,5 +177,20 @@ Since Notary v2 restricts one signature per signature envelope, the compliant si
   | ECDSA on secp384r1 with SHA-384 | ES384             |
   | ECDSA on secp521r1 with SHA-512 | ES512             |
 
+1. Signing certificate MUST be a valid codesigning certificate.
 1. Only JWS JSON flattened format is supported.
-   See 'Signature Envelope' section.
+
+## FAQ
+
+**Q:** Why JWT is not used as the signature envelope format?
+
+**A:** JWT uses JWS compact serialization which do not support unsigned attributes. Notary v2 signature requires support for unsigned attributes. Instead we use the *JWS JSON Serialization* representation, which supports unsigned attributes.
+
+**Q:** Why JWT `exp` and `iat` claims are not used?
+
+**A:** Unlike JWT which always contains a JSON payload, Notary v2 envelope can support payloads other than JSON, like binary. Reusing the JWT payload structure and claims, limits the Notary v2 JWS envelope to only support JSON payload, which is undesirable. Also, reusing JWT claims requires following same claim semantics as defined in JWT specifications. The [`exp`](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4) claim requires that verifier MUST reject the signature if current time equals or is greater than `exp`, where as Notary v2 allows verification policy to define how expiry is handled.
+
+[jws-alg-values]: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
+[rfc3339]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
+[rfc4648]: https://datatracker.ietf.org/doc/html/rfc4648#section-5
+[jws-terminology]: https://datatracker.ietf.org/doc/html/rfc7515#section-2
