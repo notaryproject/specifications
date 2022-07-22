@@ -259,10 +259,9 @@ The artifacts themselves can be classified as follow.
 Artifacts distributed via public registries fall in this category. 
 E.g. Public images for software distributed by software vendors, and open source projects. 
 Signatures associated with these artifacts require broad portability.
-1. *Private Artifacts* - Artifacts that are private to a user or organization, and may be shared with limited parties. 
-E.g. Images for containerized applications and services used within an organization, or shared with limited authorized parties. 
-These applications and services may be either intended to run in any infrastructure (e.g. on-prem, multi-cloud, hybrid with on-prem) or may run on specific infrastructure (e.g. use features specific to a cloud provider). 
-Therefore, the signature’s portability should at least as much as the artifact’s portability.
+1. *Private Artifacts* - Artifacts that are private to a user or organization, and may be shared with limited parties.
+E.g. Images for containerized applications and services used within an organization, or shared with limited authorized parties.
+Based on user requirements a private artifact can have different levels of portability, the signature’s portability should at least match the the artifact’s portability.
 
 *Notary v2 signature portability* is based on the following
 
