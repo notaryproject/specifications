@@ -198,7 +198,7 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 **Authenticity** : Guarantees that the artifact was signed by an identity trusted by the verifier. Its definition does not include revocation, which is when a trusted identity is subsequently untrusted because of a compromise.
 
-**Authentic timestamp** : Guarantees that the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature must be treated as valid or not based on whether the signature was generated before or after the certificate revocation. In the absence of an Authentic Timestamp, a signature is considered invalid if the signing certificate or chain is either expired or revoked.
+**Authentic timestamp** : Guarantees that the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature must be treated as valid or invalid based on whether the signature was generated before or after the certificate revocation. In the absence of an Authentic Timestamp, a signature is considered invalid if the signing certificate or chain is either expired or revoked.
 
 - **NOTE**: `notation` RC1 will generate trusted timestamp using a TSA when the signature is generated, but will not support verification of TSA countersignatures. Related issue - [#59](https://github.com/notaryproject/roadmap/issues/59).
 
