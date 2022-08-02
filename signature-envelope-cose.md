@@ -1,7 +1,7 @@
 # COSE Sign1 Signature Envelope
 
 This specification implements the [Notary v2 Signature specification](signature-specification.md) using 
-CBOR Object Signing and Encryption (COSE). COSE ([RFC8152](https://datatracker.ietf.org/doc/html/rfc8152)) is a CBOR based envelope format for digital signatures over any type of payload (e.g. JSON, binary).
+CBOR Object Signing and Encryption (COSE). COSE ([RFC8152](https://datatracker.ietf.org/doc/html/rfc8152)) is a CBOR based envelope format for digital signatures over any type of payload (e.g. CBOR, JSON, binary).
 Notary v2 specifically supports [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) as a signature envelope.
 
 ## Storage
@@ -37,26 +37,14 @@ Signature Manifest Example
 
 The COSE envelope contains a [Notary v2 Payload](./signature-specification.md#payload).
 
-Example of Notary v2 payload
-
-```jsonc
-{
-  "subject": {
-    "mediaType": "application/vnd.oci.image.manifest.v1+json",
-    "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-    "size": 16724,
-    "annotations": {
-        "io.wabbit-networks.buildId": "123"  // user defined metadata
-    }
-  }
-}
-```
-
 ## Protected Header
 
 The COSE envelope for Notary v2 uses the following header parameters:
 
-- Common parameters - `alg` (label `1`), `content type` (label `3`), and `crit` (label `2`)
+- [Common parameters](https://www.iana.org/assignments/cose/cose.xhtml#header-parameters)
+  - Label `1`: `alg`
+  - Label `2`: `crit`
+  - Label `3`: `content type`
 - Additional parameters with collision resistant names.
   - `io.cncf.notary.signingScheme`
   - `io.cncf.notary.signingTime`
@@ -65,52 +53,56 @@ The COSE envelope for Notary v2 uses the following header parameters:
 
 Example with Signing Scheme `notary.x509`
 
-```
+```yaml
 {
   / alg / 1: / PS384 / -38,
-  / cty / 3: 'application/vnd.cncf.notary.payload.v1+json',
-  'io.cncf.notary.signingScheme': 'notary.x509',
-  'io.cncf.notary.signingTime': 1234567890,
-  'io.cncf.notary.expiry': 1234567891,
   / crit / 2: [
     'io.cncf.notary.signingScheme',
     'io.cncf.notary.expiry'
-  ]
+  ],
+  / cty / 3: 'application/vnd.cncf.notary.payload.v1+json',
+  'io.cncf.notary.signingScheme': 'notary.x509',
+  'io.cncf.notary.signingTime': 1234567890,
+  'io.cncf.notary.expiry': 1234567891
 }
 ```
 
 Example with Signing Scheme `notary.x509.signingAuthority`
 
-```
+```yaml
 {
   / alg / 1: / PS384 / -38,
-  / cty / 3: 'application/vnd.cncf.notary.payload.v1+json',
-  'io.cncf.notary.signingScheme': 'notary.x509.signingAuthority',
-  'io.cncf.notary.authenticSigningTime': 1234567890,
-  'io.cncf.notary.expiry': 1234567891,
   / crit / 2: [
     'io.cncf.notary.signingScheme',
     'io.cncf.notary.authenticSigningTime',
     'io.cncf.notary.expiry'
-  ]
+  ],
+  / cty / 3: 'application/vnd.cncf.notary.payload.v1+json',
+  'io.cncf.notary.signingScheme': 'notary.x509.signingAuthority',
+  'io.cncf.notary.authenticSigningTime': 1234567890,
+  'io.cncf.notary.expiry': 1234567891
 }
 ```
 
 Note: The above examples are represented using the [extended CBOR diagnostic notation](https://datatracker.ietf.org/doc/html/rfc8152#appendix-C).
 
-- **[`alg`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)**(*int*): This REQUIRED parameter (label `1`) defines which signing algorithm was used to generate the signature. The signature algorithm of the signing key (first certificate in `x5chain`) is the source of truth, and during signing the value of `alg` MUST be set corresponding to signature algorithm of the signing key using [this mapping](#supported-alg-header-values) that lists the Notary v2 allowed subset of `alg` values supported by COSE. Similarly verifier of the signature MUST match `alg` with signature algorithm of the signing key to mitigate algorithm substitution attacks.
-- **[`content type`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)**(*tstr*): The REQUIRED parameter content type (label `3`) is used to declare the media type of the secured content (the payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`.
-- **`io.cncf.notary.signingScheme`**(*tstr*)(critical): This REQUIRED header specifies the [Notary v2 Signing Scheme](./signing-scheme.md) used by the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
-- **`io.cncf.notary.signingTime`**(*uint*): This header specifies the time at which the signature was generated. This is an untrusted timestamp, and therefore not used in trust decisions. Its value is the number of seconds from 1970-01-01T00:00Z in UTC time, commonly known as UNIX timestamp. This claim is REQUIRED and only valid when signing scheme is `notary.x509`.
-- **`io.cncf.notary.authenticSigningTime`**(*uint*)(critical): This header specifies the authenticated time at which the signature was generated. Its value is the number of seconds from 1970-01-01T00:00Z in UTC time, commonly known as UNIX timestamp. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority` .
-- **`io.cncf.notary.expiry`**(*uint*)(critical): This OPTIONAL header provides a “best by use” time for the artifact, as defined by the signer. Its value is the number of seconds from 1970-01-01T00:00Z in UTC time, commonly known as UNIX timestamp.
-- **[`crit`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)** (*array of int/tstr*): This REQUIRED parameter (label: `2`) lists the header parameters that implementations MUST understand and process. It MUST only contain parameters apart from Common COSE Header Parameters ([RFC 8152 Sect. 3.1](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)). This header MUST contain `io.cncf.notary.signingScheme` which is a required critical header, and optionally contain `io.cncf.notary.authenticSigningTime` and `io.cncf.notary.expiry` if these critical headers are present in the signature.
+- **[`alg`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)** (*int*): This REQUIRED parameter (label `1`) defines which signing algorithm was used to generate the signature. The signature algorithm of the signing key (first certificate in `x5chain`) is the source of truth, and during signing the value of `alg` MUST be set corresponding to signature algorithm of the signing key using [this mapping](#supported-alg-header-values) that lists the Notary v2 allowed subset of `alg` values supported by COSE. Similarly verifier of the signature MUST match `alg` with signature algorithm of the signing key to mitigate algorithm substitution attacks.
+- **[`crit`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)** (*array of int/tstr*): This REQUIRED parameter (label `2`) lists the header parameters that implementations MUST understand and process. It MUST only contain parameters apart from integer labels in the range of 0 to 8. This header MUST contain `io.cncf.notary.signingScheme` which is a required critical header, and optionally contain `io.cncf.notary.authenticSigningTime` and `io.cncf.notary.expiry` if these critical headers are present in the signature.
+- **[`content type`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)** (*tstr*): The REQUIRED parameter content type (label `3`) is used to declare the media type of the secured content (the payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`.
+- **`io.cncf.notary.signingScheme`** (*tstr*, critical): This REQUIRED header specifies the [Notary v2 Signing Scheme](./signing-scheme.md) used by the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
+- **`io.cncf.notary.signingTime`** (*uint*): This header specifies the time at which the signature was generated. This is an untrusted timestamp, and therefore not used in trust decisions. Its value is the number of seconds from `1970-01-01T00:00Z` in UTC time, commonly known as UNIX timestamp. This claim is REQUIRED and only valid when signing scheme is `notary.x509`.
+- **`io.cncf.notary.authenticSigningTime`** (*uint*, critical): This header specifies the authenticated time at which the signature was generated. Its value is the number of seconds from `1970-01-01T00:00Z` in UTC time, commonly known as UNIX timestamp. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority` .
+- **`io.cncf.notary.expiry`** (*uint*, critical): This OPTIONAL header provides a "best by use" time for the artifact, as defined by the signer. Its value is the number of seconds from `1970-01-01T00:00Z` in UTC time, commonly known as UNIX timestamp.
 
 ## Unprotected Headers
 
-Notary v2 supports the following unprotected header parameters: `io.cncf.notary.timestampSignature`, `x5chain` (label: 33) and `io.cncf.notary.signingAgent`
+Notary v2 supports the following unprotected header parameters:
 
-```
+- `io.cncf.notary.timestampSignature`
+- Label `33`: `x5chain`
+- `io.cncf.notary.signingAgent`
+
+```yaml
 {
   / x5chain / 33: [
     << DER(leafCert) >>,
@@ -124,12 +116,11 @@ Notary v2 supports the following unprotected header parameters: `io.cncf.notary.
 
 Note: `<<` and `>>` are used to notate the byte string resulting from encoding the data item.
 
-- **[`x5chain`](https://datatracker.ietf.org/doc/html/draft-ietf-cose-x509-08#section-2)** (*array of byte strings*): This REQUIRED parameter (label: `33` by [IANA](https://www.iana.org/assignments/cose/cose.xhtml#header-parameters)) contains the ordered list of X.509 certificate or certificate chain([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the COSE. The certificate chain is represented as an array of certificate value byte string, each certificate in the array is DER encoded. The certificate containing the public key corresponding to the key used to digitally sign the COSE MUST be the first certificate, followed by the intermediate and root certificates in the correct order. Refer [*Certificate Chain* unsigned attribute](signature-specification.md#unsigned-attributes) for more details.
-Optionally, this header can be presented in the protected header.
-TODO: update signature specification to allow chains in protected header
-- **`io.cncf.notary.timestampSignature`** (*byte string*): This OPTIONAL header is used to store countersignature that provides authentic signing time. Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant `TimeStampToken` are supported.
+- **[`x5chain`](https://datatracker.ietf.org/doc/html/draft-ietf-cose-x509-08#section-2)** (*array of bstr*): This REQUIRED parameter (label `33` by [IANA](https://www.iana.org/assignments/cose/cose.xhtml#header-parameters)) contains the ordered list of X.509 certificate or certificate chain ([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the COSE. The certificate chain is represented as an array of certificate value byte string, each certificate in the array is DER encoded. The certificate containing the public key corresponding to the key used to digitally sign the COSE MUST be the first certificate, followed by the intermediate and root certificates in the correct order. Refer [*Certificate Chain* unsigned attribute](signature-specification.md#unsigned-attributes) for more details. Optionally, this header can be presented in the protected header.
+  - **TODO** update signature specification to allow chains in protected header
+- **`io.cncf.notary.timestampSignature`** (*bstr*): This OPTIONAL header is used to store countersignature that provides authentic signing time. Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant `TimeStampToken` are supported.
   - **TODO** Define the opaque datum (hash of envelope) that is sent to TSA, and how TSA response (time stamp token) is represented in this header.
-- **`io.cncf.notary.signingAgent`**(*tstr*): This OPTIONAL header provides the identifier of a client (e.g. Notation) that produced the signature. E.g. “notation/1.0.0”. Refer [*Signing Agent* unsigned attribute](signature-specification.md#unsigned-attributes) for more details.
+- **`io.cncf.notary.signingAgent`** (*tstr*): This OPTIONAL header provides the identifier of a client (e.g. Notation) that produced the signature. E.g. `notation/1.0.0`. Refer [*Signing Agent* unsigned attribute](signature-specification.md#unsigned-attributes) for more details.
 
 ## Signature
 
@@ -138,7 +129,7 @@ The process is described below:
 
 1. Encode the protected header into a CBOR object as a byte string named `body_protected`.
 2. Construct the `Sig_structure` for `COSE_Sign1`.
-    ```
+    ```yaml
     Sig_structure = [
         / context / 'Signature1',
         / body_protected / << ProtectedHeaders >>,
@@ -154,20 +145,20 @@ The process is described below:
 
 The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of Payload, ProtectedHeaders, UnprotectedHeaders, and Signature.
 
-```
+```yaml
 18(
   [
     / protected / << {
       / alg / 1: / PS384 / -38,
-      / cty / 3: 'application/vnd.cncf.notary.payload.v1+json',
-      'io.cncf.notary.signingScheme': 'notary.x509.signingAuthority',
-      'io.cncf.notary.authenticSigningTime': 1234567890,
-      'io.cncf.notary.expiry': 1234567891,
       / crit / 2: [
         'io.cncf.notary.signingScheme',
         'io.cncf.notary.authenticSigningTime',
         'io.cncf.notary.expiry'
-      ]
+      ],
+      / cty / 3: 'application/vnd.cncf.notary.payload.v1+json',
+      'io.cncf.notary.signingScheme': 'notary.x509.signingAuthority',
+      'io.cncf.notary.authenticSigningTime': 1234567890,
+      'io.cncf.notary.expiry': 1234567891
     } >>,
     / unprotected / {
       / x5chain / 33: [
@@ -183,6 +174,7 @@ The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of Payl
   ]
 )
 ```
+
 ## Implementation Constraints
 
 ### Supported `alg` header values
