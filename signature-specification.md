@@ -14,15 +14,42 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
 
 ![Signature storage inside registry](media/signature-specification.svg)
 
-- **`artifactType`** (*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.v2.signature`.
+Signature Manifest Example
+
+```jsonc
+{
+    "mediaType": "application/vnd.cncf.oras.artifact.manifest.v1+json",
+    "artifactType": "application/vnd.cncf.notary.signature",
+    "blobs": [
+        {
+            "mediaType": "application/jose+json",
+            "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+            "size": 32654
+        }
+    ],
+    "subject": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+        "size": 16724
+    },
+    "annotations": {
+        "io.cncf.notary.x509chain.thumbprint#S256": 
+        "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\",\"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+    }
+}
+```
+
+- **`artifactType`** (*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.signature`.
 - **`blobs`** (*array of objects*): This REQUIRED property contains collection of only one [artifact descriptor][artifact-descriptor] referencing signature envelope.
-  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. The currently supported values are  `application/cose` and  `application/jose+json`.
+  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
+    - `application/jose+json`
+    - `application/cose`
 - **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
 - **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest.
   It is being used to store information about the signature.
   Keys using the `io.cncf.notary` namespace are reserved for use in Notary and MUST NOT be used by other specifications.
-  - **`io.cncf.notary.x509.fingerprint.sha256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain used for signature generation.
-    The list of fingerprints is present as a JSON array string.
+  - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain (including root) used for signature generation. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
+    The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope.
 
 ### Signature Discovery
 
@@ -34,7 +61,7 @@ Each Notary signature artifact refers to a signature envelope blob.
 ### Signature Filtering
 
 An OCI artifact can have multiple signatures, Notary v2 uses annotations of the signature artifact to filter relevant signatures based on the applicable trust policy.
-The Notary v2 signature artifact's `io.cncf.notary.x509.fingerprint.sha256` annotations key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
+The Notary v2 signature artifact's `io.cncf.notary.x509chain.thumbprint#S256` annotations key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
 
 ## Signature Envelope
 
@@ -43,7 +70,7 @@ A signature envelope consists of the following components:
 
 - Payload/Message `m`: The data that is integrity protected - e.g. descriptor of the artifact being signed.
 - Signed attributes `v`: The signature metadata that is integrity protected - e.g. signature expiration time, creation time, etc.
-- Unsigned attributes `u`: Unsigned attributes `u`: These attributes are not signed by the signing key that generates the signature. We anticipate unsigned attributes contain content that may be signed by an different party e.g. Certificate chain signed by a CA, or TSA countersignature signed by the TSA.
+- Unsigned attributes `u`: These attributes are not signed by the signing key that generates the signature. We anticipate unsigned attributes contain content that may be signed by an different party e.g. Certificate chain signed by a CA, or TSA countersignature signed by the TSA.
 - Cryptographic signatures `s`: The digital signatures computed on payload and signed attributes.
 
 A signature envelope is `e = {m, v, u, s}` where `s` is signature.
@@ -52,74 +79,82 @@ This specification defines the set of signed and unsigned attributes that make u
 
 Notary v2 supports the following envelope formats:
 
-- [COSE Sign1](./signature-envelope-cose.md)
 - [JWS](./signature-envelope-jws.md)
+- [COSE Sign1](./signature-envelope-cose.md)
 
 ### Payload
 
-Notary v2 requires Payload to be the content **descriptor** of the subject manifest that is being signed.
+Notary v2 payload is a JSON document with media type `application/vnd.cncf.notary.payload.v1+json` and has following properties.
 
-1. Descriptor MUST contain `mediaType`, `digest`, `size` fields.
-2. Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. Notary v2 uses annotations for storing both Notary specific and user defined signed attributes. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary v2 and MUST NOT be used outside this specification.
-3. Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
+- `subject` : Required property whose value is the descriptor of the target artifact manifest that is being signed. Both [OCI descriptor][oci-descriptor] and [ORAS artifact descriptors][artifact-descriptor] are supported.
+  - Descriptor MUST contain `mediaType`, `digest`, `size` fields.
+  - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. Notary v2 uses annotations for storing both Notary specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary v2 and MUST NOT be used outside this specification.
+  - Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
 
-**Examples**: The media type of the content descriptor is `application/vnd.cncf.oras.artifact.descriptor.v1+json`.
+#### Examples
 
 ```jsonc
 {
-   "mediaType": "application/vnd.oci.image.manifest.v1+json",
-   "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-   "size": 16724,
-   "annotations": {
-      "io.wabbit-networks.buildId": "123"  // user defined metadata
-   }
+  "subject": {
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+    "size": 16724,
+    "annotations": {
+        "io.wabbit-networks.buildId": "123"  // user defined metadata
+    }
+  }
 }
 ```
 
 ```jsonc
 {
-   "mediaType": "sbom/example",
-   "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
-   "size": 32654
+  "subject": {
+    "mediaType": "sbom/example",
+    "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+    "size": 32654
+  }
 }
 ```
-
-### Signature Scheme
-
-Notary will initially support X509 PKI based identities, which has well established standards for establishing and trusting signing identities, managing key lifetimes and rotation, and revocation. There is interest in the community to support additional trust models based on other standards and techniques (Notary TUF, ledger based). Notary addresses future support for additional trust models through an abstraction called Signature Scheme. A Signature Scheme defines the the specific trust model used for generation and verification of signatures. It includes the supported identity type (e.g. X509 certificates), set of signed and unsigned attributes in the signature to support the trust model, which attributes are required/optional and critical/informational, the signature verification logic, and verification policy switches that are supported (e.g. revocation checks can be skipped, audited, enforced) and how they are processed during signature verification. Notary v2 defines the following signature schemes.
-
-`notary.signer.x509` - This signature scheme defines the trust model that uses traditional X509 based PKI. Users owns signing keys and use CA issued certificates to represent identity.
-
-`notary.signingservice.x509` - This signature scheme defines the trust model for a signing service that uses X509 based PKI. In this model, a trusted signing service manages the keys of behalf of the user, and generates signatures. The end user does not have direct access to signing keys.
-
-When Notary supports additional signature schemes, Notary verification policy may have breaking changes to support newer concepts introduced by the signature scheme, and existing signed artifacts will need to be resigned if they are required to be validated using the new trust system introduced by the signature scheme.
 
 ### Signed Attributes
 
 Signed attributes/claims are additional metadata apart from the payload, which are required to support the signature verification process.
 
-- Any claims MUST NOT be stored/appended in the payload itself, as the payload is only parsed and processed once the signature has been verified (signature is valid, and from a trusted key) and trust is established.
+- Any metadata that is used to verify the payload itself, and establish trust MUST be stored separately from the payload itself, as signed attributes or claims. Such metadata MUST NOT be stored/appended in the payload, as the payload is only parsed and processed once the signature has been verified and trust is established.
 - Specific claims can be either required or optional.
-- Claims that if present, MUST be processed by a verifier MUST be marked as critical.
+- Claims that MUST be processed by a verifier MUST be marked as critical. Some claims may be optional and critical, i.e. they MUST be processed by a verifier only if they are present.
 - Claims which are informational and do not influence signature verification MUST NOT be marked critical.
 
 Notary v2 requires the signature envelope to support the following signed attributes/claims.
 
 #### Standard attributes
 
-- **Notary Signature scheme** (critical): The trust model used by Notary currently supports the following values for this claim `notary.signer.x509` and `notary.signingservice.x509`. Both signature schemes use the same set of claims defined in this document. One difference is that `notary.signer.x509` uses a TSA signature to determine authenticated signing time (timestamp), and `notary.signingservice.x509` uses the trusted signing time claim instead, with optional support for TSA signatures. Signature verification MUST consider the signature to be invalid if any other value is used.
-- **Signing time**: The time at which the signature was generated. This is a REQUIRED claim for signature scheme `notary.signer.x509`. Though this claim is signed by the signing key, it’s considered unauthenticated as a signer can modify local time and manipulate this claim. More details [here](#signing-time).
-- **Trusted signing time** (critical) : The time at which the signature was generated. This is an authenticated signing time which can be generated by a trusted time-stamper, like a signing service. This is a REQUIRED claim for signature scheme `notary.signingservice.x509` . More details [here](#signing-time).
-- **Signature Expiry** (critical): The time when a signature is considered to be expired. This is an OPTIONAL claim. [Open issue](https://github.com/notaryproject/notaryproject/issues/141) tracking if this attribute should be removed.
-- **Content type** (critical): The content type of the payload. Notary currently supports OCI descriptor of a subject manifest as the payload, supported value is `application/vnd.cncf.oras.artifact.descriptor.v1+json`, other payload types MAY be supported in future. This is a REQUIRED claim.
-- **Client identifier**: The version of a client (e.g. Notation) that produced the signature. This is an OPTIONAL claim. It uses the following format `{client}/{version}` e.g. “notation/1.0.0”. This claim in intended to be used for diagnostic and troubleshooting purposes.
+- **Signing Scheme** (critical): A REQUIRED claim that defines the [Notary v2 Signing Scheme](./signing-scheme.md) used by the signature. This attribute dictates the rest of signature schema - the set of signed and unsigned attributes to be included in the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
+- **Signing Time**: A claim that indicates the time at which the signature was generated. Though this claim is signed by the signing key, it’s considered unauthenticated as a signer can modify local time and manipulate this claim. More details [here](#signing-time). This claim is REQUIRED and only valid when signing scheme is `notary.x509` .
+- **Authentic Signing Time** (critical): The authenticated time at which the signature was generated. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority` . More details [here](#signing-time).
+- **Expiry** (critical): An OPTIONAL claim that provides a “best by use” time for the artifact, as defined by the signer. More details [here](#expiry).
+- **Content Type** (critical): A REQUIRED claim that indicates the content type of the [payload](#payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`. Other payload types MAY be supported in future.
 
 ### Unsigned Attributes
 
 These attributes are considered unsigned with respect to the signing key that generates the signature. These attributes are typically signed by a third party (e.g. CA, TSA).
 
-- **Certificate Chain**: This property contains the list of X.509 certificate or certificate chain. This is a REQUIRED attribute. The certificate chain is authenticated using against a trust store as part of signature validation.
-- **TSA counter signature** : The time stamp token generated for a given signature. Only [RFC3161](ietf-rfc3161) compliant TimeStampToken are supported. This is an OPTIONAL attribute.
+- **Certificate Chain**: This is a REQUIRED attribute that contains the ordered list of X.509 public certificates associated with the signing key used to generate the signature. The ordered list starts with the signing certificates, any intermediate certificates and ends with the root certificate. The certificate chain MUST be authenticated against a trust store as part of signature validation. Specific requirements for the certificates in the chain are provided [here](#certificate-requirements).
+- **Timestamp signature** : An OPTIONAL counter signature which provides [authentic timestamp](#signing-time)e.g. Time Stamp Authority (TSA) generated timestamp signature. Only [RFC3161](ietf-rfc3161) compliant TimeStampToken are currently supported.
+- **Signing Agent**: An OPTIONAL claim that provides the identifier of the software (e.g. Notation) that produced the signature on behalf of the user. It is an opaque string set by the software that produces the signature. It's intended primarily for diagnostic and troubleshooting purposes, this attribute is unsigned, the verifier MUST NOT validate formatting, or fail validation based on the content of this claim. The suggested format is one or more tokens of the form `{id}/{version}` containing identifier and version of the software, seperated by spaces. E.g. “notation/1.0.0”, “notation/1.0.0 com.example.nv2plugin/0.8”.
+
+## Signature Algorithm Requirements
+
+The implementation MUST support the following set of algorithms:
+
+1. RSASSA-PSS with SHA-256
+1. RSASSA-PSS with SHA-384
+1. RSASSA-PSS with SHA-512
+1. ECDSA on secp256r1 with SHA-256
+1. ECDSA on secp384r1 with SHA-384
+1. ECDSA on secp521r1 with SHA-512
+
+For ECDSA equivalent NIST curves and ANSI curves can be found at [RFC4492 Appendix A](https://tools.ietf.org/search/rfc4492#appendix-A).
 
 ### Algorithm Selection
 
@@ -132,30 +167,46 @@ The signing certificate's public key algorithm and size MUST be used to determin
 | RSA                  | 4096            | RSASSA-PSS with SHA-512         |
 | EC                   | 256             | ECDSA on secp256r1 with SHA-256 |
 | EC                   | 384             | ECDSA on secp384r1 with SHA-384 |
-| EC                   | 512             | ECDSA on secp521r1 with SHA-512 |
+| EC                   | 521             | ECDSA on secp521r1 with SHA-512 |
 
 ### Certificate Requirements
 
-The **signing certificate** MUST meet the following minimum requirements:
+The codesigning and timestamping certificates MUST meet the following requirements. These requirements are validated both at signature generation time and signature verification time, and are applied to the certificate chain in the signature envelope. These validations are independent of certificate chain validation against a trust store.
 
-- The keyUsage extension MUST be present and MUST be marked critical.
-  The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
-- The extKeyUsage extension MUST be present and its value MUST be id-kp-codeSigning ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
-- If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
-- The certificate MUST abide by the following key length restrictions:
-- For RSA public key, the key length MUST be 2048 bits or higher.
-  - For ECDSA public key, the key length MUST be 256 bits or higher.
+#### Root and Intermediate CA Certificates
 
-The **timestamping certificate** MUST meet the following minimum requirements:
+The CA certificates MUST meet the following requirements
 
-- The keyUsage extension MUST be present and MUST be marked critical.
-  The bit positions for digitalSignature MUST be set ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)).
-- The extKeyUsage extension MUST be present and MUST be marked critical.
-  The value of extension MUST be id-kp-timeStamping ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)).
-- If the basicConstraints extension is present, the cA field MUST be set false ([RFC-5280](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)).
-- The certificate MUST abide by the following key length restrictions:
-  - For RSA public key, the key length MUST be 2048 bits or higher.
-  - For ECDSA public key, the key length MUST be 256 bits or higher.
+1. **[Basic Constraints:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)**
+The `basicConstraints` extension MUST be present and MUST be marked as critical. The `cA` field MUST be set `true`.
+The [`pathLenConstraint`](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9) field is OPTIONAL. If present, it MUST be verified against the depth of the chain below that CA certificate. (If value is null consider it as not present)
+1. **[Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)**
+The `keyUsage` extension MUST be present and MUST be marked critical. Bit positions for `keyCertSign` MUST be set.
+
+#### Leaf Certificates
+
+The leaf or end certificates MUST meet the following requirements
+
+1. **[Basic Constraints:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)**
+The `basicConstraints` extension is OPTIONAL and can OPTIONALLY be marked as critical. If present, the `cA` field MUST be set to `false`.
+1. **[Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)**
+The `keyUsage` extension MUST be present and MUST be marked critical. Bit positions for `digitalSignature` MUST be set. The Bit positions for `keyCertSign` and `cRLSign` MUST NOT be set.
+1. **[Extended Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)**  The `extendedKeyUsage` extension is OPTIONAL and can OPTIONALLY be marked as critical.
+    - **For codesigning certificate:** If present, the value MUST contain `id-kp-codeSigning` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `emailProtection` and `timeStamping`.
+    - **For timestamping certificate:** If present, the value MUST contain `id-kp-timeStamping` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `emailProtection` and `codeSigning`.
+1. **Key Length** The certificate MUST abide by the following key length restrictions:
+    - For RSA public key, the key length MUST be 2048 bits or higher.
+    - For ECDSA public key, the key length MUST be 256 bits or higher.
+
+#### Other requirements
+
+1. The certificates in the signature MUST be ordered list of X.509 certificate or certificate chain i.e. the certificate containing the public key used to digitally sign the payload must be the first certificate, followed by the intermediate and root certificates in the correct order. This also means
+    - The certificate MUST NOT chain to multiple parents/roots.
+    - The certificate chain MUST NOT contain a certificate that is unrelated to the certificate chain.
+1. A valid certificate chain MUST contain a minimum of two certificates - a leaf and a root certificate.
+1. Any certificate in the certificate chain MUST NOT use SHA1WithRSA and ECDSAWithSHA1 signatures.
+1. Only Basic Constraints, Key Usage, and Extended Key Usage extensions of X.509 certificates are honored. For rest of the extensions, Notary MUST fail open i.e. they MUST NOT be evaluated or honored.
+1. The certificates in the certificate chain MUST be valid at signing time. Notary MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
 
 ## FAQ
 
@@ -164,24 +215,25 @@ The **timestamping certificate** MUST meet the following minimum requirements:
 **A:** The `mediaType` of artifact manifest's blob identifies the signature envelope type.  
 The client implementation can use the aforementioned `mediaType` to parse the signature envelope.
 
-**Q: How will Notary v2 handle non-backward compatible changes to signature format?**
+**Q: How will Notary v2 support multiple payload formats?**
 
-**A:** The Signature envelope MUST have a versioning mechanism to support non-backward compatible changes.  
-[COSE_Sign1_Tagged](./signature-envelope-cose.md) signature envelope versioning is achieved by the `cty` field in ProtectedHeaders.  
-[JWS JSON serialization](./signature-envelope-jwt.md) signature envelope versioning is achieved by the `cty` field in ProtectedHeaders.
+**A:** The Signature envelope MUST have a versioning mechanism to support multiple payload formats.
+[JWS JSON serialization](./signature-envelope-jose.md) signature envelope versioning is achieved by the `cty` field in ProtectedHeaders.
+[COSE_Sign1_Tagged](./signature-envelope-cose.md) signature envelope versioning is achieved by the `content type` (label: `3`) field in ProtectedHeaders.  
 
 ## Appendix
 
 ### Signing time
 
-The signing time denotes the time at which the signature was generated. A X509 certificate has a defined [validity](https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5) during which it can be used to generate signatures. The signing time must be greater than or equal to certificate's `notBefore` attribute, and signing time must be less than or equal to certificate's `notAfter` attribute. Signatures generated after the certificate expires are considered invalid. A trusted timestamp allows a verifier to determine if the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature be treated as valid when a certificate is revoked, if the certificate was revoked after the signature was generated. In the absence of a trusted timestamp, signatures are considered invalid after certificate expires, and all signatures are considered revoked when a certificate is revoked.
+The signing time denotes the time at which the signature was generated. A X509 certificate has a defined [validity](https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5) during which it can be used to generate signatures. The signing time must be greater than or equal to certificate's `notBefore` attribute, and signing time must be less than or equal to certificate's `notAfter` attribute. Signatures generated after the certificate expires are considered invalid. An authentic timestamp, like TSA countersignature, allows a verifier to determine if the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature be treated as valid when a certificate is revoked, if the certificate was revoked after the signature was generated. In the absence of an authentic timestamp, signatures are considered invalid after certificate expires, and all signatures are considered revoked when a certificate is revoked.
+
+### Expiry
+
+This is an optional feature that provides a “best by use” time for the artifact, as defined by the signer. Notary v2 allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
 [annotation-rules]: https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules
+[oci-descriptor]: https://github.com/opencontainers/image-spec/blob/main/descriptor.md
 [artifact-descriptor]: https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md
-[ietf-cose]: https://datatracker.ietf.org/doc/html/rfc8152
-[ietf-cose-section-4]: https://datatracker.ietf.org/doc/html/rfc8152#section-4
-[ietf-cose-section-4.2]: https://datatracker.ietf.org/doc/html/rfc8152#section-4.2
-[ietf-cose-appendix-c]: https://datatracker.ietf.org/doc/html/rfc8152#appendix-C
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
 [oras-artifact-manifest]: https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
 [oras-artifacts-referrers]: https://github.com/oras-project/artifacts-spec/blob/main/manifest-referrers-api.md
