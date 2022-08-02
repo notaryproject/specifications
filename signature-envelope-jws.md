@@ -101,6 +101,13 @@ Example with Signing Scheme `notary.x509.signingAuthority`
 - **`io.cncf.notary.expiry`**(*string*)(critical): This OPTIONAL header provides a “best by use” time for the artifact, as defined by the signer. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
 - **[`crit`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.11)**(*array of strings*): This REQUIRED (optional as per JWS spec, but required in Notary v2 JWS signature) header lists the headers that implementation MUST understand and process. It MUST only contain headers apart from registered headers (e.g. `alg`, `cty`) in JWS specification. This header MUST contain `io.cncf.notary.signingScheme` which is a required critical header, and optionally contain `io.cncf.notary.authenticSigningTime` and `io.cncf.notary.expiry` if these critical headers are present in the signature.
 
+## Extended Protected Headers for *Notation* Plugins
+
+See [Extended attributes for *Notation* Plugins](./signature-specification.md#extended-attributes-for-notation-plugins) for detailed description of these headers.
+
+- **`io.cncf.notary.verificationPlugin`**(*string*)(critical): An OPTIONAL header that specifies the name of the verification plugin that MAY be used to verify the signature.
+- **`io.cncf.notary.verificationPluginMinVersion`**(*string*)(critical): An OPTIONAL header that specifies the minimum version of the verification plugin that MUST be used to verify the signature.
+
 ## Unprotected Headers
 
 Notary v2 supports following unprotected headers: `timestamp`, `x5c` and `io.cncf.notary.signingAgent`
