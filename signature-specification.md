@@ -229,6 +229,7 @@ The `keyUsage` extension MUST be present and MUST be marked critical. Bit positi
 1. Any certificate in the certificate chain MUST NOT use SHA1WithRSA and ECDSAWithSHA1 signatures.
 1. Only Basic Constraints, Key Usage, and Extended Key Usage extensions of X.509 certificates are honored. For rest of the extensions, Notary MUST fail open i.e. they MUST NOT be evaluated or honored.
 1. The certificates in the certificate chain MUST be valid at signing time. Notary MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
+1. In the absence of an Authentic Timestamp, each and every certificate in the certificate chain i.e. signing certificate, intermediate certificates, and the root certificate must be valid i.e. not expired at the time of signature verification.
 
 ## FAQ
 

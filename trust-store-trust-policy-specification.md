@@ -198,7 +198,7 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 **Authenticity** : Guarantees that the artifact was signed by an identity trusted by the verifier. Its definition does not include revocation, which is when a trusted identity is subsequently untrusted because of a compromise.
 
-**Authentic timestamp** : Guarantees that the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature must be treated as valid when a certificate is revoked, if the certificate was revoked after the signature was generated. In the absence of a authentic timestamp, signatures are considered invalid after certificate expires, and all signatures are considered revoked when a certificate is revoked.
+**Authentic timestamp** : Guarantees that the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature must be treated as valid or invalid based on whether the signature was generated before or after the certificate revocation. In the absence of an Authentic Timestamp, a signature is considered invalid if the signing certificate or chain is either expired or revoked.
 
 - **NOTE**: `notation` RC1 will generate trusted timestamp using a TSA when the signature is generated, but will not support verification of TSA countersignatures. Related issue - [#59](https://github.com/notaryproject/roadmap/issues/59).
 
@@ -337,7 +337,7 @@ TODO: Update this section after [verification plugin spec](https://github.com/no
         If the accuracy is not explicitly specified and `TSTInfo.policy` is the baseline time-stamp policy([RFC-3628](https://tools.ietf.org/html/rfc3628#section-5.2)), use accuracy of 1 second.
         Otherwise, use an accuracy of 0.
         1. Calculate the timestamp range using the lower and upper limits per [RFC-3161 section 2.4.2](https://tools.ietf.org/html/rfc3161#section-2.4.2) and store the limits as `timeStampLowerLimit` and `timeStampUpperLimit` variables respectively.
-    1. Check that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` timestamp is entirely within the certificate's validity period.If the time range is entirely within the signing certificate and certificate chain's validity period, continue to the next step. Else fail this step.
+    1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` timestamp is entirely within the signing certificate and certificate chain's validity period. If the validation passes, continue to the next step. Else fail this step.
 1. **Validate Revocation Status:**
     1. Validate signing identity(certificate and certificate chain) revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section as per `signingIdentityRevocation` setting in trust-policy.
 1. Perform extended validation using the applicable (if any) plugin.
