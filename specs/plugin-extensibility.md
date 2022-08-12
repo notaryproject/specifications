@@ -479,13 +479,21 @@ This allows Notary v2 implementations to perform the same logic themselves, if t
     "criticalAttributes" : 
     { 
        "contentType" : "application/vnd.cncf.notary.payload.v1+json",
-       // One of notary.default.x509 or notary.signingAuthority.x509
-       "signingScheme" : "notary.default.x509",
+       // One of notary.x509 or notary.signingAuthority.x509
+       "signingScheme" : "notary.x509",
        // Value is always RFC 3339 formatted date time string
-       "expiry": "2022-10-06T07:01:20Z", 
+       "expiry": "2022-10-06T07:01:20Z",
+       // Either signingTime or authenticSigningTime critical attibute 
+       // is populated based on the value of signingScheme attibute.
+       "signingTime": "2022-04-06T07:01:20Z",
+       "authenticSigningTime": "2022-04-06T07:01:20Z",
+       // Name of the verification plugin
+       "verificationPlugin": "com.example.nv2plugin",
+       // Optional plugin minimum version, if present.
+       "verificationPluginMinVersion": "1.1.0.0",
+       // Map of extended attributes
+       // Extended attributes values support JSON primitive values string, number and null.
        "extendedAttributes" : {
-           // Map of extended attributes
-          // Extended attributes values support JSON primitive values string, number and null.
            "name" : primitive-value 
        }
     },
