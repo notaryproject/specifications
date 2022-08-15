@@ -199,19 +199,20 @@ This interface targets plugins that integrate with providers of basic cryptograp
 5. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR.RAW`
         1. Execute the plugin with `describe-key` command, set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
-        2. Generate the payload to be signed for [JWS](../signature-specification.md#supported-signature-envelopes) envelope format.
-           1. Create the JWS protected headers collection and set `alg` to value corresponding to `describe-key.response.keySpec` as per [signature algorithm selection](../signature-specification.md#algorithm-selection).
-           2. Create the Notary v2 Payload (JWS Payload) as defined [here](../signature-specification.md#payload).
-           3. The *payload to sign* is then created as - `ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
+            1. Check that the `response.certificateChain` conforms to [Certificate Requirements](../signature-specification.md#certificate-requirements).
+        2. Generate the payload digest to be signed for [JWS](../signature-specification.md#supported-signature-envelopes) envelope format.
+            1. Create the JWS protected headers collection and set `alg` to value corresponding to `describe-key.response.keySpec` as per [signature algorithm selection](../signature-specification.md#algorithm-selection).
+            2. Determine the *payload hash algorithm* corresponding to `describe-key.response.keySpec` as per [signature algorithm selection](../signature-specification.md#algorithm-selection).
+            3. Create the Notary v2 Payload (JWS Payload) as defined [here](../signature-specification.md#payload).
+            4. The *payload digest to sign* is then created as - `HASH(ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload)))`
         3. Execute the plugin with `generate-signature` command.
-           1. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
-           2. Set `request.payload` as base64 encoded *payload to sign* (the JWS *payload to sign* is double encoded, this is a shortcoming of using plugin contract with JSON encoding).
-           3. Set `keySpec` to value returned by `describe-key` command in `response.keySpec`, and `hashAlgorithm` to hash algorithm corresponding to the key spec, as per [signature algorithm selection](../signature-specification.md#algorithm-selection). The algorithm specified in `hashAlgorithm` MUST be used by the plugin to hash the payload (`request.payload`) as part of signature generation.
+            1. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
+            2. Set `request.payloadDigest` as base64 encoded *payload digest to sign*.
+            3. Set `request.keySpec` to `describe-key.response.keySpec`, and `request.hashAlgorithm` to *payload hash algorithm*.
         4. Validate the generated signature, return an error if any of the checks fails.
-           1. Check if `response.signingAlgorithm` is one of [supported signing algorithms](../signature-specification.md#algorithm-selection).
-           2. Check that the plugin did not modify `request.payload` before generating the signature, and the signature is valid for the given payload. Verify the hash of the `request.payload` against `response.signature`, using the public key of signing certificate (leaf certificate) in `response.certificateChain` along with the `response.signingAlgorithm`. This step does not include certificate chain validation (certificate chain leads to a trusted root configured in Notation's Trust Store), or revocation check.
-           3. Check that the `response.certificateChain` conforms to [Certificate Requirements](../signature-specification.md#certificate-requirements).
-        5. Assemble the JWS Signature envelope using `response.signature`, `response.signingAlgorithm` and `response.certificateChain`. Notation may also generate and include timestamp signature in this step.
+            1. Check if `response.signingAlgorithm` is one of [supported signing algorithms](../signature-specification.md#algorithm-selection).
+            2. Verify the `request.payloadDigest` against `response.signature`, using the public key of signing certificate (leaf certificate) in `describe-key.response.certificateChain` along with the `response.signingAlgorithm`. This step does not include certificate chain validation (certificate chain leads to a trusted root configured in Notation's Trust Store), or revocation check.
+        5. Assemble the JWS Signature envelope using `response.signature`, `response.signingAlgorithm` and `describe-key.response.certificateChain`. Notation may also generate and include timestamp signature in this step.
         6. Generate a signature manifest for the given signature envelope.
     2. Else if, plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE` *(covered in next section)*
     3. Return an error
