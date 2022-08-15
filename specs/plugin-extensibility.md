@@ -243,13 +243,16 @@ This command is used to get metadata for a given key.
 
 ```jsonc
 {
-   // The same key id as passed in the request.
-  "keyId" : "<key id>",
-  "keySpec" : "<key type and size>"
+  // The same key id as passed in the request.
+  "keyId": "<key id>",
+  "keySpec": "<key type and size>",
+  "certificateChain": ["Base64(DER(leafCert))","Base64(DER(intermediateCACert))","Base64(DER(rootCert))"]
 }
 ```
 
 *keySpec* : One of following [supported key types](../signature-specification.md#algorithm-selection) - `RSA_2048`, `RSA_3072`, `RSA_4096`, `EC_256`, `EC_384`, `EC_512`.
+
+*certificateChain* : Ordered list of certificates starting with leaf certificate and ending with root certificate.
 
 NOTE: This command can also be used as part of `notation key describe {key-name}` which will include the following output
 
@@ -273,18 +276,17 @@ This command is used to generate the raw signature for a given payload.
   "keyId": "<key id>",
 
   // Optional plugin configuration, map of string-string
-  "pluginConfig" : { },
+  "pluginConfig": { },
 
   // The key spec for the given key id
-  "keySpec" : "<key type and size>",
+  "keySpec": "<key type and size>",
 
   // Hash algorithm associated with the key spec, plugin must 
   // hash the payload using this hash algorithm
-  "hashAlgorithm" : "SHA_256" | "SHA_384" | "SHA_512",
+  "hashAlgorithm": "SHA_256" | "SHA_384" | "SHA_512",
 
   // Payload to sign, this is base64 encoded
-  "payload" : "<base64 encoded payload to be signed>",
-
+  "payload": "<base64 encoded payload to be signed>"
 }
 ```
 
@@ -305,16 +307,13 @@ All response attributes are required.
 ```jsonc
 {    
   // The same key id as passed in the request.
-  "keyId" : "<key id>",
-  "signature" : "<Base64 encoded signature>",
-  "signingAlgorithm" : "<signing algorithm>",
-  "certificateChain": ["Base64(DER(leafCert))","Base64(DER(intermediateCACert))","Base64(DER(rootCert))"]
+  "keyId": "<key id>",
+  "signature": "<Base64 encoded signature>",
+  "signingAlgorithm": "<signing algorithm>"
 }
 ```
 
 *signingAlgorithm* : One of following [supported signing algorithms](../signature-specification.md#algorithm-selection), Notation uses this validate the signature, and to set the appropriate attribute in signature envelope (e.g. JWS `alg`). `RSASSA_PSS_SHA_256`, `RSASSA_PSS_SHA_384`, `RSASSA_PSS_SHA_512`,  `ECDSA_SHA_256`, `ECDSA_SHA_384`, `ECDSA_SHA_512`.
-
-*certificateChain* : Ordered list of certificates starting with leaf certificate and ending with root certificate.
 
 #### Error codes for describe-key and generate-signature
 
