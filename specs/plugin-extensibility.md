@@ -480,12 +480,11 @@ This allows Notary v2 implementations to perform the same logic themselves, if t
     { 
        "contentType" : "application/vnd.cncf.notary.payload.v1+json",
        // One of notary.x509 or notary.signingAuthority.x509
-       "signingScheme" : "notary.x509",
+       "signingScheme" : "notary.x509" | "notary.signingAuthority.x509",
        // Value is always RFC 3339 formatted date time string
        "expiry": "2022-10-06T07:01:20Z",
-       // Either signingTime or authenticSigningTime critical attibute 
-       // is populated based on the value of signingScheme attibute.
-       "signingTime": "2022-04-06T07:01:20Z",
+       // authenticSigningTime must be present, 
+       // if signingScheme is notary.signingAuthority.x509.
        "authenticSigningTime": "2022-04-06T07:01:20Z",
        // Name of the verification plugin
        "verificationPlugin": "com.example.nv2plugin",
