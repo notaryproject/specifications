@@ -285,8 +285,8 @@ This command is used to generate the raw signature for a given payload.
   // hash the payload using this hash algorithm
   "hashAlgorithm": "SHA_256" | "SHA_384" | "SHA_512",
 
-  // Payload to sign, this is base64 encoded
-  "payload": "<base64 encoded payload to be signed>"
+  // Digest of payload to sign, this is base64 encoded
+  "payloadDigest": "<base64 encoded digest of payload to be signed>"
 }
 ```
 
@@ -298,7 +298,7 @@ This command is used to generate the raw signature for a given payload.
 
 *hashAlgorithm* : Required field that specifies Hash algorithm corresponding to the signature algorithm determined by `keySpec` for the key.
 
-*payload* : Required field that contains base64 encoded payload to be signed. For JWS, the *payload to sign* is base64 encoded (a second time) before sending to the plugin.
+*payloadDigest* : Required field that contains base64 encoded digest of payload to be signed.
 
 *Response*
 
