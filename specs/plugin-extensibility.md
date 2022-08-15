@@ -286,7 +286,7 @@ This command is used to generate the raw signature for a given payload.
   // hash the payload using this hash algorithm
   "hashAlgorithm": "SHA-256" | "SHA-384" | "SHA-512",
 
-  // Digest of payload to sign, this is base64 encoded
+  // Payload digest to sign, this is base64 encoded
   "payloadDigest": "<base64 encoded digest of payload to be signed>"
 }
 ```
