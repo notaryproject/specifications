@@ -249,7 +249,7 @@ This command is used to get metadata for a given key.
 }
 ```
 
-*keySpec* : One of following [supported key types](../signature-specification.md#algorithm-selection) - `RSA_2048`, `RSA_3072`, `RSA_4096`, `EC_256`, `EC_384`, `EC_512`.
+*keySpec* : One of following [supported key types](../signature-specification.md#algorithm-selection) - `RSA-2048`, `RSA-3072`, `RSA-4096`, `EC-256`, `EC-384`, `EC-521`.
 
 NOTE: This command can also be used as part of `notation key describe {key-name}` which will include the following output
 
@@ -280,7 +280,7 @@ This command is used to generate the raw signature for a given payload.
 
   // Hash algorithm associated with the key spec, plugin must 
   // hash the payload using this hash algorithm
-  "hashAlgorithm" : "SHA_256" | "SHA_384" | "SHA_512",
+  "hashAlgorithm" : "SHA-256" | "SHA-384" | "SHA-512",
 
   // Payload to sign, this is base64 encoded
   "payload" : "<base64 encoded payload to be signed>",
@@ -292,7 +292,7 @@ This command is used to generate the raw signature for a given payload.
 
 *pluginConfig* : Optional field for plugin configuration. For details, see [Plugin Configuration section](#plugin-configuration).
 
-*keySpec* : Required field that has one of following [supported key types](../signature-specification.md#algorithm-selection) - `RSA_2048`, `RSA_3072`, `RSA_4096`, `EC_256`, `EC_384`, `EC_512`. Specifies the key type and size for the key.
+*keySpec* : Required field that has one of following [supported key types](../signature-specification.md#algorithm-selection) - `RSA-2048`, `RSA-3072`, `RSA-4096`, `EC-256`, `EC-384`, `EC-521`. Specifies the key type and size for the key.
 
 *hashAlgorithm* : Required field that specifies Hash algorithm corresponding to the signature algorithm determined by `keySpec` for the key.
 
@@ -312,7 +312,14 @@ All response attributes are required.
 }
 ```
 
-*signingAlgorithm* : One of following [supported signing algorithms](../signature-specification.md#algorithm-selection), Notation uses this validate the signature, and to set the appropriate attribute in signature envelope (e.g. JWS `alg`). `RSASSA_PSS_SHA_256`, `RSASSA_PSS_SHA_384`, `RSASSA_PSS_SHA_512`,  `ECDSA_SHA_256`, `ECDSA_SHA_384`, `ECDSA_SHA_512`.
+*signingAlgorithm* : One of following [supported signing algorithms](../signature-specification.md#algorithm-selection), Notation uses this validate the signature, and to set the appropriate attribute in signature envelope (e.g. JWS `alg`). Supported values are
+
+* `RSASSA-PSS-SHA-256`: RSASSA-PSS with SHA-256
+* `RSASSA-PSS-SHA-384`: RSASSA-PSS with SHA-384
+* `RSASSA-PSS-SHA-512`: RSASSA-PSS with SHA-512
+* `ECDSA-SHA-256`: ECDSA on secp256r1 with SHA-256
+* `ECDSA-SHA-384`: ECDSA on secp384r1 with SHA-384
+* `ECDSA-SHA-512`: ECDSA on secp521r1 with SHA-512
 
 *certificateChain* : Ordered list of certificates starting with leaf certificate and ending with root certificate.
 
