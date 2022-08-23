@@ -314,12 +314,12 @@ All response attributes are required.
 
 *signingAlgorithm* : One of following [supported signing algorithms](../signature-specification.md#algorithm-selection), Notation uses this validate the signature, and to set the appropriate attribute in signature envelope (e.g. JWS `alg`). Supported values are
 
-* `PS256`: RSASSA-PSS with SHA-256
-* `PS384`: RSASSA-PSS with SHA-384
-* `PS512`: RSASSA-PSS with SHA-512
-* `ES256`: ECDSA on secp256r1 with SHA-256
-* `ES384`: ECDSA on secp384r1 with SHA-384
-* `ES512`: ECDSA on secp521r1 with SHA-512
+* `RSASSA-PSS-SHA-256`: RSASSA-PSS with SHA-256
+* `RSASSA-PSS-SHA-384`: RSASSA-PSS with SHA-384
+* `RSASSA-PSS-SHA-512`: RSASSA-PSS with SHA-512
+* `ECDSA-SHA-256`: ECDSA on secp256r1 with SHA-256
+* `ECDSA-SHA-384`: ECDSA on secp384r1 with SHA-384
+* `ECDSA-SHA-512`: ECDSA on secp521r1 with SHA-512
 
 *certificateChain* : Ordered list of certificates starting with leaf certificate and ending with root certificate.
 
