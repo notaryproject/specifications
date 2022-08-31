@@ -30,16 +30,16 @@ Plugin publisher will provide instructions to download and install the plugin. P
 
 **Open Item** : [Plugin install paths](https://github.com/notaryproject/notation/issues/167)
 
-To enumerate all available plugins the following paths are scanned:
+To enumerate all available plugins the `PLUGIN_DIRECTORY` is scanned based on per OS:
+| OS      | PLUGIN_DIRECTORY                                 |
+| ------- | ------------------------------------------------ |
+| Unix    | `$XDG_CONFIG_HOME/notation/plugins`              |
+| Windows | `%AppData%/notation/plugins`                     |
+| Darwin  | `$HOME/Library/Application Support/notation/plugins` |
 
-* Unix-like OSes:
-  * `$HOME/notation/plugins`
-* On Windows:
-  * `%USERPROFILE%\notation\plugins`
+Each plugin executable and dependencies are installed under directory `$PLUGIN_DIRECTORY/{plugin-name}` with an executable under that directory `$PLUGIN_DIRECTORY/{plugin-name}/notation-{plugin-name}`.
 
-Each plugin executable and dependencies are installed under directory `~/notation/plugins/{plugin-name}` with an executable under that directory `~/notation/plugins/{plugin-name}/notation-{plugin-name}`.
-
-Any directory found inside `~/notation/plugins` is considered potential plugin "candidates". Anything found which is not a directory is ignored and is not considered as a plugin candidate.
+Any directory found inside `$PLUGIN_DIRECTORY` is considered potential plugin "candidates". Anything found which is not a directory is ignored and is not considered as a plugin candidate.
 
 To be considered a valid plugin a candidate must pass each of these "plugin candidate tests":
 
