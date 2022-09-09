@@ -222,10 +222,10 @@ The `keyUsage` extension MUST be present and MUST be marked critical. Bit positi
 
 #### Other requirements
 
+1. Valid certificate chain MUST contain a root certificate. If the certificate chain contains only a root certificate then the root certificate MUST meet [Leaf Certificates](#leaf-certificates) requirements and ignore [Root and Intermediate CA Certificates](#root-and-intermediate-ca-certificates) requirements.
 1. The certificates in the signature MUST be ordered list of X.509 certificate or certificate chain i.e. the certificate containing the public key used to digitally sign the payload must be the first certificate, followed by the intermediate and root certificates in the correct order. This also means
     - The certificate MUST NOT chain to multiple parents/roots.
     - The certificate chain MUST NOT contain a certificate that is unrelated to the certificate chain.
-1. A valid certificate chain MUST contain a minimum of two certificates - a leaf and a root certificate.
 1. Any certificate in the certificate chain MUST NOT use SHA1WithRSA and ECDSAWithSHA1 signatures.
 1. Only Basic Constraints, Key Usage, and Extended Key Usage extensions of X.509 certificates are honored. For rest of the extensions, Notary MUST fail open i.e. they MUST NOT be evaluated or honored.
 1. The certificates in the certificate chain MUST be valid at signing time. Notary MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
