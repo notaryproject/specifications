@@ -214,7 +214,7 @@ The `basicConstraints` extension is OPTIONAL and can OPTIONALLY be marked as cri
 1. **[Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)**
 The `keyUsage` extension MUST be present and MUST be marked critical. Bit positions for `digitalSignature` MUST be set. The Bit positions for `keyCertSign` and `cRLSign` MUST NOT be set.
 1. **[Extended Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)**  The `extendedKeyUsage` extension is OPTIONAL and can OPTIONALLY be marked as critical.
-    - **For codesigning certificate:** If present, the value MUST contain `id-kp-codeSigning` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `emailProtection` and `timeStamping`.
+    - **For signing certificate:** If present, the value MAY contain `id-kp-codeSigning` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `emailProtection` and `timeStamping`.
     - **For timestamping certificate:** If present, the value MUST contain `id-kp-timeStamping` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `emailProtection` and `codeSigning`.
 1. **Key Length** The certificate MUST abide by the following key length restrictions:
     - For RSA public key, the key length MUST be 2048 bits or higher.
