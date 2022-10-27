@@ -304,21 +304,14 @@ Another index of type `notary.verification`, which adds the scanning verificatio
 }
 ```
 
-The nv2 client could retrieve all signatures with the following mocked command
+The notation client could retrieve all signatures with the following command
 
 ```shell
-nv2 verification pull registry.contoso.com/marketing/web:a2b2
-nv2 verification pull registry.contoso.com/marketing/web@256:efg123
+notation verify registry.contoso.com/marketing/web:a2b2
+notation verify registry.contoso.com/marketing/web@256:efg123
 ```
 
-or
-
-```shell
-nv2 verify registry.contoso.com/marketing/web:a2b2
-nv2 verify registry.contoso.com/marketing/web@256:efg123
-```
-
-The `nv2 verify` API compares the artifact with local configuration to attest to it matching the configured rules.
+The `notation verify` API compares the artifact with local configuration to attest to it matching the configured rules.
 These could include the artifact has required verifications for Scanning and Testing verification.
 
 ## Pros & Cons
@@ -352,13 +345,13 @@ The reverse lookup index could be expanded as follows:
 
 The user still references `registry.contoso.com/web:a2b2`, while other parts of the system that adhere to notary v2 would know to query the registry for the additional verification information.
 
-An nv2 client queries for all indexes with a `"config.mediaType"` of `"application/vnd.cncf.notary.verification.config.v1+json"` It would read all the verification objects and decide how to proceed.
+An notation client queries for all indexes with a `"config.mediaType"` of `"application/vnd.cncf.notary.verification.config.v1+json"` It would read all the verification objects and decide how to proceed.
 
 For customers that aren’t comfortable with tags, you could query for the digest of `web:a2b2`.
 It would return the same list of verification objects.
 
 ```bash
-nv2 verify registry.contoso.com/web@sha256:efg123
+notation verify registry.contoso.com/web@sha256:efg123
 ```
 
 The SBOM client would know to parse the index and pull any manifests with a `"config.mediaType"` of `"application/foo.sbom.config.v1+json"`.
