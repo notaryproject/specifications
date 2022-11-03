@@ -31,6 +31,7 @@ Plugin publisher will provide instructions to download and install the plugin. P
 **Open Item** : [Plugin install paths](https://github.com/notaryproject/notation/issues/167)
 
 To enumerate all available plugins the following paths are scanned:
+
 * Unix-like OSes:
   * `$HOME/notation/plugins`
 * On Windows:
