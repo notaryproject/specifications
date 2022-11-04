@@ -156,25 +156,25 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
   - **`registryScopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
     The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
     For more information, see [registry scopes constraints](#registry-scopes-constraints) section.
-  - **`signatureVerification`**(*object*): This REQUIRED property dictates how signature verification is performed. 
+  - **`signatureVerification`**(*object*): This REQUIRED property dictates how signature verification is performed.
   An *object* that specifies a predefined verification level, with an option to override Notary v2 defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
-      - **`level` **(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each level is present [here](#signatureverification-details).
-      - **`override` **(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
+    - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each level is present [here](#signatureverification-details).
+    - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
   - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca` and `tsa`.
-      - **NOTE**: When support for publicly trusted TSA is available, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
+    - **NOTE**: When support for publicly trusted TSA is available, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
   - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
 
 #### Signature Verification details
 
- - Signature verification is a multi step process performs the following validations 
-    - integrity (artifact is unaltered, signature is not corrupted)
-    - authenticity (the signature is really from the identity that claims to have signed it)
-    - trusted timestamping (the signature was generated when the key/certificate were unexpired)
-    - expiry (an optional check if the artifact specifies an expiry time)
-    - revocation check (is the signing identity still trusted at the present time). 
- - Based on the signature verification level, each of these validations is *enforced* or *logged*. 
-    - If a validation is *enforced*, a failure is treated as critical failure, and causes the overall signature verification to fail.
-    - If a validation is *logged*, a failure causes details to be logged, and the next validation is evaluated till all validations succeed or a critical failure is encountered. 
+- Signature verification is a multi step process performs the following validations
+  - integrity (artifact is unaltered, signature is not corrupted)
+  - authenticity (the signature is really from the identity that claims to have signed it)
+  - trusted timestamping (the signature was generated when the key/certificate were unexpired)
+  - expiry (an optional check if the artifact specifies an expiry time)
+  - revocation check (is the signing identity still trusted at the present time).
+- Based on the signature verification level, each of these validations is *enforced* or *logged*.
+  - If a validation is *enforced*, a failure is treated as critical failure, and causes the overall signature verification to fail.
+  - If a validation is *logged*, a failure causes details to be logged, and the next validation is evaluated till all validations succeed or a critical failure is encountered.
 - Implementations may change the ordering of these validations based on efficiency, but all validation MUST be performed till the first critical failure is encountered, or all validation succeed, for the overall signature verification process to be considered complete.
 
  Notary v2 defines the following signature verification levels to provide different levels of enforcement for different scenarios.

@@ -256,12 +256,12 @@ This is an optional feature that provides a “best by use” time for the artif
 ### Signature Portability
 
 Portability of signatures is associated with the portability of associated artifacts which are being signed.
-OCI artifacts are inherently location agnostic, artifacts can be pulled from and pushed to any OCI compliant registry to which a user has access. 
+OCI artifacts are inherently location agnostic, artifacts can be pulled from and pushed to any OCI compliant registry to which a user has access.
 The artifacts themselves can be classified as follow.
 
-1. *Public Artifacts* -  Artifacts that are distributed publicly for broad consumption. 
-Artifacts distributed via public registries fall in this category. 
-E.g. Public images for software distributed by software vendors, and open source projects. 
+1. *Public Artifacts* -  Artifacts that are distributed publicly for broad consumption.
+Artifacts distributed via public registries fall in this category.
+E.g. Public images for software distributed by software vendors, and open source projects.
 Signatures associated with these artifacts require broad portability.
 1. *Private Artifacts* - Artifacts that are private to a user or organization, and may be shared with limited parties.
 E.g. Images for containerized applications and services used within an organization, or shared with limited authorized parties.
