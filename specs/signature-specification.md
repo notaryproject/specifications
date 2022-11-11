@@ -346,20 +346,20 @@ The leaf or end certificates MUST meet the following requirements
 1. **[Basic Constraints:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)**
 The `basicConstraints` extension is OPTIONAL and can OPTIONALLY be marked as critical. If present, the `cA` field MUST be set to `false`.
 1. **[Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)**
-The `keyUsage` extension MUST be present and MUST be marked critical. Bit positions for `digitalSignature` MUST be set. The Bit positions for `keyCertSign` and `cRLSign` MUST NOT be set.
+The `keyUsage` extension MUST be present and MUST be marked critical. Bit positions for `digitalSignature` MUST be set. The Bit positions for `keyEncipherment`, `dataEncipherment`, `keyAgreement`, `keyCertSign`, `encipherOnly`, `decipherOnly` and `cRLSign` MUST NOT be set.
 1. **[Extended Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)**  The `extendedKeyUsage` extension is OPTIONAL and can OPTIONALLY be marked as critical.
-    - **For codesigning certificate:** If present, the value MUST contain `id-kp-codeSigning` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `emailProtection` and `timeStamping`.
-    - **For timestamping certificate:** If present, the value MUST contain `id-kp-timeStamping` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `emailProtection` and `codeSigning`.
+    - **For signing certificate:** If present, the value MAY contain `id-kp-codeSigning` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `clientAuth`, `emailProtection` and `timeStamping`.
+    - **For timestamping certificate:** If present, the value MUST contain `id-kp-timeStamping` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `clientAuth`, `emailProtection` and `codeSigning`.
 1. **Key Length** The certificate MUST abide by the following key length restrictions:
     - For RSA public key, the key length MUST be 2048 bits or higher.
     - For ECDSA public key, the key length MUST be 256 bits or higher.
 
 #### Other requirements
 
+1. Valid certificate chain MUST contain a root certificate. If the certificate chain contains only a root certificate then the root certificate MUST meet [Leaf Certificates](#leaf-certificates) requirements and ignore [Root and Intermediate CA Certificates](#root-and-intermediate-ca-certificates) requirements.
 1. The certificates in the signature MUST be ordered list of X.509 certificate or certificate chain i.e. the certificate containing the public key used to digitally sign the payload must be the first certificate, followed by the intermediate and root certificates in the correct order. This also means
     - The certificate MUST NOT chain to multiple parents/roots.
     - The certificate chain MUST NOT contain a certificate that is unrelated to the certificate chain.
-1. A valid certificate chain MUST contain a minimum of two certificates - a leaf and a root certificate.
 1. Any certificate in the certificate chain MUST NOT use SHA1WithRSA and ECDSAWithSHA1 signatures.
 1. Only Basic Constraints, Key Usage, and Extended Key Usage extensions of X.509 certificates are honored. For rest of the extensions, Notary MUST fail open i.e. they MUST NOT be evaluated or honored.
 1. The certificates in the certificate chain MUST be valid at signing time. Notary MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
@@ -392,12 +392,12 @@ This is an optional feature that provides a “best by use” time for the artif
 ### Signature Portability
 
 Portability of signatures is associated with the portability of associated artifacts which are being signed.
-OCI artifacts are inherently location agnostic, artifacts can be pulled from and pushed to any OCI compliant registry to which a user has access. 
+OCI artifacts are inherently location agnostic, artifacts can be pulled from and pushed to any OCI compliant registry to which a user has access.
 The artifacts themselves can be classified as follow.
 
-1. *Public Artifacts* -  Artifacts that are distributed publicly for broad consumption. 
-Artifacts distributed via public registries fall in this category. 
-E.g. Public images for software distributed by software vendors, and open source projects. 
+1. *Public Artifacts* -  Artifacts that are distributed publicly for broad consumption.
+Artifacts distributed via public registries fall in this category.
+E.g. Public images for software distributed by software vendors, and open source projects.
 Signatures associated with these artifacts require broad portability.
 1. *Private Artifacts* - Artifacts that are private to a user or organization, and may be shared with limited parties.
 E.g. Images for containerized applications and services used within an organization, or shared with limited authorized parties.

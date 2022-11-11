@@ -31,6 +31,7 @@ Plugin publisher will provide instructions to download and install the plugin. P
 **Open Item** : [Plugin install paths](https://github.com/notaryproject/notation/issues/167)
 
 To enumerate all available plugins the following paths are scanned:
+
 * Unix-like OSes:
   * `$HOME/notation/plugins`
 * On Windows:
@@ -344,7 +345,7 @@ This interface targets plugins that in addition to signature generation want to 
 1. Determine if the registered key uses a plugin
 1. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE`
-        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded [Notary v2 Payload](../signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/vnd.cncf.notary.v2.jws.v1` for JWS).
+        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded [Notary v2 Payload](../signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/jose+json` for JWS).
         2. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match `request.signatureEnvelopeType`.
         3. Validate the generated signature, return an error if of the checks fails.
            1. Check if `response.signatureEnvelopeType` is a supported envelope type and `response.signatureEnvelope`'s format matches `response.signatureEnvelopeType`.
@@ -380,7 +381,7 @@ All request attributes are required.
   "payloadType" : "application/vnd.cncf.notary.payload.v1+json",
   
   // The expected response signature envelope
-  "signatureEnvelopeType" : "application/vnd.cncf.notary.v2.jws.v1"
+  "signatureEnvelopeType" : "application/jose+json"
 }
 ```
 
@@ -388,8 +389,8 @@ All request attributes are required.
 
 *pluginConfig* : Optional field for plugin configuration. For details, see [Plugin Configuration section](#plugin-configuration).
 
-*signatureEnvelopeType* - defines the type of signature envelope expected from the plugin. As  Notation clients need to be updated in order to parse and verify new signature formats, the default signature format can only be changed with new major version releases of Notation. Users however can opt into using an updated signature format supported by Notation, by passing an optional parameter.
-e.g. `notation sign $IMAGE --key {key-name} --signatureFormat {some-new-format}`
+*signatureEnvelopeType* - defines the type of signature envelope expected from the plugin. As  Notation clients need to be updated in order to parse and verify new signature formats, the default signature format can only be changed with new major version releases of Notation. Users however can opt into using an updated signature envelope format supported by Notation, by passing an optional parameter.
+e.g. `notation sign $IMAGE --key {key-name} --envelope-type {some-new-type}`
 
 *Response*
 All response attributes are required.
@@ -397,7 +398,7 @@ All response attributes are required.
 ```jsonc
 {
    "signatureEnvelope": "<Base64 encoded signature envelope>",
-   "signatureEnvelopeType" : "application/vnd.cncf.notary.v2.jws.v1",
+   "signatureEnvelopeType" : "application/jose+json",
    
   // Annotations to be appended to Signature Manifest annotations
   "annotations" : {
