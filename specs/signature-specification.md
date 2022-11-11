@@ -8,17 +8,17 @@ This document provides the following details for Notary v2 signatures:
 ## Storage
 
 This section describes how Notary v2 signatures are stored in the OCI Distribution conformant registry.
-Notary v2 uses [ORAS artifact manifest][oras-artifact-manifest] to store the signature in the repository.
-The media type of the signature manifest is `application/vnd.cncf.oras.artifact.manifest.v1+json`.
+Notary v2 uses [OCI artifact manifest][oci-artifact-manifest] to store the signature in the repository.
+The media type of the signature manifest is `application/vnd.oci.artifact.manifest.v1+json`.
 The signature manifest has an artifact type that specifies it's a Notary V2 signature, a reference to the manifest of the artifact being signed, a blob referencing the signature, and a collection of annotations.
 
-![Signature storage inside registry](media/signature-specification.svg)
+![Signature storage inside registry](../media/signature-specification.svg)
 
-Signature Manifest Example
+Signature Manifest Example per OCI artifact manifest
 
 ```jsonc
 {
-    "mediaType": "application/vnd.cncf.oras.artifact.manifest.v1+json",
+    "mediaType": "application/vnd.oci.artifact.manifest.v1+json",
     "artifactType": "application/vnd.cncf.notary.signature",
     "blobs": [
         {
@@ -40,21 +40,65 @@ Signature Manifest Example
 ```
 
 - **`artifactType`** (*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.signature`.
-- **`blobs`** (*array of objects*): This REQUIRED property contains collection of only one [artifact descriptor][artifact-descriptor] referencing signature envelope.
+- **`blobs`** (*array of objects*): This REQUIRED property contains collection of only one [OCI descriptor][oci-descriptor] referencing signature envelope.
   - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
     - `application/jose+json`
-- **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, oras-artifact manifest.
+    - `application/cose`
+- **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, OCI artifact manifest.
 - **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest.
   It is being used to store information about the signature.
   Keys using the `io.cncf.notary` namespace are reserved for use in Notary and MUST NOT be used by other specifications.
   - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain (including root) used for signature generation. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
     The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope.
 
+Notary v2 supports using [OCI image manifest][oci-image-manifest] to store the signature in the repository that doesn't support [OCI artifact manifest][oci-artifact-manifest].
+
+Signature Manifest Example per OCI image manifest
+
+```jsonc
+{
+    "schemaVersion": 2,
+    "mediaType": "application/vnd.oci.artifact.manifest.v1+json",
+    "config": {
+      "mediaType": "application/vnd.cncf.notary.signature",
+      "size": 2,
+      "digest": "sha256:b5b2b2c507a0944348e0303114d8d93aaaa081732b86451d9bce1f432a537bc7"
+    },
+    "layers": [
+        {
+            "mediaType": "application/jose+json",
+            "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+            "size": 32654
+        }
+    ],
+    "subject": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+        "size": 16724
+    },
+    "annotations": {
+        "io.cncf.notary.x509chain.thumbprint#S256": 
+        "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\",\"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+    }
+}
+```
+
+- **`config`** (*array of objects*): This descriptor is REQUIRED by OCI image manifest. No config object is required by Notary v2 signatures.
+  - **`mediaType`** (*string*): This REQUIRED property contains the Notary version of the signature: `application/vnd.cncf.notary.signature`. The value is equivalent to the value used in the `artifactType` in OCI artifact manifest.
+  - **`digest`** (*string*): This REQUIRED property contains dummy data.
+  - **`size`** (*int64*): This REQUIRED property contains dummy data.
+- **`layers`** (*array of objects*): This REQUIRED property contains collection of only one [OCI descriptor][oci-descriptor] referencing signature envelope.
+  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
+    - `application/jose+json`
+    - `application/cose`
+- **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, OCI artifact manifest.
+- **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the manifest. It is the same information stored as signature manifest per OCI artifact manifest.
+
 ### Signature Discovery
 
-The client should be able to discover all the signatures belonging to an artifact (such as image manifest) by using [ORAS Manifest Referrers API][oras-artifacts-referrers].
-ORAS Manifest Referrers API returns a paginated list of all artifacts belonging to a target artifact (such as container images, SBoMs).
-The implementation can filter Notary signature artifacts by either using ORAS Manifest Referrers API or using custom logic on the client.
+The client should be able to discover all the signatures belonging to an artifact (such as image manifest) by using [OCI Distribution Referrers API][oci-distribution-referrers].
+OCI Distribution Referrers API returns a paginated list of all artifacts belonging to a target artifact (such as container images, SBoMs).
+The implementation can filter Notary signature artifacts by either using OCI Distribution Referrers API or using custom logic on the client.
 Each Notary signature artifact refers to a signature envelope blob.
 
 ### Signature Filtering
@@ -84,7 +128,7 @@ Notary v2 supports the following envelope formats:
 
 Notary v2 payload is a JSON document with media type `application/vnd.cncf.notary.payload.v1+json` and has following properties.
 
-- `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed. Both [OCI descriptor][oci-descriptor] and [ORAS artifact descriptors][artifact-descriptor] are supported.
+- `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed. [OCI descriptor][oci-descriptor] is supported.
   - Descriptor MUST contain `mediaType`, `digest`, `size` fields.
   - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. Notary v2 uses annotations for storing both Notary specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary v2 and MUST NOT be used outside this specification.
   - Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
@@ -272,7 +316,7 @@ Based on user requirements a private artifact can have different levels of porta
 **Signature discovery**
 
 Notary v2 addressed signature discovery by storing signatures in the same registry (location) where an artifact is present.
-This is supported through [ORAS artifact spec](https://github.com/oras-project/artifacts-spec/blob/main/manifest-referrers-api.md) which allows reference artifacts such as signatures, SBOMs to be associated with existing artifacts like Images.
+This is supported through [OCI Distribution Referrers API][oci-distribution-referrers] which allows reference artifacts such as signatures, SBOMs to be associated with existing artifacts like Images.
 Notary v2 allows multiple signatures to be associated with an artifact, and clients may automatically push signatures for an artifact to a destination registry when a signed artifact moves from one registry to other.
 
 **Verification requirements**
@@ -303,7 +347,7 @@ Alternatively, an implementation of Notary v2 can choose not to implement plugin
 
 [annotation-rules]: https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules
 [oci-descriptor]: https://github.com/opencontainers/image-spec/blob/main/descriptor.md
-[artifact-descriptor]: https://github.com/oras-project/artifacts-spec/blob/main/descriptor.md
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
-[oras-artifact-manifest]: https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
-[oras-artifacts-referrers]: https://github.com/oras-project/artifacts-spec/blob/main/manifest-referrers-api.md
+[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/main/manifest.md
+[oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/main/artifact.md
+[oci-adistribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers
