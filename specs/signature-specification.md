@@ -51,49 +51,6 @@ Signature Manifest Example per OCI artifact manifest
   - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain (including root) used for signature generation. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
     The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope.
 
-Notary v2 supports using [OCI image manifest][oci-image-manifest] to store the signature in the repository that doesn't support [OCI artifact manifest][oci-artifact-manifest].
-
-Signature Manifest Example per OCI image manifest
-
-```jsonc
-{
-    "schemaVersion": 2,
-    "mediaType": "application/vnd.oci.artifact.manifest.v1+json",
-    "config": {
-      "mediaType": "application/vnd.cncf.notary.signature",
-      "size": 2,
-      "digest": "sha256:b5b2b2c507a0944348e0303114d8d93aaaa081732b86451d9bce1f432a537bc7"
-    },
-    "layers": [
-        {
-            "mediaType": "application/jose+json",
-            "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
-            "size": 32654
-        }
-    ],
-    "subject": {
-        "mediaType": "application/vnd.oci.image.manifest.v1+json",
-        "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-        "size": 16724
-    },
-    "annotations": {
-        "io.cncf.notary.x509chain.thumbprint#S256": 
-        "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\",\"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
-    }
-}
-```
-
-- **`config`** (*array of objects*): This descriptor is REQUIRED by OCI image manifest. No config object is required by Notary v2 signatures.
-  - **`mediaType`** (*string*): This REQUIRED property contains the Notary version of the signature: `application/vnd.cncf.notary.signature`. The value is equivalent to the value used in the `artifactType` in OCI artifact manifest.
-  - **`digest`** (*string*): This REQUIRED property contains dummy data.
-  - **`size`** (*int64*): This REQUIRED property contains dummy data.
-- **`layers`** (*array of objects*): This REQUIRED property contains collection of only one [OCI descriptor][oci-descriptor] referencing signature envelope.
-  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
-    - `application/jose+json`
-    - `application/cose`
-- **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, OCI artifact manifest.
-- **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the manifest. It is the same information stored as signature manifest per OCI artifact manifest.
-
 ### Signature Discovery
 
 The client should be able to discover all the signatures belonging to an artifact (such as image manifest) by using [OCI Distribution Referrers API][oci-distribution-referrers].
@@ -128,7 +85,7 @@ Notary v2 supports the following envelope formats:
 
 Notary v2 payload is a JSON document with media type `application/vnd.cncf.notary.payload.v1+json` and has following properties.
 
-- `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed. [OCI descriptor][oci-descriptor] is supported.
+- `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed. Only [OCI descriptor][oci-descriptor] is supported.
   - Descriptor MUST contain `mediaType`, `digest`, `size` fields.
   - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. Notary v2 uses annotations for storing both Notary specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary v2 and MUST NOT be used outside this specification.
   - Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
@@ -348,6 +305,5 @@ Alternatively, an implementation of Notary v2 can choose not to implement plugin
 [annotation-rules]: https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules
 [oci-descriptor]: https://github.com/opencontainers/image-spec/blob/main/descriptor.md
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
-[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/main/manifest.md
 [oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/main/artifact.md
 [oci-adistribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers
