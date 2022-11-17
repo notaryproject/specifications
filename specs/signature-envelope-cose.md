@@ -37,6 +37,21 @@ Signature Manifest Example
 
 The COSE envelope contains a [Notary v2 Payload](./signature-specification.md#payload).
 
+Example of Notary v2 payload:
+
+```jsonc
+{
+  "targetArtifact": {
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+    "size": 16724,
+    "annotations": {
+        "io.wabbit-networks.buildId": "123"  // user defined metadata
+    }
+  }
+}
+```
+
 ## Protected Header
 
 The COSE envelope for Notary v2 uses the following header parameters:
@@ -90,9 +105,9 @@ Note: The above examples are represented using the [extended CBOR diagnostic not
 - **[`crit`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)** (*array of int/tstr*): This REQUIRED parameter (label `2`) lists the header parameters that implementations MUST understand and process. It MUST only contain parameters apart from integer labels in the range of 0 to 8. This header MUST contain `io.cncf.notary.signingScheme` which is a required critical header, and optionally contain `io.cncf.notary.authenticSigningTime` and `io.cncf.notary.expiry` if these critical headers are present in the signature.
 - **[`content type`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)** (*tstr*): The REQUIRED parameter content type (label `3`) is used to declare the media type of the secured content (the payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`.
 - **`io.cncf.notary.signingScheme`** (*tstr*, critical): This REQUIRED header specifies the [Notary v2 Signing Scheme](./signing-scheme.md) used by the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
-- **`io.cncf.notary.signingTime`** (*date/time*): This header specifies the time at which the signature was generated. This is an untrusted date/time, and therefore not used in trust decisions. Its value is an Epoch-Based Date/Time defined in [RFC 8949](https://datatracker.ietf.org/doc/html/rfc8949#section-3.4.2). This claim is REQUIRED and only valid when signing scheme is `notary.x509`.
-- **`io.cncf.notary.authenticSigningTime`** (*date/time*, critical): This header specifies the authenticated time at which the signature was generated. Its value is an Epoch-Based Date/Time defined in [RFC 8949](https://datatracker.ietf.org/doc/html/rfc8949#section-3.4.2). This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority` .
-- **`io.cncf.notary.expiry`** (*date/time*, critical): This OPTIONAL header provides a "best by use" time for the artifact, as defined by the signer. Its value is an Epoch-Based Date/Time defined in [RFC 8949](https://datatracker.ietf.org/doc/html/rfc8949#section-3.4.2).
+- **`io.cncf.notary.signingTime`** (*date/time*): This header specifies the time at which the signature was generated. This is an untrusted date/time, and therefore not used in trust decisions. Its value is an Epoch-Based Date/Time defined in [RFC 8949](https://datatracker.ietf.org/doc/html/rfc8949#section-3.4.2). The optional fractional seconds SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509`.
+- **`io.cncf.notary.authenticSigningTime`** (*date/time*, critical): This header specifies the authenticated time at which the signature was generated. Its value is an Epoch-Based Date/Time defined in [RFC 8949](https://datatracker.ietf.org/doc/html/rfc8949#section-3.4.2). The optional fractional seconds SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority` .
+- **`io.cncf.notary.expiry`** (*date/time*, critical): This OPTIONAL header provides a "best by use" time for the artifact, as defined by the signer. Its value is an Epoch-Based Date/Time defined in [RFC 8949](https://datatracker.ietf.org/doc/html/rfc8949#section-3.4.2). The optional fractional seconds SHOULD NOT be used.
 
 ## Unprotected Headers
 
@@ -128,7 +143,7 @@ In COSE, signature is calculated by constructing the `Sig_structure` for `COSE_S
 The process is described below:
 
 1. Encode the protected header into a CBOR object as a byte string named `body_protected`.
-2. Construct the `Sig_structure` for `COSE_Sign1`.
+2. Construct the `Sig_structure` for `COSE_Sign1`. The field `context` is set to `Signature1` for `COSE_Sign1` as specified by [RFC9052](https://www.rfc-editor.org/rfc/rfc9052.html#section-4.4).
     ```yaml
     Sig_structure = [
         / context / 'Signature1',
@@ -138,7 +153,7 @@ The process is described below:
     ]
     ```
 3. Encode `Sig_structure` into a CBOR object as a byte string named `ToBeSigned`.
-4. Compute the signature on the `ToBeSigned` constructed in the previous step by using the signature algorithm defined in the corresponding header element: `alg`.
+4. Compute the signature on the `ToBeSigned` constructed in the previous step by using the signature algorithm of the signing key, which MUST match the corresponding protected header element `alg`.
    This is the value of the signature property used in the signature envelope.
 
 ## Signature Envelope
