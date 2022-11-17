@@ -143,7 +143,7 @@ In COSE, signature is calculated by constructing the `Sig_structure` for `COSE_S
 The process is described below:
 
 1. Encode the protected header into a CBOR object as a byte string named `body_protected`.
-2. Construct the `Sig_structure` for `COSE_Sign1`. Refer [RFC9052](https://www.rfc-editor.org/rfc/rfc9052.html#section-4.4) for the fields of the `Sig_structure`.
+2. Construct the `Sig_structure` for `COSE_Sign1`. The field `context` is set to `Signature1` for `COSE_Sign1` as specified by [RFC9052](https://www.rfc-editor.org/rfc/rfc9052.html#section-4.4).
     ```yaml
     Sig_structure = [
         / context / 'Signature1',
