@@ -306,4 +306,4 @@ Alternatively, an implementation of Notary v2 can choose not to implement plugin
 [oci-descriptor]: https://github.com/opencontainers/image-spec/blob/main/descriptor.md
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
 [oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/main/artifact.md
-[oci-adistribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers
+[oci-distribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers
