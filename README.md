@@ -28,7 +28,7 @@ Additional details for Notary v2 efforts:
 ![Notary v2 scenarios](./media/notary-e2e-scenarios.svg)
 
 Notary v2 provides for multiple signatures of an [OCI Artifact][oci-artifacts] (including container images) to be persisted in an [OCI conformant][oci-distribution-conformance] registry.
-Artifacts are signed (`nv2 sign`) with private keys, and validated with public keys (`nv2 verify`).
+Artifacts are signed (`notation sign`) with private keys, and validated with public keys (`notation verify`).
 To support user deployment flows, signing an OCI Artifact will not change the `@digest` or `artifact:tag` reference.
 To support content movement across multiple certification boundaries, artifacts and their signatures will be easily copied within and across [OCI conformant][oci-distribution-conformance] registries.
 
@@ -43,7 +43,7 @@ Notary v2 aims to solve the intra and cross registry signing & validating scenar
 ```bash
 docker build -t registry.wabbit-networks.io/net-monitor:v1 .
 
-nv2 sign \
+notation sign \
   -k wabbit-networks.key \
   -r registry.wabbit-networks.io/net-monitor:v1
 
@@ -52,10 +52,10 @@ docker push registry.wabbit-networks.io/net-monitor:v1
 
 On another node, verify the signature before deployment.
 
-_**Note**: the `nv2 verify` command is shown external to the docker client to demonstrate validation, which may be added to any container runtime, including containerd._
+_**Note**: the `notation verify` command is shown external to the docker client to demonstrate validation, which may be added to any container runtime, including containerd._
 
 ```bash
-nv2 verify \
+notation verify \
   -k wabbit-networks.key \
   -r registry.wabbit-networks.io/net-monitor:v1
 
@@ -76,7 +76,7 @@ docker push registry.acme-rockets.io/net-monitor:v1
 **Copy a container image to a private registry, verifying the source then adding a verification signature**:
 
 ```bash
-nv2 verify \
+notation verify \
   -k wabbit-networks.key \
   -r registry.wabbit-networks.io/net-monitor:v1
 
@@ -87,7 +87,7 @@ docker pull registry.wabbit-networks.io/net-monitor:v1
 docker tag registry.wabbit-networks.io/net-monitor:v1 \
   registry.acme-rockets.io/net-monitor:v1
 
-nv2 sign \
+notation sign \
   -k acme-rockets.key \
   -r registry.acme-rockets.io/net-monitor:v1
 
@@ -193,7 +193,7 @@ Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWru
 [nv2-notes]:                    https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw
 [nv2-requirements]:             ./requirements.md
 [nv2-scenarios]:                ./scenarios.md
-[nv2-signature-spec]:           https://github.com/notaryproject/nv2/tree/prototype-1/docs/signature
+[nv2-signature-spec]:           https://github.com/notaryproject/notation/tree/prototype-1/docs/signature
 [nv2-threat-model]:             ./threatmodel.md
 [nv2-key-management]:           https://github.com/notaryproject/requirements/pull/38/
 [nv2-distribution-spec]:        https://github.com/opencontainers/artifacts/pull/29
