@@ -80,6 +80,7 @@ This specification defines the set of signed and unsigned attributes that make u
 Notary v2 supports the following envelope formats:
 
 - [JWS](./signature-envelope-jws.md)
+- [COSE Sign1](./signature-envelope-cose.md)
 
 ### Payload
 
@@ -242,7 +243,9 @@ The client implementation can use the aforementioned `mediaType` to parse the si
 **Q: How will Notary v2 support multiple payload formats?**
 
 **A:** The Signature envelope MUST have a versioning mechanism to support multiple payload formats.
-For [JWS JSON serialization](./signature-envelope-jwt.md) signature envelope, versioning is achieved by the `cty` field in ProtectedHeaders.
+
+- For [JWS JSON serialization](./signature-envelope-jwt.md) signature envelope, versioning is achieved by the `cty` field in ProtectedHeaders.
+- For [COSE_Sign1_Tagged](./signature-envelope-cose.md) signature envelope, versioning is achieved by the `content type` (label: `3`) field in ProtectedHeaders.  
 
 ## Appendix
 
