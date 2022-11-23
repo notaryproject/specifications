@@ -375,6 +375,9 @@ All request attributes are required.
   // Optional plugin configuration, map of string-string
   "pluginConfig" : { },
 
+  // Optional signature expiry duration in seconds, number
+  "expiryDurationInSeconds" : 1234567,
+
   "payload" : "<Base64 encoded payload to be signed>",
   
   // The type of payload - currently a descriptor
@@ -388,6 +391,8 @@ All request attributes are required.
 *keyId* : Required field that has the key identifier (`keyId`) associated with signing key `keyName` in `config.json`.
 
 *pluginConfig* : Optional field for plugin configuration. For details, see [Plugin Configuration section](#plugin-configuration).
+
+*expiryDurationInSeconds* : Optional field which contains signature expiry duration(in seconds) as integer number.
 
 *signatureEnvelopeType* - defines the type of signature envelope expected from the plugin. As  Notation clients need to be updated in order to parse and verify new signature formats, the default signature format can only be changed with new major version releases of Notation. Users however can opt into using an updated signature envelope format supported by Notation, by passing an optional parameter.
 e.g. `notation sign $IMAGE --key {key-name} --envelope-type {some-new-type}`
