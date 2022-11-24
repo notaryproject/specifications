@@ -12,7 +12,7 @@ Signature Manifest Example
 
 ```jsonc
 {
-    "mediaType": "application/vnd.cncf.oras.artifact.manifest.v1+json",
+    "mediaType": "application/vnd.oci.artifact.manifest.v1+json",
     "artifactType": "application/vnd.cncf.notary.signature",
     "blobs": [
         {
@@ -77,8 +77,8 @@ Example with Signing Scheme `notary.x509`
   ],
   / cty / 3: 'application/vnd.cncf.notary.payload.v1+json',
   'io.cncf.notary.signingScheme': 'notary.x509',
-  'io.cncf.notary.signingTime': 1234567890,
-  'io.cncf.notary.expiry': 1234567891
+  'io.cncf.notary.signingTime': 1(1667411812),
+  'io.cncf.notary.expiry': 1(1667415412)
 }
 ```
 
@@ -94,8 +94,8 @@ Example with Signing Scheme `notary.x509.signingAuthority`
   ],
   / cty / 3: 'application/vnd.cncf.notary.payload.v1+json',
   'io.cncf.notary.signingScheme': 'notary.x509.signingAuthority',
-  'io.cncf.notary.authenticSigningTime': 1234567890,
-  'io.cncf.notary.expiry': 1234567891
+  'io.cncf.notary.authenticSigningTime': 1(1667411812),
+  'io.cncf.notary.expiry': 1(1667415412)
 }
 ```
 
@@ -171,8 +171,8 @@ The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of Payl
       ],
       / cty / 3: 'application/vnd.cncf.notary.payload.v1+json',
       'io.cncf.notary.signingScheme': 'notary.x509.signingAuthority',
-      'io.cncf.notary.authenticSigningTime': 1234567890,
-      'io.cncf.notary.expiry': 1234567891
+      'io.cncf.notary.authenticSigningTime': 1(1667411812),
+      'io.cncf.notary.expiry': 1(1667415412)
     } >>,
     / unprotected / {
       / x5chain / 33: [
