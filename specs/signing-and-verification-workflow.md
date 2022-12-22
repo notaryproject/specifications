@@ -26,7 +26,6 @@ The user wants to sign an OCI artifact and push the signature to a repository.
 1. **Push signature artifact manifest:** Push Notary v2 signature artifact manifest to the repository.
 
 The user pushes the OCI artifact to the repository before the signature generation process as the signature reference must exist for the signature push to succeed.
-See: [ORAS Artifact Push Validation](https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md#push-validation) for more info.
 
 ## Verification workflow
 
@@ -38,15 +37,14 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
   If the fully qualified artifact reference contains a tag then the user needs to resolve this tag to a digest.
   E.g. If a fully qualified reference is `wabbit-networks.io/software:latest` where `latest` is a tag pointing to an artifact.
   The user must resolve the `latest` tag to a digest and construct a new artifact reference using the resolved digest `wabbit-networks.io/software@sha256:${digest}`.
-- User has configured [trust store and trust policy](./trust-store-trust-policy-specification.md) required for signature verification.
+- User has configured [trust store and trust policy](./trust-store-trust-policy.md) required for signature verification.
 
 ### Verification Steps
 
-1. **Should Notary v2 verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy-specification.md#trust-policy) configuration, determine whether Notary v2 needs to verify the signature or not.
+1. **Should Notary v2 verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#trust-policy) configuration, determine whether Notary v2 needs to verify the signature or not.
    If signature verification should be skipped for the given artifact, skip the below steps and directly jump to step 4.
-1. **Get signature artifact descriptors:** Using the ORAS [Manifest Referrers API](https://github.com/oras-project/artifacts-spec/blob/main/manifest-referrers-api.md) download the Notary v2 signature artifact descriptors.
-   The  `artifactType` parameter is set to Notary v2 signature's artifact type `application/vnd.cncf.notary.v2.signature`.
-   Note that all ORAS implementations may not support filtering using `artifactType`.
+1. **Get signature artifact descriptors:** Using the [OCI Distribution Referrers API](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers) download the Notary v2 signature artifact descriptors.
+   The  `artifactType` parameter is set to Notary v2 signature's artifact type `application/vnd.cncf.notary.signature`.
 1. For each signature artifact descriptor, perform the following steps:
     1. **Get signature artifact manifest:** Download the Notary v2 signature's artifact manifest for the given artifact descriptor.
     1. **Filter signature artifact manifest:**
@@ -63,7 +61,7 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
     1. **Get and verify signatures:** On the filtered Notary v2 signature artifact manifest, perform the following steps:
         1. Download the signature envelope.
-        1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy-specification.md#signature-evaluation) section.
+        1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
         1. If the signature verification fails, skip the below steps and move to the next signature artifact descriptor(step 3.1).
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
         1. If signature verification succeeds, compare the digest derived from the given OCI artifact reference with the signed digest present in the signature envelope's payload.
