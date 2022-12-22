@@ -244,7 +244,7 @@ The client implementation can use the aforementioned `mediaType` to parse the si
 
 **A:** The Signature envelope MUST have a versioning mechanism to support multiple payload formats.
 
-- For [JWS JSON serialization](./signature-envelope-jwt.md) signature envelope, versioning is achieved by the `cty` field in ProtectedHeaders.
+- For [JWS JSON serialization](./signature-envelope-jws.md) signature envelope, versioning is achieved by the `cty` field in ProtectedHeaders.
 - For [COSE_Sign1_Tagged](./signature-envelope-cose.md) signature envelope, versioning is achieved by the `content type` (label: `3`) field in ProtectedHeaders.  
 
 ## Appendix
@@ -297,7 +297,7 @@ Similarly, Notary v2 compliant plugin vendors should be aware that usage of exte
 
 ### Guidelines for Notary v2 Implementors
 
-Implementations of Notary v2, can choose to be [Notation plugin protocol](./specs/plugin-extensibility.md#plugin-contract) aware or not. If an implementation chooses to be plugin protocol aware, and it encounters the Verification Plugin and Verification Plugin minimum version attributes during signature verification, it MUST process these attributes. This involves finding the appropriate plugin and the version to use, and executing `verify-signature` plugin command with correct inputs and processing the plugin response, as per the [Verification Plugin interface](../specs/../notaryproject-specs/specs/plugin-extensibility.md#verification-extensibility).
+Implementations of Notary v2, can choose to be [Notation plugin protocol](./plugin-extensibility.md#plugin-contract) aware or not. If an implementation chooses to be plugin protocol aware, and it encounters the Verification Plugin and Verification Plugin minimum version attributes during signature verification, it MUST process these attributes. This involves finding the appropriate plugin and the version to use, and executing `verify-signature` plugin command with correct inputs and processing the plugin response, as per the [Verification Plugin interface](./plugin-extensibility.md#verification-extensibility).
 
 Alternatively, an implementation of Notary v2 can choose not to implement plugin protocol.
 
