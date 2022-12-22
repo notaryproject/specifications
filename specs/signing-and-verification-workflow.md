@@ -44,7 +44,7 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
 1. **Should Notary v2 verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#trust-policy) configuration, determine whether Notary v2 needs to verify the signature or not.
    If signature verification should be skipped for the given artifact, skip the below steps and directly jump to step 4.
 1. **Get signature artifact descriptors:** Using the [OCI Distribution Referrers API](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers) download the Notary v2 signature artifact descriptors.
-   The  `artifactType` parameter is set to Notary v2 signature's artifact type `application/vnd.cncf.notary.signature`.
+   The `artifactType` parameter is set to Notary v2 signature's artifact type `application/vnd.cncf.notary.signature`.
 1. For each signature artifact descriptor, perform the following steps:
     1. **Get signature artifact manifest:** Download the Notary v2 signature's artifact manifest for the given artifact descriptor.
     1. **Filter signature artifact manifest:**
