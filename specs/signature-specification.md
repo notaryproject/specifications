@@ -8,7 +8,7 @@ This document provides the following details for Notary v2 signatures:
 ## Storage
 
 This section describes how Notary v2 signatures are stored in the OCI Distribution conformant registry.
-Notary v2 uses [OCI artifact manifest][oci-artifact-manifest] to store the signature in the repository.
+Notary v2 uses [OCI artifact manifest][oci-artifact-manifest] to store the signature in the registry.
 The media type of the signature manifest is `application/vnd.oci.artifact.manifest.v1+json`.
 The signature manifest has an artifact type that specifies it's a Notary V2 signature, a reference to the manifest of the artifact being signed, a blob referencing the signature, and a collection of annotations.
 
@@ -41,6 +41,55 @@ Signature Manifest Example per OCI artifact manifest
 
 - **`artifactType`** (*string*): This REQUIRED property references the Notary version of the signature: `application/vnd.cncf.notary.signature`.
 - **`blobs`** (*array of objects*): This REQUIRED property contains collection of only one [OCI descriptor][oci-descriptor] referencing signature envelope.
+  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
+    - `application/jose+json`
+    - `application/cose`
+- **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, OCI artifact manifest.
+- **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest.
+  It is being used to store information about the signature.
+  Keys using the `io.cncf.notary` namespace are reserved for use in Notary and MUST NOT be used by other specifications.
+  - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain (including root) used for signature generation. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
+    The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope.
+
+### Backwards Compatibility
+
+Notary v2 MAY support using [OCI Image manifest][oci-image-manifest] to store the signature in the registries that implement partial or older versions of the OCI Image specification.
+
+Signature Manifest example per OCI Image manifest:
+
+```jsonc
+{
+    "schemaVersion": 2,
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "config": {
+        "mediaType": "application/vnd.oci.image.config.v1+json",
+        "size": 2,
+        "digest": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+    },
+    "layers": [
+        {
+            "mediaType": "application/jose+json",
+            "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+            "size": 32654
+        }
+    ],
+    "subject": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+        "size": 16724
+    },
+    "annotations": {
+        "io.cncf.notary.x509chain.thumbprint#S256": 
+        "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\",\"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+    }
+}
+```
+
+Besides the [image manifest property requirements][image-manifest-property-descriptions], the properties has the following additional restrictions:
+
+- **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.oci.image.manifest.v1+json`.
+- **`config`** (*descriptor*): This REQUIRED property references a configuration object for a signature by digest.
+- **`layers`** (*array of objects*): This REQUIRED property contains collection of only one [OCI descriptor][oci-descriptor] referencing signature envelope.
   - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
     - `application/jose+json`
     - `application/cose`
@@ -310,3 +359,5 @@ Alternatively, an implementation of Notary v2 can choose not to implement plugin
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
 [oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/main/artifact.md
 [oci-distribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers
+[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/main/manifest.md
+[image-manifest-property-descriptions]: https://github.com/opencontainers/image-spec/blob/main/manifest.md#image-manifest-property-descriptions
