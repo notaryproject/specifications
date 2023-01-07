@@ -14,7 +14,7 @@ The signature manifest has an artifact type that specifies it's a Notary V2 sign
 
 ![Signature storage inside registry](../media/signature-specification.svg)
 
-Signature Manifest Example per OCI artifact manifest
+Signature manifest example per OCI artifact manifest
 
 ```jsonc
 {
@@ -55,14 +55,14 @@ Signature Manifest Example per OCI artifact manifest
 
 Notary v2 MAY support using [OCI Image manifest][oci-image-manifest] to store the signature in the registries that implement partial or older versions of the OCI Image specification.
 
-Signature Manifest example per OCI Image manifest:
+Signature manifest example per OCI image manifest:
 
 ```jsonc
 {
     "schemaVersion": 2,
     "mediaType": "application/vnd.oci.image.manifest.v1+json",
     "config": {
-        "mediaType": "application/vnd.oci.image.config.v1+json",
+        "mediaType": "application/vnd.cncf.notary.signature",
         "size": 2,
         "digest": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
     },
@@ -88,7 +88,10 @@ Signature Manifest example per OCI Image manifest:
 Besides the [image manifest property requirements][image-manifest-property-descriptions], the properties has the following additional restrictions:
 
 - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.oci.image.manifest.v1+json`.
-- **`config`** (*descriptor*): This REQUIRED property references a configuration object for a signature by digest.
+- **`config`** (*descriptor*): This REQUIRED property references a configuration object for a signature by digest. Notary v2 doesn't require specific configurations for a signature. Implementations SHOULD decide the configuration content based on their specific needs.
+  - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.cncf.notary.signature`.
+  - **`digest`** (*string*): This REQUIRED property is the digest of the targeted content.
+  - **`size`** (*int64*): This REQUIRED property specifies the size, in bytes, of the raw content.
 - **`layers`** (*array of objects*): This REQUIRED property contains collection of only one [OCI descriptor][oci-descriptor] referencing signature envelope.
   - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
     - `application/jose+json`
@@ -357,7 +360,7 @@ Alternatively, an implementation of Notary v2 can choose not to implement plugin
 [annotation-rules]: https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules
 [oci-descriptor]: https://github.com/opencontainers/image-spec/blob/main/descriptor.md
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
-[oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/main/artifact.md
-[oci-distribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers
-[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/main/manifest.md
-[image-manifest-property-descriptions]: https://github.com/opencontainers/image-spec/blob/main/manifest.md#image-manifest-property-descriptions
+[oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md
+[oci-distribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
+[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.0.2/manifest.md
+[image-manifest-property-descriptions]: https://github.com/opencontainers/image-spec/blob/v1.0.2/manifest.md#image-manifest-property-descriptions
