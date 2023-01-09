@@ -88,7 +88,7 @@ Signature manifest example per OCI image manifest:
 Besides the [image manifest property requirements][image-manifest-property-descriptions], the properties has the following additional restrictions:
 
 - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.oci.image.manifest.v1+json`.
-- **`config`** (*descriptor*): This REQUIRED property references a configuration object for a signature by digest. Notary v2 doesn't require specific configurations for a signature. Implementations SHOULD decide the configuration content based on their specific needs.
+- **`config`** (*descriptor*): This property is REQUIRED to be compatible with [OCI image specification][oci-image-manifest]. Notary v2 doesn't require any configurations for a signature, and the configuration contents are not consumed by Notary v2.
   - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.cncf.notary.signature`.
   - **`digest`** (*string*): This REQUIRED property is the digest of the targeted content.
   - **`size`** (*int64*): This REQUIRED property specifies the size, in bytes, of the raw content.
