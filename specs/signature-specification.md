@@ -51,9 +51,9 @@ Signature manifest example per OCI artifact manifest
   - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain (including root) used for signature generation. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
     The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope.
 
-### Backwards Compatibility
+### Backward Compatibility
 
-Notary v2 MAY support using [OCI Image manifest][oci-image-manifest] to store the signature in the registries that implement partial or older versions of the OCI Image specification.
+Notary v2 MAY support using `OCI image manifest` to store the signature in the registries that implement partial of the [OCI image specification v1.1][oci-image-manifest].
 
 Signature manifest example per OCI image manifest:
 
@@ -64,7 +64,7 @@ Signature manifest example per OCI image manifest:
     "config": {
         "mediaType": "application/vnd.cncf.notary.signature",
         "size": 2,
-        "digest": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+        "digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
     },
     "layers": [
         {
@@ -362,5 +362,5 @@ Alternatively, an implementation of Notary v2 can choose not to implement plugin
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
 [oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md
 [oci-distribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
-[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.0.2/manifest.md
-[image-manifest-property-descriptions]: https://github.com/opencontainers/image-spec/blob/v1.0.2/manifest.md#image-manifest-property-descriptions
+[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md
+[image-manifest-property-descriptions]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md#image-manifest-property-descriptions
