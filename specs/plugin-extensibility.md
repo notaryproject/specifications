@@ -31,10 +31,10 @@ Plugin publisher will provide instructions to download and install the plugin. P
 **Open Item** : [Plugin install paths](https://github.com/notaryproject/notation/issues/167)
 
 To enumerate all available plugins the `PLUGIN_DIRECTORY` is scanned based on per OS:
-| OS      | PLUGIN_DIRECTORY                                 |
-| ------- | ------------------------------------------------ |
-| Unix    | `$XDG_CONFIG_HOME/notation/plugins`              |
-| Windows | `%AppData%/notation/plugins`                     |
+| OS      | PLUGIN_DIRECTORY                                     |
+| ------- | ---------------------------------------------------- |
+| Unix    | `$XDG_CONFIG_HOME/notation/plugins`                  |
+| Windows | `%AppData%/notation/plugins`                         |
 | Darwin  | `$HOME/Library/Application Support/notation/plugins` |
 
 Each plugin executable and dependencies are installed under directory `$PLUGIN_DIRECTORY/{plugin-name}` with an executable under that directory `$PLUGIN_DIRECTORY/{plugin-name}/notation-{plugin-name}`.
