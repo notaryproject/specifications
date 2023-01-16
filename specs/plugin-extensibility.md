@@ -37,7 +37,7 @@ To enumerate all available plugins the `PLUGIN_DIRECTORY` is scanned based on pe
 | Windows | `%AppData%/notation/plugins`                         |
 | Darwin  | `$HOME/Library/Application Support/notation/plugins` |
 
-Each plugin executable and dependencies are installed under directory `$PLUGIN_DIRECTORY/{plugin-name}` with an executable under that directory `$PLUGIN_DIRECTORY/{plugin-name}/notation-{plugin-name}`.
+Each plugin executable must be located under `$PLUGIN_DIRECTORY/{plugin-name}` directory, with executable named as  `notation-{plugin-name}`.
 
 Any directory found inside `$PLUGIN_DIRECTORY` is considered potential plugin "candidates". Anything found which is not a directory is ignored and is not considered as a plugin candidate.
 
