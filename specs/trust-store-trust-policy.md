@@ -54,7 +54,7 @@ The Trust store currently supports three kinds of identities, additional identit
 
 - **Certificates**: The `x509/ca` trust store contains named stores that contain Certificate Authority (CA) root certificates.
 - **SigningAuthority Certificate**: The `x509/signingAuthority` trust store contains named stores that contain Siging Authority's root certificates.
-- **Timestamping Certificates**: The `x509/tsa` trust store contains named stores with Time Stamping Authority (TSA) root certificates. **NOTE** TSA based timestamping will not be available in `notation` RC1.
+- **Timestamping Certificates**: The `x509/tsa` trust store contains named stores with Time Stamping Authority (TSA) root certificates.
 
 Any additional sub directories under names stores and certificates in it are ignored. **NOTE**: Implementation SHOULD warn if it finds sub directories with certificates under a named store, to help diagnose misconfigured store.
 
@@ -164,8 +164,7 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
   An *object* that specifies a predefined verification level, with an option to override Notary v2 defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
     - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each level is present [here](#signatureverification-details).
     - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
-  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`.
-    - **NOTE**: When support for publicly trusted TSA is available, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
+  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For publicly trusted TSA, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
   - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
 
 #### Signature Verification details
@@ -209,8 +208,6 @@ The following table shows the resultant validation action, either *enforced* (ve
 **Expiry** : This is an optional feature that guarantees that artifact is within “best by use” date indicated in the signature. Notary v2 allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
 **Revocation check** : Guarantees that the signing identity is still trusted at signature verification time. Events such as key or system compromise can make a signing identity that was previously trusted, to be subsequently untrusted. This guarantee typically requires a verification-time call to an external system, which may not be consistently reliable. The `permissive` verification level only logs failures of revocation check and does not enforce it. If a particular revocation mechanism is reliable, use `strict` verification level instead.
-
-- **NOTE** : `notation` RC2 will not have in built support for Revocation Check feature, see [Key Management - Rescinding Signatures (CRL)](https://github.com/notaryproject/notaryproject/issues/72) for details. When this feature is subsequently implemented, the `strict` verification level will **enforce** this validation, and will fail signatures which would previously pass signature verification when revocation checks were not supported. This is considered a **breaking change**, but is the appropriate behavior for a `strict` verification level.
 
 #### Custom Verification Level
 
