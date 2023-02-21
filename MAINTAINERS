@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-Yi Zha <yizha1@microsoft.com> @yizha1
-=======
 # Org-Level Maintainers (in alphabetical order)
 # Pattern: [First Name] [Last Name] <[Email Address]> ([GitHub Handle])
 Justin Cormack <justin.cormack@docker.com> (@justincormack)
@@ -15,4 +12,7 @@ Shiwei Zhang <shizh@microsoft.com> (@shizhMSFT)
 Toddy Mladenov <toddysm@gmail.com> (@toddysm)
 Vani Rao <vaninrao@amazon.com> (@vaninrao10)
 Yi Zha <yizha1@microsoft.com> @yizha1
+<<<<<<< HEAD
 >>>>>>> 62ae4cf (Added CODEOWNERS and MAINTAINERS files (#240))
+=======
+>>>>>>> 913957f (fix syntax error in CODEOWNERS file)
