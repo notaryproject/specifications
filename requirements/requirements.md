@@ -1,20 +1,19 @@
 # Requirements
 
-A collection of requirements and scenarios, framing the scope of the Notary v2 project.
+A collection of requirements and scenarios, framing the scope of the Notary project.
 
 ## TOC
 
-- [Goals](#goals)
-- [Non Goals](#non-goals)
-- [Scenarios](./scenarios.md)
-- [Threat Model](./threatmodel.md)
-- [Key Stake Holders & Contributors](#key-stake-holders--contributors)
-- [Definitions & Terms](./definitions-terms.md)
-- [Contributing & Conversations](#contributing--conversations)
+- [Requirements](#requirements)
+  - [TOC](#toc)
+  - [Goals](#goals)
+  - [Non Goals](#non-goals)
+  - [Key Stake Holders \& Contributors](#key-stake-holders--contributors)
+  - [Contributing \& Conversations](#contributing--conversations)
 
 ## Goals
 
-Notary v2 aims to address the learnings and gaps of v1, while prioritizing a set of goals and [scenarios](./scenarios.md).
+Notary aims to address the learnings and gaps of v1, while prioritizing a set of goals and [scenarios](./scenarios.md).
 
 1. Offline signature creation
 1. Signatures attesting to authenticity and/or certification
@@ -28,7 +27,7 @@ Notary v2 aims to address the learnings and gaps of v1, while prioritizing a set
 1. Key hierarchies and delegation
 1. Key revocation, including private and air-gapped registries
 1. Key acquisition must support users from hobbyists, open source projects to large software vendors
-1. Usable workflows, enabled for the masses to easily create and consume Notary v2 signatures
+1. Usable workflows, enabled for the masses to easily create and consume Notary signatures
 
 ## Non Goals
 
@@ -65,7 +64,7 @@ As we identify the requirements and constraints, a number of key contributors wi
   
 ## Contributing & Conversations
 
-Regular conversations for Notary v2 occur on the [Cloud Native Computing Slack](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287?) channel.
+Regular conversations for Notary occur on the [Cloud Native Computing Slack](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287?) channel.
 
 Weekly meetings occur each Monday.
 Please see the [CNCF Calendar](https://www.cncf.io/community/calendar/) for details.

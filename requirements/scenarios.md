@@ -1,21 +1,21 @@
-# Notary v2 Signing Scenarios
+# Notary Signing Scenarios
 
 As containers and cloud native artifacts become the common unit of deployment, users want to know the artifacts in their environments are authentic and unmodified.
 
-These Notary v2 scenarios define end-to-end scenarios for signing artifacts in a generalized way, storing and moving them between OCI compliant registries, validating them with various artifact hosts and tooling.
-Notary v2 focuses on the signing of content, enabling e2e workflows, without specifying what those workflows must be.
+These Notary scenarios define end-to-end scenarios for signing artifacts in a generalized way, storing and moving them between OCI compliant registries, validating them with various artifact hosts and tooling.
+Notary focuses on the signing of content, enabling e2e workflows, without specifying what those workflows must be.
 
 By developing a generalized solution, artifact authors may develop their unique artifact types, allowing them to leverage Notary for signing and OCI Compliant registries for distribution.
 
 ## Scenarios
 
-Notary v2 aims to solve the core issue of trusting content within, and across registries.
-There are many elements of an end to end scenario that are not implemented by Notary v2, rather enabled because the content is verifiable.
+Notary aims to solve the core issue of trusting content within, and across registries.
+There are many elements of an end to end scenario that are not implemented by Notary, rather enabled because the content is verifiable.
 
 ### Scenario #0: Build, Publish, Consume, Enforce Policy, Deploy
 
-To put Notary v2 in context, the following end-to-end scenario is outlined.
-The blue elements are the scope of Notary v2, with the other elements providing generic references to other projects or products that demonstrate how Notary v2 may be utilized.
+To put Notary in context, the following end-to-end scenario is outlined.
+The blue elements are the scope of Notary, with the other elements providing generic references to other projects or products that demonstrate how Notary may be utilized.
 
 ![Notary e2e Scenarios](./media/notary-e2e-scenarios.svg)
 
@@ -26,7 +26,7 @@ However, they do wish to add attestations to the validity of the content.
 1. The Wabbit Networks company builds their `net-monitor` software.
       - As a result of the build, they produce an [OCI Image][oci-image], a Software Bill of Materials (`SBoM`) and to comply with gpl licensing, produce another artifact which contains the source (`src`) to all the gpl licensed projects.
       - The `SBoM` and `src` artifacts are created as reference types to the image, creating a graph of artifacts.
-      - Each of the artifacts are signed with the Notary v2 wabbit-networks key.
+      - Each of the artifacts are signed with the Notary wabbit-networks key.
 1. The Wabbit Networks signed contents are pushed to a public OCI compliant registry.
       - Docker can provide an additional Docker hub signature providing an extra level of certification confidence.
 1. ACME Rockets consumes the `net-monitor` software, importing the referenced artifacts into their private registry.
@@ -45,7 +45,7 @@ However, they do wish to add attestations to the validity of the content.
 
 - Signatures can be placed on any type of [artifact](artifacts-repo) stored in an OCI compliant registry using an [OCI Manifest][oci-manifest]
 - Signatures can be persisted as references to the [OCI Manifest][oci-manifest], allowing a entity to define a collection of artifacts.
-- Signatures and their public keys can be moved within, and across OCI compliant registries which support Notary v2.
+- Signatures and their public keys can be moved within, and across OCI compliant registries which support Notary.
 - Because content is trusted, an ecosystem of other projects and products can leverage information in various formats.
 
 ### Scenario #1: Local Build, Sign, Validate
@@ -89,8 +89,8 @@ Once the developer has locally validated the build, sign, validate scenario, the
 - The artifact can be renamed from the unique build id `net-monitor:abc123` to a product versioned tag `wabbitnetworks.example.com/networking/net-monitor:1.0` without invalidating the signature.
 - Users may reference the `sha256` digest directly, or the `artifact:tag`.
   While tag locking is not part of the [OCI Distribution Spec][oci-distribution], various registries support this capability, allowing users to reference human readable tags, as opposed to long digests.
-  Either reference is supported with Notary v2, however it's the unique manifest that is signed.
-- Notary v2 supports a pattern for signing any type of artifact, from OCI Images, Helm Charts, Singularity to yet unknown types.
+  Either reference is supported with Notary, however it's the unique manifest that is signed.
+- Notary supports a pattern for signing any type of artifact, from OCI Images, Helm Charts, Singularity to yet unknown types.
 - Orchestrators may require signatures, but not enforce specific specific signatures.
   This enables a host to understand what content is deployed, without having to manage specific keys.
 
@@ -214,7 +214,7 @@ They pushed unsigned content to existing tags.
    The scenario simply calls out a compromise that must be discoverable through forensic logging of who, when and what was pushed.
    The logged updates must include previous digests that represented updated tags allowing a registry, or external tools, to reset its original state.
 1. A registry may choose to make repos, or the entire registry, restricted to pushing only signed content, and potentially only signed content with one or more keys.
-   Notary v2 doesn't require this capability, rather highlights the scenario for registry operators to innovate means to secure from this scenario.
+   Notary doesn't require this capability, rather highlights the scenario for registry operators to innovate means to secure from this scenario.
 
 #### Scenario #7.1: Repository Compromise - Mutable Tags Modified
 
@@ -253,9 +253,9 @@ A developer accidentally discloses the private key they use to certify their sof
 
 **Implications of this requirement:**
 
-1. All Notary v2 implementations support key revocation as part of their implementation to assure signed content is still valid content.
+1. All Notary implementations support key revocation as part of their implementation to assure signed content is still valid content.
 1. Registry operators routinely check for revoked keys and remediate the exploited content.
-1. Notary v2 clients routinely check for revoked keys and block the content.
+1. Notary clients routinely check for revoked keys and block the content.
 
 ### Scenario #9: A Crypto Algorithm Is Deprecated
 
@@ -282,7 +282,7 @@ Maybe this is an internally created artifact with a known signing key.
 This key may be distributed using a trusted third party mechanism.
 
 1. The user obtains a trusted key for a particular artifact.
-1. The user downloads and verifies the artifact using Notary v2 and their known key.
+1. The user downloads and verifies the artifact using Notary and their known key.
 
 **Implications of this requirement:**
 
@@ -310,7 +310,7 @@ It should be possible for the signer to revoke the trust in that vulnerable arti
 If a user does not have a specific key for a given artifact, verified using a third party system, they will need to determine the trusted signing key(s) for an artifact by chaining from a trusted key.
 
 1. The user determines the trusted key(s) for a specific artifact using delegations from a trusted root.
-1. The user downloads and verifies an artifact using Notary v2 and the trusted key(s) discovered in the previous step.
+1. The user downloads and verifies an artifact using Notary and the trusted key(s) discovered in the previous step.
 
 **Implications of this requirement:**
 

@@ -1,6 +1,6 @@
 # Key Revocation
 
-One of the goals of Notary v2 is to build in solutions for key revocation that are easy to use and ensure that users will always use non-compromised keys.
+One of the goals of Notary is to build in solutions for key revocation that are easy to use and ensure that users will always use non-compromised keys.
 This document discusses some potential mechanisms for key revocation.
 
 In existing systems, there are three main approaches to key revocation: automatic revocation through key expiration, key revocation lists, and providing a list of trusted keys.
