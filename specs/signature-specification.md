@@ -318,7 +318,6 @@ Alternatively, an implementation of Notary can choose not to implement plugin pr
 [annotation-rules]: https://github.com/opencontainers/image-spec/blob/main/annotations.md#rules
 [oci-descriptor]: https://github.com/opencontainers/image-spec/blob/main/descriptor.md
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
-[oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md
 [oci-distribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
 [oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md
 [image-manifest-property-descriptions]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md#image-manifest-property-descriptions
