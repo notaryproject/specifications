@@ -21,7 +21,7 @@ The following diagram illustrates the architecture and components.
 - **Notation Plugin**: An external component built by different vendors, and integrated to Notation as a signing plugin for signature generation, or as a verifying plugin for signature verification, see [plugin spec](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/plugin-extensibility.md) for details.
 - **Registry**: A registry for Docker and Open Container Initiative (OCI) images, with support for all OCI artifacts. It is the storage where artifacts are pushed to by artifact builder. Registries are outside Notation trust boundary.
 - **KMS**: A remote Key Management Service provides key and associated certificate management, and remote signing service. KMSs are outside Notation trust boundary.
-- **OCSP Responder**: The [Online Certificate Status Protocol (OCSP)](https://en.wikipedia.org/wiki/Online_Certificate_Status_Protocol) is an Internet protocol used for obtaining the revocation status of an X.509 digital certificate. Notation uses OCSP to validate certificate revocation status from OCSP Responder.
+- **OCSP Responder**: The [Online Certificate Status Protocol (OCSP)](https://www.rfc-editor.org/rfc/rfc2560) is an Internet protocol used for obtaining the revocation status of an X.509 digital certificate. Notation uses OCSP to validate certificate revocation status from OCSP Responder.
 
 ## Notation sign artifacts using remote key
 
@@ -37,7 +37,7 @@ The following diagram illustrates Notation signing artifacts as OCI image layout
 
 ![image](../media/notation-sign-local.svg)
 
-According to [Notary signature specification](../specs/signature-specification.md), the signing payload is a JSON document which requires the [OCI descriptor](https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/descriptor.md) of the artifact. For artifacts stored in a registry, the descriptor info can be retrieved by inspecting the [image manifest](https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md) of the artifact. For artifacts stored as an [OCI Image layout](https://github.com/opencontainers/image-spec/blob/v1.0.0/image-layout.md), the descriptor info can be retrieved from the `index.json` file from OCI Image layout.
+According to [Notary signature specification](../specs/signature-specification.md), the signing payload is a JSON document which requires the [OCI descriptor](https://github.com/opencontainers/image-spec/blob/v1.0.0/descriptor.md) of the artifact. For artifacts stored in a registry, the descriptor info can be retrieved by inspecting the [image manifest](https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md) of the artifact. For artifacts stored as an [OCI Image layout](https://github.com/opencontainers/image-spec/blob/v1.0.0/image-layout.md), the descriptor info can be retrieved from the `index.json` file from OCI Image layout.
 
 ### Threats and Mitigation
 
