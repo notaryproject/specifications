@@ -6,7 +6,7 @@ Notation aims for signing and validating software artifacts, ensuring they have 
 
 The following diagram illustrates the architecture and components.
 
-![image](../media/notation-system.svg)
+![Notation system overview](../media/notation-system.svg)
 
 - **User**: The User could be a signer or a verifier. A signer interacts with Notation CLI or builds application with Notation library to sign artifacts. A verifier interacts with Notation CLI or builds application with Notation library to verify artifacts against signatures.
 - **Artifact Builder**: The actor who produces software artifacts in a build system. The software artifacts to be signed are arbitrary artifacts, which could be container images, helm charts in the context of Cloud, SBOM (Software Bill of Materials) in the context of secure supply chain, and other artifacts. Normally the artifacts are produced by the build process with vulnerabilities scanned, analyzed and fixed. Notation supports signing and verifying artifacts stored in registries or in the file system as OCI image layout.
@@ -31,11 +31,11 @@ A signer uses Notation to sign artifacts with the private key stored in a KMS, a
 
 The following diagram illustrates Notation signing artifacts stored in registries with keys stored in KMS:
 
-![image](../media/notation-sign-remote.svg)
+![Notation signs artifacts stored in registries](../media/notation-sign-remote.svg)
 
 The following diagram illustrates Notation signing artifacts as OCI image layout with keys stored in KMS:
 
-![image](../media/notation-sign-local.svg)
+![Notation signs artifacts as OCI image layout in the filesystem](../media/notation-sign-local.svg)
 
 According to [Notary signature specification](../specs/signature-specification.md), the signing payload is a JSON document which requires the [OCI descriptor](https://github.com/opencontainers/image-spec/blob/v1.0.0/descriptor.md) of the artifact. For artifacts stored in a registry, the descriptor info can be retrieved by inspecting the [image manifest](https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md) of the artifact. For artifacts stored as an [OCI Image layout](https://github.com/opencontainers/image-spec/blob/v1.0.0/image-layout.md), the descriptor info can be retrieved from the `index.json` file from OCI Image layout.
 
@@ -59,15 +59,15 @@ A verifier uses Notation to verify artifacts against signatures stored in the fi
 
 The following diagram illustrates Notation verifying artifacts stored in a registry:
 
-![image](../media/notation-verify-remote.svg)
+![Notation verifies artifacts stored in registries](../media/notation-verify-remote.svg)
 
 The following diagram illustrates Notation verifying artifacts stored in a registry with a verification plugin:
 
-![image](../media/notation-verify-plugin.svg)
+![Notation verifies artifacts stored in registries using verification plugin](../media/notation-verify-plugin.svg)
 
 The following diagram illustrates Notation verifying artifacts stored as OCI image layout in the file system:
 
-![image](../media/notation-verify-local.svg)
+![Notation verifies artifacts as OCI image layout in the filesystem](../media/notation-verify-local.svg)
 
 The certificates trusted by the verifier are stored in Notation trust store in the file system. Users can download the certificates from KMS or request CA vendor for CA certificates.
 
