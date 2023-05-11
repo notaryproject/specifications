@@ -8,7 +8,7 @@ This document provides the following details for Notary Project signatures:
 ## Storage
 
 This section describes how Notary Project signatures are stored in the OCI Distribution conformant registry.
-OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.1.0-rc.2][oci-image-manifest] for details.
+OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.0.0][oci-image-manifest] for details.
 The signature manifest has an media type of config that specifies it's a Notary Project signature, a subject referencing the manifest of the artifact being signed, a layer referencing the signature, and a collection of annotations.
 
 ![Signature storage inside registry](../media/signature-specification.svg)
@@ -54,8 +54,8 @@ Besides the [image manifest property requirements][image-manifest-property-descr
   - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
     - `application/jose+json`
     - `application/cose`
-- **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index, OCI artifact manifest.
-- **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the artifact manifest.
+- **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index.
+- **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the image manifest.
   It is being used to store information about the signature.
   Keys using the `io.cncf.notary` namespace are reserved for use in Notary Project and MUST NOT be used by other specifications.
   - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain (including root) used for signature generation. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
@@ -99,7 +99,7 @@ Notary Project signature payload is a JSON document with media type `application
 - `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed. Only [OCI descriptor][oci-descriptor] is supported.
   - Descriptor MUST contain `mediaType`, `digest`, `size` fields.
   - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. Notary Project signature uses annotations for storing both Notary specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary Project and MUST NOT be used outside this specification.
-  - Descriptor MAY contain `artifactType` field for artifact manifests, or the `config.mediaType` for `oci.image` based manifests.
+  - Descriptor MAY contain `artifactType` field for the `config.mediaType` for `oci.image` based manifests.
 
 #### Examples
 
@@ -153,7 +153,7 @@ Usage of extended signed attributes which are marked critical in signature will 
 
 #### Extended attributes for *Notation* Plugins
 
-Notation is a CLI and set of libraries that offer an implementation of the Notary Project signature specification. Notation allows you to sign artifacts and attaching Notary Project signatures as well as verifying Notary Project signatures.
+Notation is a CLI and set of libraries that offer an implementation of the Notary Project signature specification. Notation allows you to sign artifacts as well as verify artifacts using Notary Project signatures.
 
 This section documents extended attributes used by Notation to support plugins.
 Plugins is a *Notation* concept that allows parts of signing and verification logic to be performed by an external provider.
@@ -249,7 +249,7 @@ The `keyUsage` extension MUST be present and MUST be marked critical. Bit positi
 
 **Q: How will Notary Project support multiple signature envelope formats?**
 
-**A:** The `mediaType` of artifact manifest's blob identifies the signature envelope type.  
+**A:** The `mediaType` of image manifest's layer identifies the signature envelope type.  
 The client implementation can use the aforementioned `mediaType` to parse the signature envelope.
 
 **Q: How will Notary Project support multiple payload formats?**
@@ -320,6 +320,6 @@ Alternatively, an implementation of Notary Project signature specification can c
 [annotation-rules]: https://github.com/opencontainers/image-spec/blob/v1.0.0/annotations.md#rules
 [oci-descriptor]: https://github.com/opencontainers/image-spec/blob/v1.0.0/descriptor.md
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
-[oci-distribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
-[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md
-[image-manifest-property-descriptions]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md#image-manifest-property-descriptions
+[oci-distribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/v1.0.0/spec.md#listing-referrers
+[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.0.0/manifest.md
+[image-manifest-property-descriptions]: https://github.com/opencontainers/image-spec/blob/v1.0.0/manifest.md#image-manifest-property-descriptions
