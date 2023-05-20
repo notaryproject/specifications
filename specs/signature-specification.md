@@ -8,8 +8,8 @@ This document provides the following details for Notary Project signatures:
 ## Storage
 
 This section describes how Notary Project signatures are stored in the OCI Distribution conformant registry.
-OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.0.0][oci-image-manifest] for details.
-The signature manifest has an media type of config that specifies it's a Notary Project signature, a subject referencing the manifest of the artifact being signed, a layer referencing the signature, and a collection of annotations.
+OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.1.0-rc3][oci-image-manifest] for details.
+The signature manifest has a configuration media type that specifies it's a Notary Project signature, a subject referencing the manifest of the artifact being signed, a layer referencing the signature, and a collection of annotations.
 
 ![Signature storage inside registry](../media/signature-specification.svg)
 
@@ -54,12 +54,11 @@ Besides the [image manifest property requirements][image-manifest-property-descr
   - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
     - `application/jose+json`
     - `application/cose`
-- **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest, including, but not limited to image manifest, image index.
+- **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest.
 - **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the image manifest.
   It is being used to store information about the signature.
   Keys using the `io.cncf.notary` namespace are reserved for use in Notary Project and MUST NOT be used by other specifications.
-  - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprint of signing certificate and certificate chain (including root) used for signature generation. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
-    The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope.
+  - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprints of signing certificate and certificate chain (including root) used for signature generation. The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
 
 ### Signature Discovery
 
@@ -71,7 +70,7 @@ Each Notary Project signature artifact refers to a signature envelope blob.
 ### Signature Filtering
 
 An OCI artifact can have multiple signatures, Notary Project tooling uses annotations of the signature artifact to filter relevant signatures based on the applicable trust policy.
-The Notary Project signature artifact's `io.cncf.notary.x509chain.thumbprint#S256` annotations key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
+The Notary Project signature manifest's `io.cncf.notary.x509chain.thumbprint#S256` annotation key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
 
 ## Signature Envelope
 
@@ -90,7 +89,7 @@ This specification defines the set of signed and unsigned attributes that make u
 Notary Project signature supports the following envelope formats:
 
 - [JWS](./signature-envelope-jws.md)
-- [COSE Sign1](./signature-envelope-cose.md)
+- [COSE](./signature-envelope-cose.md)
 
 ### Payload
 
@@ -153,7 +152,7 @@ Usage of extended signed attributes which are marked critical in signature will 
 
 #### Extended attributes for *Notation* Plugins
 
-Notation is a CLI and set of libraries that offer an implementation of the Notary Project signature specification. Notation allows you to sign artifacts as well as verify artifacts using Notary Project signatures.
+Notation is a CLI and has set of libraries that offer an implementation of the Notary Project signature specification. Notation allows you to sign artifacts as well as verify artifacts against Notary Project signatures.
 
 This section documents extended attributes used by Notation to support plugins.
 Plugins is a *Notation* concept that allows parts of signing and verification logic to be performed by an external provider.
@@ -267,7 +266,7 @@ The signing time denotes the time at which the signature was generated. A X509 c
 
 ### Expiry
 
-This is an optional feature that provides a “best by use” time for the artifact, as defined by the signer. Notary Project signature specification allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
+This is an optional feature that provides a "best by use" time for the artifact, as defined by the signer. Notary Project signature specification allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
 ### Signature Portability
 
@@ -321,5 +320,5 @@ Alternatively, an implementation of Notary Project signature specification can c
 [oci-descriptor]: https://github.com/opencontainers/image-spec/blob/v1.0.0/descriptor.md
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
 [oci-distribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/v1.0.0/spec.md#listing-referrers
-[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.0.0/manifest.md
-[image-manifest-property-descriptions]: https://github.com/opencontainers/image-spec/blob/v1.0.0/manifest.md#image-manifest-property-descriptions
+[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc3/manifest.md
+[image-manifest-property-descriptions]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc3/manifest.md#image-manifest-property-descriptions
