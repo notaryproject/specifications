@@ -98,22 +98,9 @@ Notary Project signature payload is a JSON document with media type `application
 - `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed. Only [OCI descriptor][oci-descriptor] is supported.
   - Descriptor MUST contain `mediaType`, `digest`, `size` fields.
   - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. Notary Project signature uses annotations for storing both Notary specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary Project and MUST NOT be used outside this specification.
-  - Descriptor MAY contain `artifactType` field for the `config.mediaType` for `oci.image` based manifests.
+  - Descriptor MAY contain `artifactType` field for the `config.mediaType` of OCI image based manifests.
 
 #### Examples
-
-```jsonc
-{
-  "targetArtifact": {
-    "mediaType": "application/vnd.oci.image.manifest.v1+json",
-    "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-    "size": 16724,
-    "annotations": {
-        "io.wabbit-networks.buildId": "123"  // user defined metadata
-    }
-  }
-}
-```
 
 ```jsonc
 {
@@ -121,6 +108,20 @@ Notary Project signature payload is a JSON document with media type `application
     "mediaType": "sbom/example",
     "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
     "size": 32654
+  }
+}
+```
+
+```jsonc
+{
+  "targetArtifact": {
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+    "size": 16724,
+    "artifactType": "application/vnd.cncf.notary.signature",
+    "annotations": {
+        "io.wabbit-networks.buildId": "123"  // user defined metadata
+    }
   }
 }
 ```
@@ -172,11 +173,11 @@ See [Guidelines for Notary Project Signature Implementors](#guidelines-for-notar
 
 ### Unsigned Attributes
 
-These attributes are considered unsigned with respect to the signing key that generates the signature. These attributes are typically signed by a third party (e.g. CA, TSA).
+These attributes are considered unsigned with respect to the signing key that generates the signature.
 
-- **Certificate Chain**: This is a REQUIRED attribute that contains the ordered list of X.509 public certificates associated with the signing key used to generate the signature. The ordered list starts with the signing certificates, any intermediate certificates and ends with the root certificate. The certificate chain MUST be authenticated against a trust store as part of signature validation. Specific requirements for the certificates in the chain are provided [here](#certificate-requirements).
+- **Certificate Chain**: This is a REQUIRED attribute that contains the ordered list of X.509 public certificates associated with the signing key used to generate the signature. The ordered list starts with the signing certificate, any intermediate certificates and ends with the root certificate. The certificate chain MUST be authenticated against a trust store as part of signature validation. Specific requirements for the certificates in the chain are provided [here](#certificate-requirements).
 - **Timestamp signature** : An OPTIONAL counter signature which provides [authentic timestamp](#signing-time)e.g. Time Stamp Authority (TSA) generated timestamp signature. Only [RFC3161][ietf-rfc3161] compliant TimeStampToken are currently supported.
-- **Signing Agent**: An OPTIONAL claim that provides the identifier of the software (e.g. Notation) that produced the signature on behalf of the user. It is an opaque string set by the software that produces the signature. It's intended primarily for diagnostic and troubleshooting purposes, this attribute is unsigned, the verifier MUST NOT validate formatting, or fail validation based on the content of this claim. The suggested format is one or more tokens of the form `{id}/{version}` containing identifier and version of the software, seperated by spaces. E.g. “notation/1.0.0”, “notation/1.0.0 com.example.nv2plugin/0.8”.
+- **Signing Agent**: An OPTIONAL claim that provides the identifier of the software (e.g. Notation) that produced the signature on behalf of the user. It is an opaque string set by the software that produces the signature. It's intended primarily for diagnostic and troubleshooting purposes, this attribute is unsigned, the verifier MUST NOT validate formatting, or fail validation based on the content of this claim. The suggested format is one or more tokens of the form `{id}/{version}` containing identifier and version of the software, separated by spaces. E.g. “notation/1.0.0”, “notation/1.0.0 myplugin/0.8”.
 
 ## Signature Algorithm Requirements
 
@@ -240,7 +241,7 @@ The `keyUsage` extension MUST be present and MUST be marked critical. Bit positi
     - The certificate MUST NOT chain to multiple parents/roots.
     - The certificate chain MUST NOT contain a certificate that is unrelated to the certificate chain.
 1. Any certificate in the certificate chain MUST NOT use SHA1WithRSA and ECDSAWithSHA1 signatures.
-1. Only Basic Constraints, Key Usage, and Extended Key Usage extensions of X.509 certificates are honored. For rest of the extensions, Notary Project signature implementors MUST fail open i.e. they MUST NOT be evaluated or honored.
+1. Only Basic Constraints, Key Usage, and Extended Key Usage extensions of X.509 certificates are honored. For rest of the extensions, Notary Project signature implementors MUST fail to open i.e. they MUST NOT be evaluated or honored.
 1. The certificates in the certificate chain MUST be valid at signing time. Notary Project signature implementors MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
 1. In the absence of an Authentic Timestamp, each and every certificate in the certificate chain i.e. signing certificate, intermediate certificates, and the root certificate must be valid i.e. not expired at the time of signature verification.
 
