@@ -197,7 +197,7 @@ The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of Payl
 
 ### Supported `alg` header values
 
-Notary signature implementation MUST enforce the following constraints on signature generation and verification:
+Notary Project specification implementation MUST enforce the following constraints on signature generation and verification:
 
 1. `alg` parameter value MUST NOT be a symmetric-key algorithm such as `HMAC`.
 1. `alg` parameter value MUST be same as that of signature algorithm identified using signing certificate's public key algorithm and size.

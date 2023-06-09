@@ -24,7 +24,7 @@ This doc experiments with the avoidance of signatures as the reference.
 1. A collection of verification objects may be associated with an artifact.
 1. Leverage the garbage collection infrastructure registry operators have implemented.
    Garbage collection represents significant investments for registry services which are based on OCI Manifest and OCI Index.
-   We should aim to utilize these existing schemas, or only slight verifications from them to maximize the opportunity for registry implementations to adopt Notary Project specification.
+   We should aim to utilize these existing schemas, or only slight verifications from them to maximize the opportunity for registry implementations to adopt Notary Project specification implementation.
 1. Minimize requirements to change persistence and object stores used by registry operators.
    Similar to garbage collection, we should work within the constraints of manifest, index and layers to represent verification objects.
 

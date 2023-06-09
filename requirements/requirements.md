@@ -4,12 +4,14 @@ A collection of requirements and scenarios, framing the scope of the Notary proj
 
 ## TOC
 
-- [Requirements](#requirements)
-  - [TOC](#toc)
-  - [Goals](#goals)
-  - [Non Goals](#non-goals)
-  - [Key Stake Holders \& Contributors](#key-stake-holders--contributors)
-  - [Contributing \& Conversations](#contributing--conversations)
+<!-- no toc -->
+- [Goals](#goals)
+- [Non Goals](#non-goals)
+- [Scenarios](./scenarios.md)
+- [Key Stake Holders \& Contributors](#key-stake-holders--contributors)
+- [Contributing \& Conversations](#contributing--conversations)
+- [Definitions & Terms](./definitions-terms.md)
+- [Contributing & Conversations](#contributing--conversations)
 
 ## Goals
 

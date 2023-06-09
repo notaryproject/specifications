@@ -10,14 +10,14 @@ By developing a generalized solution, artifact authors may develop their unique 
 ## Scenarios
 
 Notary Project aims to solve the core issue of trusting content within, and across registries.
-There are many elements of an end to end scenario that are not implemented by Notary Project, rather enabled because the content is verifiable.
+There are many elements of an end to end scenario that are not implemented by Notary Project specification implementation, rather enabled because the content is verifiable.
 
 ### Scenario #0: Build, Publish, Consume, Enforce Policy, Deploy
 
 To put Notary Project in context, the following end-to-end scenario is outlined.
 The blue elements are the scope of Notary Project, with the other elements providing generic references to other projects or products that demonstrate how Notary Project may be utilized.
 
-![Notary Project e2e Scenarios](./media/notary-e2e-scenarios.svg)
+![Notary e2e Scenarios](./media/notary-e2e-scenarios.svg)
 
 In a world of consuming public software, we must account for content that's acquired from a public source, copied into a trusted environment, then deployed.
 In this scenario, the consumer is not re-building or adding additional content.
@@ -27,18 +27,18 @@ However, they do wish to add attestations to the validity of the content.
       - As a result of the build, they produce an [OCI Image][oci-image], a Software Bill of Materials (`SBoM`) and to comply with gpl licensing, produce another artifact which contains the source (`src`) to all the gpl licensed projects.
       - The `SBoM` and `src` artifacts are created as reference types to the image, creating a graph of artifacts.
       - Each of the artifacts are signed with the wabbit-networks key.
-1. The Wabbit Networks signed contents are pushed to a public OCI compliant registry.
+2. The Wabbit Networks signed contents are pushed to a public OCI compliant registry.
       - Docker can provide an additional Docker hub signature providing an extra level of certification confidence.
-1. ACME Rockets consumes the `net-monitor` software, importing the referenced artifacts into their private registry.
+3. ACME Rockets consumes the `net-monitor` software, importing the referenced artifacts into their private registry.
       - ACME Rockets verifies the content, including additional scanning and functional testing for their environment.
       - The SBoM is trusted as they trust artifacts signed by wabbit-networks, or possibly defer trust to the Docker Hub certification signature.
       - They denote verification of the SBoM and scanning with an ACME Rockets signature.
       - A `deploy` artifact, referencing a specific configuration definition, may also be signed and saved, providing a historical record of what was deployed.
-1. The ACME Rockets environment may enforce various policies prior to deployment:
+4. The ACME Rockets environment may enforce various policies prior to deployment:
       - Evaluating the content in the `SBoM` for policies on specific packages.
       - ACME Rockets only allows content signed by ACME Rockets to be deployed, and only from the registry identified in the ACME Rockets signature.
       - Once validated, the `src` and `SBoM` are no longer needed for deployment allowing the `image` to be deployed separately with it's own signature.
-1. Once the policy manager completes its validation (k8s ingress controller with OPA), the deployment to the hosting environment is initiated.
+5. Once the policy manager completes its validation (k8s ingress controller with OPA), the deployment to the hosting environment is initiated.
       - ACME Rockets runs in an air-gapped environment, requiring all key access to be resolved within their environment.
 
 **Implications of this requirement:**

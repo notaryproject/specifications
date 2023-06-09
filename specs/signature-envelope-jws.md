@@ -37,9 +37,9 @@ Signature Manifest Example
 
 ## JWS Payload
 
-The JWS envelope contains a [Notary Project signature payload](./signature-specification.md#payload).
+The JWS envelope contains a [Notary signature payload](./signature-specification.md#payload).
 
-Example of Notary Project signature payload
+Example of Notary signature payload
 
 ```jsonc
 {
@@ -56,7 +56,7 @@ Example of Notary Project signature payload
 
 ## Protected Headers
 
-The JWS envelope for Notary Project uses following headers
+The JWS envelope for Notary signature uses following headers
 
 - Registered headers - `alg`, `cty`, and `crit`
 - [Public headers](https://datatracker.ietf.org/doc/html/rfc7515#section-4.2) with collision resistant names.
@@ -97,7 +97,7 @@ Example with Signing Scheme `notary.x509.signingAuthority`
 }
 ```
 
-- **[`alg`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.1)**(*string*): This REQUIRED header defines which signing algorithm was used to generate the signature. JWS specification defines `alg` as a required header, that MUST be present and MUST be understood and processed by verifier. The signature algorithm of the signing key (first certificate in `x5c`) is the source of truth, and during signing the value of `alg` MUST be set corresponding to signature algorithm of the signing key using [this mapping](#supported-alg-header-values) that lists the Notary Project allowed subset of `alg` values supported by JWS. Similarly verifier of the signature MUST match `alg` with signature algorithm of the signing key to mitigate algorithm substitution attacks.
+- **[`alg`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.1)**(*string*): This REQUIRED header defines which signing algorithm was used to generate the signature. JWS specification defines `alg` as a required header, that MUST be present and MUST be understood and processed by verifier. The signature algorithm of the signing key (first certificate in `x5c`) is the source of truth, and during signing the value of `alg` MUST be set corresponding to signature algorithm of the signing key using [this mapping](#supported-alg-header-values) that lists the Notary signature allowed subset of `alg` values supported by JWS. Similarly verifier of the signature MUST match `alg` with signature algorithm of the signing key to mitigate algorithm substitution attacks.
 - **[`cty`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.10)**(*string*): The REQUIRED header content-type is used to declare the media type of the secured content (the payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`.
 - **`io.cncf.notary.signingScheme`**(*string*)(critical): This REQUIRED header specifies the [Notary Project Signing Scheme](./signing-scheme.md) used by the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
 - **`io.cncf.notary.signingTime`**(*string*): This header specifies the time at which the signature was generated. This is an untrusted timestamp, and therefore not used in trust decisions. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509`.
@@ -114,7 +114,7 @@ See [Extended attributes for *Notation* Plugins](./signature-specification.md#ex
 
 ## Unprotected Headers
 
-Notary Project supports following unprotected headers: `timestamp`, `x5c` and `io.cncf.notary.signingAgent`
+Notary signature supports following unprotected headers: `timestamp`, `x5c` and `io.cncf.notary.signingAgent`
 
 ```jsonc
 {
@@ -177,7 +177,7 @@ Notary Project specification implementation MUST enforce the following constrain
 1. `alg` header value MUST be same as that of signature algorithm identified using signing certificate's public key algorithm and size.
 1. `alg` header values for various signature algorithms is a subset of values supported by [JWS][jws-alg-values].
 
-**Mapping of Notary Project approved algorithms to JWS `alg` header values**
+**Mapping of Notary signature approved algorithms to JWS `alg` header values**
 
   | Signature Algorithm             | `alg` Header Value|
   | ------------------------------- | ----------------- |
