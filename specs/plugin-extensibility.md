@@ -202,7 +202,7 @@ This interface targets plugins that integrate with providers of basic cryptograp
         1. Execute the plugin with `describe-key` command, set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
         2. Generate the payload to be signed for [JWS](./signature-specification.md#supported-signature-envelopes) envelope format.
            1. Create the JWS protected headers collection and set `alg` to value corresponding to `describe-key.response.keySpec` as per [signature algorithm selection](./signature-specification.md#algorithm-selection).
-           2. Create the Notary v2 Payload (JWS Payload) as defined [here](./signature-specification.md#payload).
+           2. Create the Notary signature Payload (JWS Payload) as defined [here](./signature-specification.md#payload).
            3. The *payload to sign* is then created as - `ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
         3. Execute the plugin with `generate-signature` command.
            1. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
@@ -345,7 +345,7 @@ This interface targets plugins that in addition to signature generation want to 
 1. Determine if the registered key uses a plugin
 1. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE`
-        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded [Notary v2 Payload](./signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/jose+json` for JWS).
+        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded [Notary signature Payload](./signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/jose+json` for JWS).
         2. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match `request.signatureEnvelopeType`.
         3. Validate the generated signature, return an error if of the checks fails.
            1. Check if `response.signatureEnvelopeType` is a supported envelope type and `response.signatureEnvelope`'s format matches `response.signatureEnvelopeType`.
@@ -433,7 +433,7 @@ All response attributes are required.
   * Revocation check validation
 * The interface MAY be extended in future to support additional steps which can be customized through a plugin.
 * The interface MUST be agnostic of sequencing of steps in signature verification workflow as implemented in Notation or other implementations.
-* The interface MUST allow processing of [extended attributes](./signature-specification.md#extended-attributes) that are not part of Notary v2 [standard attributes](./signature-specification.md#standard-attributes).
+* The interface MUST allow processing of [extended attributes](./signature-specification.md#extended-attributes) that are not part of Notary signature [standard attributes](./signature-specification.md#standard-attributes).
 
 ### Guidelines for Verification plugin publishers
 
@@ -443,7 +443,7 @@ Therefore, signatures intended for public distribution which require broad signa
 
 * Signatures which require a plugin for verification may be distributed privately (e.g. within an organization) or publicly (e.g. via a public registry).
 If the plugin publisher wants their plugin used publicly they SHOULD publish specifications for the verification logic the plugin performs and test vectors.
-This allows Notary v2 implementations to perform the same logic themselves, if they choose to.
+This allows Notary project specification implementations to perform the same logic themselves, if they choose to.
 
 ### Signature Verifier
 
@@ -461,7 +461,7 @@ This allows Notary v2 implementations to perform the same logic themselves, if t
 3. Complete steps *Validate Integrity, Validate Expiry* and *Validate Trust Store* from [signature verification workflow](./trust-store-trust-policy.md#steps).
 4. Based on the signature verification level, each validation may be enforced, logged or skipped.
 5. Populate `verify-signature` request. NOTE: The processing order of remaining known attributes does not matter as long as they are processed before the end of signature verification workflow.
-    1. Set `request.signature.criticalAttributes` to the set of [standard Notary v2 attributes](./signature-specification.md#standard-attributes) that are marked critical, from the signature envelope.
+    1. Set `request.signature.criticalAttributes` to the set of [standard Notary signature attributes](./signature-specification.md#standard-attributes) that are marked critical, from the signature envelope.
     2. Set `request.signature.criticalAttributes.extendedAttributes` to extended attributes that Notation does not recognize. Notation only supports JSON primitive types for critical extended attributes. If a signature producer required complex types, it MUST set the value to a primitive type by encoding it (e.g. Base64), and MUST be decoded by the plugin which processed the attribute.
     3. Set `request.signature.unprocessedAttributes` to set of critical attribute names that are marked critical, but unknown to Notation, and therefore cannot be processed by Notation.
     4. Set `request.signature.certificateChain` to ordered array of certificates from signing envelope.
@@ -484,7 +484,7 @@ This allows Notary v2 implementations to perform the same logic themselves, if t
   "contractVersion" : "<major-version.minor-version>",
   
    "signature" : {
-    // Array of all Notary V2 defined critical attributes and their values
+    // Array of all Notary signature defined critical attributes and their values
     // in the signature envelope. Agnostic of header names and value serialization
     // in specific envelope formats like JWS or COSE.
     "criticalAttributes" : 

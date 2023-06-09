@@ -1,6 +1,6 @@
 # Signing and Verification Workflow
 
-This document describes how Notary v2 signs and verifies OCI artifacts.
+This document describes how Notary Project signs and verifies OCI artifacts.
 
 ## Signing workflow
 
@@ -22,8 +22,8 @@ The user wants to sign an OCI artifact and push the signature to a repository.
             1. Verify that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
         1. Embed timestamp to the signature envelope.
 1. **Push the signature envelope:** Push the signature envelope generated in the previous step to the repository.
-1. **Generate signature artifact manifest:** As decribed in [signature specification](./signature-specification.md#storage) create the Notary v2 signature artifact manifest for the signature envelope generated in step 1.
-1. **Push signature artifact manifest:** Push Notary v2 signature artifact manifest to the repository.
+1. **Generate signature artifact manifest:** As decribed in [signature specification](./signature-specification.md#storage) create the Notary signature artifact manifest for the signature envelope generated in step 1.
+1. **Push signature artifact manifest:** Push Notary signature artifact manifest to the repository.
 
 The user pushes the OCI artifact to the repository before the signature generation process as the signature reference must exist for the signature push to succeed.
 
@@ -41,32 +41,32 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
 
 ### Verification Steps
 
-1. **Should Notary v2 verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#trust-policy) configuration, determine whether Notary v2 needs to verify the signature or not.
+1. **Should Notary Project specification implementor verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#trust-policy) configuration, determine whether Notary Project specification implementor needs to verify the signature or not.
    If signature verification should be skipped for the given artifact, skip the below steps and directly jump to step 4.
-1. **Get signature artifact descriptors:** Using the [OCI Distribution Referrers API](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers) download the Notary v2 signature artifact descriptors.
-   The `artifactType` parameter is set to Notary v2 signature's artifact type `application/vnd.cncf.notary.signature`.
+1. **Get signature artifact descriptors:** Using the [OCI Distribution Referrers API](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers) download the Notary signature manifest descriptors.
+   The `artifactType` parameter is set to Notary signature's artifact type `application/vnd.cncf.notary.signature`.
 1. For each signature artifact descriptor, perform the following steps:
-    1. **Get signature artifact manifest:** Download the Notary v2 signature's artifact manifest for the given artifact descriptor.
-    1. **Filter signature artifact manifest:**
+    1. **Get signature artifact manifest:** Download the Notary signature's manifest for the given artifact descriptor.
+    2. **Filter signature artifact manifest:**
         1. Filter out the unsupported signature formats by comparing the signature envelope format type (`[descriptors].descriptor.mediaType`) in the signature manifest, with the supported formats defined in [signature specification](./signature-specification.md#storage).
-        1. Depending upon the trust-store and trust-policy configuration, further filter out signature manifests.
+        2. Depending upon the trust-store and trust-policy configuration, further filter out signature manifests.
             1. Using the `scopes` configured in trust policies, get the applicable trust policy.
-            1. Get the list of trusted certificates from the trust stores specified in the applicable trust policy.
+            2. Get the list of trusted certificates from the trust stores specified in the applicable trust policy.
                If the trust policy contains multiple trust stores, create a list of trusted certificates by merging the trusted certificate list of each trust store.
                 1. Calculate the SHA-256 fingerprint of all the trusted certificates and compare them against the list of SHA-256 certificate fingerprints present in  `io.cncf.notary.x509certs.fingerprint.sha256` annotation of artifact manifest.
-                1. If there is at least one match, continue to the next step.
+                2. If there is at least one match, continue to the next step.
                    Otherwise, move to the next signature artifact descriptor(step 3.1).
                    If all signature artifact descriptors have already been processed, fail the signature verification and exit.
-        1. If the artifact manifest is filtered out, skip the below steps and move to the next signature artifact descriptor(step 3.1).
+        3. If the artifact manifest is filtered out, skip the below steps and move to the next signature artifact descriptor(step 3.1).
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
-    1. **Get and verify signatures:** On the filtered Notary v2 signature artifact manifest, perform the following steps:
+    3. **Get and verify signatures:** On the filtered Notary signature manifest, perform the following steps:
         1. Download the signature envelope.
-        1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
-        1. If the signature verification fails, skip the below steps and move to the next signature artifact descriptor(step 3.1).
+        2. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
+        3. If the signature verification fails, skip the below steps and move to the next signature artifact descriptor(step 3.1).
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
-        1. If signature verification succeeds, compare the digest derived from the given OCI artifact reference with the signed digest present in the signature envelope's payload.
+        4. If signature verification succeeds, compare the digest derived from the given OCI artifact reference with the signed digest present in the signature envelope's payload.
            If digests are equal, signature verification is considered successful.
            Otherwise, move to the next signature artifact descriptor(step 3.1).
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
-1. **Get OCI artifact:** Using the verified digest, download the OCI artifact.
-   This step is not in the purview of Notary v2.
+2. **Get OCI artifact:** Using the verified digest, download the OCI artifact.
+   This step is not in the purview of Notary project specification.
