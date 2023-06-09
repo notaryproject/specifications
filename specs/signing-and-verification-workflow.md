@@ -22,8 +22,8 @@ The user wants to sign an OCI artifact and push the signature to a repository.
             1. Verify that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
         1. Embed timestamp to the signature envelope.
 1. **Push the signature envelope:** Push the signature envelope generated in the previous step to the repository.
-2. **Generate signature artifact manifest:** As described in [signature specification](./signature-specification.md#storage) create the Notary signature manifest for the signature envelope generated in step 1.
-3. **Push signature artifact manifest:** Push Notary signature manifest to the repository.
+1. **Generate signature artifact manifest:** As described in [signature specification](./signature-specification.md#storage) create the Notary signature manifest for the signature envelope generated in step 1.
+1. **Push signature artifact manifest:** Push Notary signature manifest to the repository.
 
 The user pushes the OCI artifact to the repository before the signature generation process as the signature reference must exist for the signature push to succeed.
 
@@ -68,5 +68,5 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
            If digests are equal, signature verification is considered successful.
            Otherwise, move to the next signature artifact descriptor(step 3.1).
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
-2. **Get OCI artifact:** Using the verified digest, download the OCI artifact.
+1. **Get OCI artifact:** Using the verified digest, download the OCI artifact.
    This step is not in the purview of Notary project specification.
