@@ -34,20 +34,20 @@ The Notary Project has had several public security audits:
 - [July 31, 2015 by NCC](https://github.com/notaryproject/notary/blob/master/docs/resources/ncc_docker_notary_audit_2015_07_31.pdf) covering `Notary` repository
 - [Mar 21, 2023 by ADA Logics](https://github.com/notaryproject/notaryproject/blob/main/security/reports/fuzzing/ADA-fuzzing-audit-22-23.pdf) fuzzing audit covering `Notary`, `notation-go` and `notation-core-go` repositories
 
-There is ongoing security audit which will be published soon.  
+There is an ongoing security audit which will be published soon.  
 
 ## About this repository
 
 This repository contains requirements, scenarios, and specifications for the Notary Project:
 
 - [Requirements](./requirements/): The Notary Project goals, scenarios, and requirements are stored in this folder.
-- [Specification](./specs/): The Notary Project specifications are stored in this folder. You can develop your own implementation based on the specifications. The Notary Project specifications includes
+- [Specification](./specs/): The Notary Project specifications are stored in this folder. You can develop your own implementation based on the specifications. The Notary Project specifications now includes:
   - The Notary Project signature specification
   - The Notary Project signature envelope specifications: JWS and COSE
   - The signing and verifying specifications
   - The trust store and trust policy specification
   - The plugin specification
-- [Threat Model](./threatmodel.md): General threat modeling for the Notary Project. We are now working on threat model for Notation CLI `notation`, Notation libraries `notation-go` and `notation-core-go`.
+- [Threat Model](./threatmodel.md): General threat modeling for the Notary Project. We are also working on specific threat model for repositories Notation CLI `notation`, Notation libraries `notation-go` and `notation-core-go`.
 
 ## Community
 
@@ -56,5 +56,5 @@ You can reach the Notary Project community and developers via the following chan
 - Slack: Join the [Notary Project community channel](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287/) for discussion and ask questions
 - Twitter: [@NotaryProject](https://mobile.twitter.com/NotaryProject)
 - Meetings: Join the [Community meetings](https://notaryproject.dev/community/#community-meetings)
-  - Active meeting notes are captured at [the Notary Project meeting notes](https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw?view)
-  - Archived meeting notes are stored at [meeting-notes repository](https://github.com/notaryproject/meeting-notes)
+  - Active meeting notes are captured at the [Notary Project meeting notes](https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw?view)
+  - Archived meeting notes are stored at the [meeting-notes repository](https://github.com/notaryproject/meeting-notes)
