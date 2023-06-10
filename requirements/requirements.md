@@ -1,6 +1,6 @@
 # Requirements
 
-A collection of requirements and scenarios, framing the scope of the Notary project.
+A collection of requirements and scenarios, framing the scope of the Notary Project.
 
 ## TOC
 
@@ -8,6 +8,7 @@ A collection of requirements and scenarios, framing the scope of the Notary proj
 - [Goals](#goals)
 - [Non Goals](#non-goals)
 - [Scenarios](./scenarios.md)
+- [Threat Model](./threatmodel.md)
 - [Key Stake Holders \& Contributors](#key-stake-holders--contributors)
 - [Contributing \& Conversations](#contributing--conversations)
 - [Definitions & Terms](./definitions-terms.md)
@@ -15,7 +16,7 @@ A collection of requirements and scenarios, framing the scope of the Notary proj
 
 ## Goals
 
-Notary Project aims to address the learnings and gaps of legacy Notary, while prioritizing a set of goals and [scenarios](./scenarios.md).
+The Notary Project aims to address the learnings and gaps of previous version, while prioritizing a set of goals and [scenarios](./scenarios.md).
 
 1. Offline signature creation
 1. Signatures attesting to authenticity and/or certification
@@ -66,7 +67,7 @@ As we identify the requirements and constraints, a number of key contributors wi
   
 ## Contributing & Conversations
 
-Regular conversations for Notary Project occur on the [Cloud Native Computing Slack](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287?) channel.
+Regular conversations for the Notary Project occur on the [Cloud Native Computing Slack](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287?) channel.
 
 Weekly meetings occur each Monday.
 Please see the [CNCF Calendar](https://www.cncf.io/community/calendar/) for details.

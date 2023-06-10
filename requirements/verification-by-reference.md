@@ -5,7 +5,7 @@
 
 ## Overview
 
-One of the many questions of Notary Project is how will verification (signatures) be persisted within a registry.
+One of the many questions of the Notary Project is how will verification (signatures) be persisted within a registry.
 This paper outlines an option for persisting verification content as additional artifacts in the registry, with a reverse lookup.
 This would enable multiple verifications to exist without changing the original artifact, or the digest of the original content.
 
@@ -24,7 +24,7 @@ This doc experiments with the avoidance of signatures as the reference.
 1. A collection of verification objects may be associated with an artifact.
 1. Leverage the garbage collection infrastructure registry operators have implemented.
    Garbage collection represents significant investments for registry services which are based on OCI Manifest and OCI Index.
-   We should aim to utilize these existing schemas, or only slight verifications from them to maximize the opportunity for registry implementations to adopt Notary Project specification implementation.
+   We should aim to utilize these existing schemas, or only slight verifications from them to maximize the opportunity for registry implementations to adopt implementations of the Notary Project specification.
 1. Minimize requirements to change persistence and object stores used by registry operators.
    Similar to garbage collection, we should work within the constraints of manifest, index and layers to represent verification objects.
 
@@ -36,11 +36,11 @@ This doc experiments with the avoidance of signatures as the reference.
    New APIs should be part of the Notary Project spec, which may represent changes to the OCI-distribution spec or implementations of a new extension model over the Distribution spec.
 1. Compatibility with Notary v1.
    Registries that have implemented Notary v1 are looking for a better solution.
-   We cumulatively have little existing usage, and if successful, we expect all customers would rapidly move to Notary Project eliminating the need to maintain two sets of APIs for an extended period of time.
+   We cumulatively have little existing usage, and if successful, we expect all customers would rapidly move to the Notary Project eliminating the need to maintain two sets of APIs for an extended period of time.
 
 ## Adding verifications along a workflow
 
-To address [Notary Project Scenario #6: Multiple Signatures](https://github.com/notaryproject/requirements/blob/master/scenarios.md#scenario-6-multiple-signatures), an artifact must be capable of having additional signatures (verifications) be added.
+To address [the Notary Project Scenario #6: Multiple Signatures](https://github.com/notaryproject/requirements/blob/master/scenarios.md#scenario-6-multiple-signatures), an artifact must be capable of having additional signatures (verifications) be added.
 However, a deployment document (Helm chart, Kube deploy yaml) must not be required to change.
 
 1. A dev team builds a container image, `(web:a2b2)`.
@@ -343,7 +343,7 @@ The reverse lookup index could be expanded as follows:
 
 ![Multi-platform manifest with SBoM, TUF, and Scan artifacts](./media/oci-manifest-index-reverse-lookup-sbom.png)
 
-The user still references `registry.contoso.com/web:a2b2`, while other parts of the system that adhere to notary Project would know to query the registry for the additional verification information.
+The user still references `registry.contoso.com/web:a2b2`, while other parts of the system that adhere to the Notary Project would know to query the registry for the additional verification information.
 
 An notation client queries for all indexes with a `"config.mediaType"` of `"application/vnd.cncf.notary.verification.config.v1+json"` It would read all the verification objects and decide how to proceed.
 

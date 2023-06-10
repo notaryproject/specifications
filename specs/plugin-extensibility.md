@@ -443,7 +443,7 @@ Therefore, signatures intended for public distribution which require broad signa
 
 * Signatures which require a plugin for verification may be distributed privately (e.g. within an organization) or publicly (e.g. via a public registry).
 If the plugin publisher wants their plugin used publicly they SHOULD publish specifications for the verification logic the plugin performs and test vectors.
-This allows Notary project specification implementations to perform the same logic themselves, if they choose to.
+This allows implementations of the Notary Project specification to perform the same logic themselves, if they choose to.
 
 ### Signature Verifier
 
@@ -484,7 +484,7 @@ This allows Notary project specification implementations to perform the same log
   "contractVersion" : "<major-version.minor-version>",
   
    "signature" : {
-    // Array of all Notary signature defined critical attributes and their values
+    // Array of all the Notary Project defined critical attributes and their values
     // in the signature envelope. Agnostic of header names and value serialization
     // in specific envelope formats like JWS or COSE.
     "criticalAttributes" : 

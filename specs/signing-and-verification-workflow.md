@@ -1,6 +1,6 @@
 # Signing and Verification Workflow
 
-This document describes how Notary Project signs and verifies OCI artifacts.
+This document describes how the Notary Project signs and verifies OCI artifacts.
 
 ## Signing workflow
 
@@ -23,7 +23,7 @@ The user wants to sign an OCI artifact and push the signature to a repository.
         1. Embed timestamp to the signature envelope.
 1. **Push the signature envelope:** Push the signature envelope generated in the previous step to the repository.
 1. **Generate signature artifact manifest:** As described in [signature specification](./signature-specification.md#storage) create the Notary signature manifest for the signature envelope generated in step 1.
-1. **Push signature artifact manifest:** Push Notary signature manifest to the repository.
+1. **Push signature artifact manifest:** Push the Notary signature manifest to the repository.
 
 The user pushes the OCI artifact to the repository before the signature generation process as the signature reference must exist for the signature push to succeed.
 
@@ -41,10 +41,10 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
 
 ### Verification Steps
 
-1. **Should Notary Project specification implementor verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#trust-policy) configuration, determine whether Notary Project specification implementor needs to verify the signature or not.
+1. **Should implementations of the Notary Project specification verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#trust-policy) configuration, determine whether the Notary Project specification implementor needs to verify the signature or not.
    If signature verification should be skipped for the given artifact, skip the below steps and directly jump to step 4.
 1. **Get signature artifact descriptors:** Using the [OCI Distribution Referrers API](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers) download the Notary signature manifest descriptors.
-   The `artifactType` parameter is set to Notary signature's artifact type `application/vnd.cncf.notary.signature`.
+   The `artifactType` parameter is set to the Notary signature's artifact type `application/vnd.cncf.notary.signature`.
 1. For each signature artifact descriptor, perform the following steps:
     1. **Get signature artifact manifest:** Download the Notary signature's manifest for the given artifact descriptor.
     1. **Filter signature artifact manifest:**
@@ -59,7 +59,7 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
                    If all signature artifact descriptors have already been processed, fail the signature verification and exit.
         1. If the artifact manifest is filtered out, skip the below steps and move to the next signature artifact descriptor(step 3.1).
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
-    1. **Get and verify signatures:** On the filtered Notary signature manifest, perform the following steps:
+    1. **Get and verify signatures:** On the filtered the Notary signature manifest, perform the following steps:
         1. Download the signature envelope.
         1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
         1. If the signature verification fails, skip the below steps and move to the next signature artifact descriptor(step 3.1).
@@ -69,4 +69,4 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
            Otherwise, move to the next signature artifact descriptor(step 3.1).
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
 1. **Get OCI artifact:** Using the verified digest, download the OCI artifact.
-   This step is not in the purview of Notary project specification.
+   This step is not in the purview of the Notary project specification.

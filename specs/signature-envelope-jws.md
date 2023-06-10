@@ -1,10 +1,10 @@
 # JWS Signature Envelope
 
-This specification implements the [Notary Project Signature specification](signature-specification.md) using JSON Web Signature (JWS). JWS ([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)) is a JSON based envelope format for digital signatures over any type of payload (e.g. JSON, binary). JWS is a Notary Project supported signature format and specifically uses the *JWS JSON Serialization* representation.
+This specification implements the [Notary signature specification](signature-specification.md) using JSON Web Signature (JWS). JWS ([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)) is a JSON based envelope format for digital signatures over any type of payload (e.g. JSON, binary). JWS is the Notary Project supported signature format and specifically uses the *JWS JSON Serialization* representation.
 
 ## Storage
 
-A JWS signature envelope will be stored in an OCI registry as a layer, and referenced in the signature manifest as a layer with `mediaType` of `"application/jose+json"`.
+A JWS signature envelope will be stored in an OCI registry as a layer, and referenced in the signature manifest as a layer blob with `mediaType` of `"application/jose+json"`.
 
 Signature Manifest Example
 
@@ -39,7 +39,7 @@ Signature Manifest Example
 
 The JWS envelope contains a [Notary signature payload](./signature-specification.md#payload).
 
-Example of Notary signature payload
+Example of the Notary signature payload
 
 ```jsonc
 {
@@ -56,7 +56,7 @@ Example of Notary signature payload
 
 ## Protected Headers
 
-The JWS envelope for Notary signature uses following headers
+The JWS envelope for the Notary signature uses following headers
 
 - Registered headers - `alg`, `cty`, and `crit`
 - [Public headers](https://datatracker.ietf.org/doc/html/rfc7515#section-4.2) with collision resistant names.
@@ -114,7 +114,7 @@ See [Extended attributes for *Notation* Plugins](./signature-specification.md#ex
 
 ## Unprotected Headers
 
-Notary signature supports following unprotected headers: `timestamp`, `x5c` and `io.cncf.notary.signingAgent`
+The Notary signature supports following unprotected headers: `timestamp`, `x5c` and `io.cncf.notary.signingAgent`
 
 ```jsonc
 {
@@ -153,7 +153,7 @@ Base64Url encoding used by JWS (*Base64url Encoding* in [RFC 7515 section 2][jws
 
 The final signature envelope comprises of Payload, ProtectedHeaders, UnprotectedHeaders, and Signature, no additional top level fields are supported.
 
-Since Notary Project restricts one signature per signature envelope, the compliant signature envelope MUST be in flattened JWS JSON format.
+Since the Notary Project restricts one signature per signature envelope, the compliant signature envelope MUST be in flattened JWS JSON format.
 
 ```jsonc
 {
@@ -171,7 +171,7 @@ Since Notary Project restricts one signature per signature envelope, the complia
 
 ### Supported `alg` header values
 
-Notary Project specification implementation MUST enforce the following constraints on signature generation and verification:
+Implementations of the Notary Project specification  MUST enforce the following constraints on signature generation and verification:
 
 1. `alg` header value MUST NOT be `none` or any symmetric-key algorithm such as `HMAC`.
 1. `alg` header value MUST be same as that of signature algorithm identified using signing certificate's public key algorithm and size.
@@ -199,7 +199,7 @@ Notary Project specification implementation MUST enforce the following constrain
 
 **Q:** Why JWT `exp` and `iat` claims are not used?
 
-**A:** Unlike JWT which always contains a JSON payload, Notary signature envelope can support payloads other than JSON, like binary. Reusing the JWT payload structure and claims, limits the Notary signature JWS envelope to only support JSON payload, which is undesirable. Also, reusing JWT claims requires following same claim semantics as defined in JWT specifications. The [`exp`](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4) claim requires that verifier MUST reject the signature if current time equals or is greater than `exp`, where as Notary Project specification allows verification policy to define how expiry is handled.
+**A:** Unlike JWT which always contains a JSON payload, Notary signature envelope can support payloads other than JSON, like binary. Reusing the JWT payload structure and claims, limits the Notary signature JWS envelope to only support JSON payload, which is undesirable. Also, reusing JWT claims requires following same claim semantics as defined in JWT specifications. The [`exp`](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4) claim requires that verifier MUST reject the signature if current time equals or is greater than `exp`, where as the Notary Project specification allows verification policy to define how expiry is handled.
 
 [jws-alg-values]: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
 [rfc3339]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6

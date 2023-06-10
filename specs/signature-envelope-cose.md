@@ -1,12 +1,12 @@
 # COSE Sign1 Signature Envelope
 
-This specification implements the [Notary Signature specification](signature-specification.md) using 
+This specification implements the [Notary signature specification](signature-specification.md) using 
 CBOR Object Signing and Encryption (COSE). COSE ([RFC8152](https://datatracker.ietf.org/doc/html/rfc8152)) is a CBOR based envelope format for digital signatures over any type of payload (e.g. CBOR, JSON, binary).
-Notary signature specifically supports [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) as a signature envelope.
+The Notary signature specifically supports [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) as a signature envelope.
 
 ## Storage
 
-A COSE signature envelope will be stored in an OCI registry as a blob, and referenced in the signature manifest as a blob with `mediaType` of `"application/cose"`.
+A COSE signature envelope will be stored in an OCI registry as a blob, and referenced in the signature manifest as a layer blob with `mediaType` of `"application/cose"`.
 
 Signature Manifest Example
 
@@ -41,7 +41,7 @@ Signature Manifest Example
 
 The COSE envelope contains a [Notary signature Payload](./signature-specification.md#payload).
 
-Example of Notary signature payload:
+Example of the Notary signature payload:
 
 ```jsonc
 {
@@ -58,7 +58,7 @@ Example of Notary signature payload:
 
 ## Protected Header
 
-The COSE envelope for Notary signature uses the following header parameters:
+The COSE envelope for the Notary signature uses the following header parameters:
 
 - [Common parameters](https://www.iana.org/assignments/cose/cose.xhtml#header-parameters)
   - Label `1`: `alg`
@@ -115,7 +115,7 @@ Note: The above examples are represented using the [extended CBOR diagnostic not
 
 ## Unprotected Headers
 
-Notary signature supports the following unprotected header parameters:
+The Notary signature supports the following unprotected header parameters:
 
 - `io.cncf.notary.timestampSignature`
 - Label `33`: `x5chain`
@@ -197,13 +197,13 @@ The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of Payl
 
 ### Supported `alg` header values
 
-Notary Project specification implementation MUST enforce the following constraints on signature generation and verification:
+Implementations of the Notary Project specification MUST enforce the following constraints on signature generation and verification:
 
 1. `alg` parameter value MUST NOT be a symmetric-key algorithm such as `HMAC`.
 1. `alg` parameter value MUST be same as that of signature algorithm identified using signing certificate's public key algorithm and size.
 1. `alg` parameter values for various signature algorithms is a subset of values supported by [COSE](https://www.iana.org/assignments/cose/cose.xhtml#algorithms).
 
-**Mapping of Notary signature approved algorithms to COSE `alg` header parameter values**
+**Mapping of the Notary signature approved algorithms to COSE `alg` header parameter values**
 
   | Signature Algorithm             | `alg` Label       |
   | ------------------------------- | ----------------- |
