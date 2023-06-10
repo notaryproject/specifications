@@ -45,7 +45,7 @@ However, they do wish to add attestations to the validity of the content.
 
 - Signatures can be placed on any type of [artifact](artifacts-repo) stored in an OCI compliant registry using an [OCI Manifest][oci-manifest]
 - Signatures can be persisted as references to the [OCI Manifest][oci-manifest], allowing a entity to define a collection of artifacts.
-- Signatures and their public keys can be moved within, and across OCI compliant registries which support the Notary signature.
+- Signatures and their public keys can be moved within, and across OCI compliant registries which support the Notary Project signature.
 - Because content is trusted, an ecosystem of other projects and products can leverage information in various formats.
 
 ### Scenario #1: Local Build, Sign, Validate

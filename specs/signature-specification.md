@@ -107,8 +107,8 @@ Besides the [image manifest property requirements][image-manifest-property-descr
 
 The client should be able to discover all the signatures belonging to an artifact (such as image manifest) by using [OCI Distribution Referrers API][oci-distribution-referrers].
 OCI Distribution Referrers API returns a paginated list of all artifacts belonging to a target artifact (such as container images, SBoMs).
-The implementation can filter Notary signature artifacts by either using OCI Distribution Referrers API or using custom logic on the client.
-Each Notary signature artifact refers to a signature envelope blob.
+The implementation can filter the Notary Project signatures by either using OCI Distribution Referrers API or using custom logic on the client.
+Each Notary Project signature refers to a signature envelope blob.
 
 ### Signature Filtering
 
