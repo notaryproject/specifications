@@ -1,6 +1,6 @@
 # The Notary Project Overview
 
-The Notary Project aims to provide enterprise-grade solutions and cross-industry standards for securing software supply chain. The following are current repositories, aka sub-projects, under the Notary Project umbrella in Alphabetical order:
+The Notary Project aims to provide enterprise-grade solutions and cross-industry standards for securing software supply chain. The following are current repositories, aka sub-projects, under the Notary Project umbrella in an alphabetical order:
 
 | Repository                                                               | Description                                                                                                                                             |
 | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -19,10 +19,10 @@ The Notary Project aims to provide enterprise-grade solutions and cross-industry
 
 The Notary Project is now in active development. The latest release announcement will be published on [the Notary Project website](https://notaryproject.dev/blog/). The Notary community uses the [project board](https://github.com/orgs/notaryproject/projects/10) for project planning and status tracking. You can also use GitHub milestones to track the progress:
 
+- [Notary](https://github.com/notaryproject/notary/milestones)
 - [Notation CLI](https://github.com/notaryproject/notation/milestones)
 - [Notation library notation-go](https://github.com/notaryproject/notation-go/milestones)
 - [Notation library notation-core-go](https://github.com/notaryproject/notation-core-go/milestones)
-- [Notary](https://github.com/notaryproject/notary/milestones)
 
 > Note: The original intention of [roadmap repository](https://github.com/notaryproject/roadmap) is to maintain the roadmap issues for the Notary Project, but we are now moving these issues to correspondent repositories. We will finally archive roadmap repository.
 
