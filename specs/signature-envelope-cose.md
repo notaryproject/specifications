@@ -1,8 +1,8 @@
 # COSE Sign1 Signature Envelope
 
-This specification implements the [Notary Project signature specification](signature-specification.md) using 
+This specification implements the [Notary signature specification](signature-specification.md) using 
 CBOR Object Signing and Encryption (COSE). COSE ([RFC8152](https://datatracker.ietf.org/doc/html/rfc8152)) is a CBOR based envelope format for digital signatures over any type of payload (e.g. CBOR, JSON, binary).
-The Notary Project signature specifically supports [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) as a signature envelope.
+The Notary signature specifically supports [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) as a signature envelope.
 
 ## Storage
 
@@ -39,9 +39,9 @@ Signature Manifest Example
 
 ## COSE Payload
 
-The COSE envelope contains a [Notary Project signature Payload](./signature-specification.md#payload).
+The COSE envelope contains the [Notary signature Payload](./signature-specification.md#payload).
 
-Example of the Notary Project signature payload:
+Example of the Notary signature payload:
 
 ```jsonc
 {
@@ -58,7 +58,7 @@ Example of the Notary Project signature payload:
 
 ## Protected Header
 
-The COSE envelope for the Notary Project signature uses the following header parameters:
+The COSE envelope for the Notary signature uses the following header parameters:
 
 - [Common parameters](https://www.iana.org/assignments/cose/cose.xhtml#header-parameters)
   - Label `1`: `alg`
@@ -105,7 +105,7 @@ Example with Signing Scheme `notary.x509.signingAuthority`
 
 Note: The above examples are represented using the [extended CBOR diagnostic notation](https://datatracker.ietf.org/doc/html/rfc8152#appendix-C).
 
-- **[`alg`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)** (*int*): This REQUIRED parameter (label `1`) defines which signing algorithm was used to generate the signature. The signature algorithm of the signing key (first certificate in `x5chain`) is the source of truth, and during signing the value of `alg` MUST be set corresponding to signature algorithm of the signing key using [this mapping](#supported-alg-header-values) that lists the Notary Project signature allowed subset of `alg` values supported by COSE. Similarly verifier of the signature MUST match `alg` with signature algorithm of the signing key to mitigate algorithm substitution attacks.
+- **[`alg`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)** (*int*): This REQUIRED parameter (label `1`) defines which signing algorithm was used to generate the signature. The signature algorithm of the signing key (first certificate in `x5chain`) is the source of truth, and during signing the value of `alg` MUST be set corresponding to signature algorithm of the signing key using [this mapping](#supported-alg-header-values) that lists the Notary signature allowed subset of `alg` values supported by COSE. Similarly verifier of the signature MUST match `alg` with signature algorithm of the signing key to mitigate algorithm substitution attacks.
 - **[`crit`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)** (*array of int/tstr*): This REQUIRED parameter (label `2`) lists the header parameters that implementations MUST understand and process. It MUST only contain parameters apart from integer labels in the range of 0 to 8. This header MUST contain `io.cncf.notary.signingScheme` which is a required critical header, and optionally contain `io.cncf.notary.authenticSigningTime` and `io.cncf.notary.expiry` if these critical headers are present in the signature.
 - **[`content type`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)** (*tstr*): The REQUIRED parameter content type (label `3`) is used to declare the media type of the secured content (the payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`.
 - **`io.cncf.notary.signingScheme`** (*tstr*, critical): This REQUIRED header specifies the [Notary Project Signing Scheme](./signing-scheme.md) used by the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
@@ -115,7 +115,7 @@ Note: The above examples are represented using the [extended CBOR diagnostic not
 
 ## Unprotected Headers
 
-The Notary Project signature supports the following unprotected header parameters:
+The Notary signature supports the following unprotected header parameters:
 
 - `io.cncf.notary.timestampSignature`
 - Label `33`: `x5chain`
@@ -203,7 +203,7 @@ Implementations of the Notary Project specification MUST enforce the following c
 1. `alg` parameter value MUST be same as that of signature algorithm identified using signing certificate's public key algorithm and size.
 1. `alg` parameter values for various signature algorithms is a subset of values supported by [COSE](https://www.iana.org/assignments/cose/cose.xhtml#algorithms).
 
-**Mapping of the Notary Project signature approved algorithms to COSE `alg` header parameter values**
+**Mapping of the Notary signature approved algorithms to COSE `alg` header parameter values**
 
   | Signature Algorithm             | `alg` Label       |
   | ------------------------------- | ----------------- |
