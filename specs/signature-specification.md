@@ -46,7 +46,7 @@ Signature manifest example per OCI image manifest:
 Besides the [image manifest property requirements][image-manifest-property-descriptions], the properties have the following additional restrictions:
 
 - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.oci.image.manifest.v1+json`.
-- **`config`** (*descriptor*): This property is REQUIRED to be compatible with [OCI image specification][oci-image-manifest]. The Notary signature specification doesn't require any configuration for a signature, and the configuration content is not consumed by the Notary Project tooling.
+- **`config`** (*descriptor*): This property is REQUIRED to be compatible with [OCI image specification][oci-image-manifest]. The Notary signature specification doesn't require any configuration for a signature, and the configuration content is not consumed by the implementations of Notary signature specification.
   - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.cncf.notary.signature`.
   - **`digest`** (*string*): This REQUIRED property is the digest of the config content.
   - **`size`** (*int64*): This REQUIRED property specifies the size, in bytes, of the raw config content.
@@ -57,7 +57,7 @@ Besides the [image manifest property requirements][image-manifest-property-descr
 - **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest.
 - **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the image manifest.
   It is being used to store information about the signature.
-  Keys using the `io.cncf.notary` namespace are reserved for use in the Notary Project and MUST NOT be used by other specifications.
+  Keys using the `io.cncf.notary` namespace are reserved for use in the Notary signature specification and MUST NOT be used by other specifications.
   - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprints of signing certificate and certificate chain (including root) used for signature generation. The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
 
 ### Signature Discovery
@@ -69,7 +69,7 @@ Each the Notary signature refers to a signature envelope blob.
 
 ### Signature Filtering
 
-An OCI artifact can have multiple signatures, The Notary Project tooling uses annotations of the signature artifact to filter relevant signatures based on the applicable trust policy.
+An OCI artifact can have multiple signatures, the implementations of Notary signature specification uses annotations of the signature manifest to filter relevant signatures based on the applicable trust policy.
 The Notary signature manifest's `io.cncf.notary.x509chain.thumbprint#S256` annotation key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
 
 ## Signature Envelope
@@ -135,11 +135,11 @@ Signed attributes/claims are additional metadata apart from the payload, which a
 - Claims that MUST be processed by a verifier MUST be marked as critical. Some claims may be optional and critical, i.e. they MUST be processed by a verifier only if they are present.
 - Claims which are informational and do not influence signature verification MUST NOT be marked critical.
 
-The Notary Project requires the signature envelope to support the following signed attributes/claims.
+The Notary signature specification requires the signature envelope to support the following signed attributes/claims.
 
 #### Standard attributes
 
-- **Signing Scheme** (critical): A REQUIRED claim that defines the [Notary Project Signing Scheme](./signing-scheme.md) used by the signature. This attribute dictates the rest of signature schema - the set of signed and unsigned attributes to be included in the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
+- **Signing Scheme** (critical): A REQUIRED claim that defines the [Notary Signing Scheme](./signing-scheme.md) used by the signature. This attribute dictates the rest of signature schema - the set of signed and unsigned attributes to be included in the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
 - **Signing Time**: A claim that indicates the time at which the signature was generated. Though this claim is signed by the signing key, it’s considered unauthenticated as a signer can modify local time and manipulate this claim. More details [here](#signing-time). This claim is REQUIRED and only valid when signing scheme is `notary.x509` .
 - **Authentic Signing Time** (critical): The authenticated time at which the signature was generated. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority` . More details [here](#signing-time).
 - **Expiry** (critical): An OPTIONAL claim that provides a “best by use” time for the artifact, as defined by the signer. More details [here](#expiry).
@@ -247,12 +247,12 @@ The `keyUsage` extension MUST be present and MUST be marked critical. Bit positi
 
 ## FAQ
 
-**Q: How will the Notary Project specification support multiple signature envelope formats?**
+**Q: How will the Notary signature specification support multiple signature envelope formats?**
 
 **A:** The `mediaType` of image manifest's layer identifies the signature envelope type.  
 The client implementation can use the aforementioned `mediaType` to parse the signature envelope.
 
-**Q: How will the Notary Project specification support multiple payload formats?**
+**Q: How will the Notary signature specification support multiple payload formats?**
 
 **A:** The Signature envelope MUST have a versioning mechanism to support multiple payload formats.
 
@@ -294,7 +294,7 @@ The Notary signature specification allows multiple signatures to be associated w
 #### Verification requirements
 
 The Notary signature specification supports a range of signed artifacts intended for public and private distribution.
-Signatures generated without extended signature attributes marked critical can be verified in any environment where Notation client or another Notary Project specification compliant verification tool is available, without any additional dependencies.
+Signatures generated without extended signature attributes marked critical can be verified in any environment where Notation client or another Notary signature specification compliant verification tool is available, without any additional dependencies.
 It should be noted that revocations checks, which usually relies on an external mechanism such as CRL/OCSP may require the verification environment to have access to local network or public internet, to have access to the CRL/OCSP endpoint.
 
 The Notary signature specification also supports signatures generated using compliant signing plugins, which allow vendors to optionally provide additional features on top of Notation standard features.
