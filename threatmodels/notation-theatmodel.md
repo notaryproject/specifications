@@ -39,7 +39,7 @@ The following diagram illustrates Notation signing artifacts as OCI image layout
 
 ![Notation signs artifacts as OCI image layout in the filesystem](../media/notation-sign-local.svg)
 
-As per the [Notary Project signature specification](../specs/signature-specification.md), the signature payload is a JSON document which requires the [OCI descriptor](https://github.com/opencontainers/image-spec/blob/v1.0.0/descriptor.md) of the target artifact. For artifacts stored in a registry, the descriptor info can be retrieved from [image manifest](https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md) stored in the registry. For artifacts stored as an [OCI Image layout](https://github.com/opencontainers/image-spec/blob/v1.0.0/image-layout.md), the descriptor info can be retrieved by inspecting the `index.json` file of OCI Image layout.
+As per the [Notary signature specification](../specs/signature-specification.md), the signature payload is a JSON document which requires the [OCI descriptor](https://github.com/opencontainers/image-spec/blob/v1.0.0/descriptor.md) of the target artifact. For artifacts stored in a registry, the descriptor info can be retrieved from [image manifest](https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md) stored in the registry. For artifacts stored as an [OCI Image layout](https://github.com/opencontainers/image-spec/blob/v1.0.0/image-layout.md), the descriptor info can be retrieved by inspecting the `index.json` file of OCI Image layout.
 
 ### Threats and Mitigation
 
