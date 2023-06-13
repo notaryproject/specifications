@@ -7,7 +7,7 @@ This document provides the following details for the Notary signature:
 
 ## Storage
 
-This section describes how the Notary signature are stored in the OCI Distribution conformant registry.
+This section describes how a Notary signature is stored in an OCI Distribution conformant registry.
 OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.1.0-rc3][oci-image-manifest] for details.
 The signature manifest has a configuration media type that specifies it's the Notary signature, a subject referencing the manifest of the artifact being signed, a layer referencing the signature, and a collection of annotations.
 
