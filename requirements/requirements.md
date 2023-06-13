@@ -16,21 +16,21 @@ A collection of requirements and scenarios, framing the scope of the Notary Proj
 
 ## Goals
 
-The Notary Project aims to address the learnings and gaps of previous version, while prioritizing a set of goals and [scenarios](./scenarios.md).
+The Notary Project aims to address the learnings and limitations of [Notary TUF-based implementation](https://github.com/notaryproject/notary), while establishing and prioritizing a set of goals and [scenarios](./scenarios.md) for the new implementation (this repo).
 
 1. Offline signature creation
-1. Signatures attesting to authenticity and/or certification
-1. Maintain the original artifact digest and collection of associated tags, supporting existing dev through deployment workflows
-1. Multiple signatures per artifact, enabling the originating vendor signature, public registry certification and user/environment signatures
-1. Native persistance within an [OCI Artifact][oci-artifacts] enabled, [distribution-spec][distribution-spec] based registry
-1. Artifact and signature copying within and across [OCI Artifact][oci-artifacts] enabled, [distribution-spec][distribution-spec] based registries
-1. Support multi-tenant registries enabling cloud providers and enterprises to support managed services at scale
-1. Support private registries, where public content may be copied to, and new content originated within
-1. Air-gapped environments, where the originating registry of content is not accessible
-1. Key hierarchies and delegation
-1. Key revocation, including private and air-gapped registries
-1. Key acquisition must support users from hobbyists, open source projects to large software vendors
-1. Usable workflows, enabled for the masses to easily create and consume Notary signatures
+2. Signatures attesting to authenticity and/or certification
+3. Maintain the original artifact digest and collection of associated tags, supporting existing dev through deployment workflows
+4. Multiple signatures per artifact, enabling the originating vendor signature, public registry certification and user/environment signatures
+5. Native persistance within an [OCI Artifact][oci-artifacts] enabled, [distribution-spec][distribution-spec] based registry
+6. Artifact and signature copying within and across [OCI Artifact][oci-artifacts] enabled, [distribution-spec][distribution-spec] based registries
+7. Support multi-tenant registries enabling cloud providers and enterprises to support managed services at scale
+8. Support private registries, where public content may be copied to, and new content originated within
+9. Air-gapped environments, where the originating registry of content is not accessible
+10. Key hierarchies and delegation
+11. Key revocation, including private and air-gapped registries
+12. Key acquisition must support users from hobbyists, open source projects to large software vendors
+13. Usable workflows, enabled for adopters to easily create and consume Notary signatures
 
 ## Non Goals
 

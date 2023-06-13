@@ -36,11 +36,11 @@ This doc experiments with the avoidance of signatures as the reference.
    New APIs should be part of the Notary Project spec, which may represent changes to the OCI-distribution spec or implementations of a new extension model over the Distribution spec.
 1. Compatibility with Notary v1.
    Registries that have implemented Notary v1 are looking for a better solution.
-   We cumulatively have little existing usage, and if successful, we expect all customers would rapidly move to the Notary Project eliminating the need to maintain two sets of APIs for an extended period of time.
+   We cumulatively have little existing usage, and if successful, we expect all adopters would rapidly move to the Notary Project eliminating the need to maintain two sets of APIs for an extended period of time.
 
 ## Adding verifications along a workflow
 
-To address [the Notary Project Scenario #6: Multiple Signatures](https://github.com/notaryproject/requirements/blob/master/scenarios.md#scenario-6-multiple-signatures), an artifact must be capable of having additional signatures (verifications) be added.
+To address [the Notary Project Scenario #6: Multiple Signatures](https://github.com/notaryproject/requirements/blob/master/scenarios.md#scenario-6-multiple-signatures), an artifact must be capable of having additional signatures (verifications) added.
 However, a deployment document (Helm chart, Kube deploy yaml) must not be required to change.
 
 1. A dev team builds a container image, `(web:a2b2)`.

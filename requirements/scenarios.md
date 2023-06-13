@@ -3,14 +3,14 @@
 As containers and cloud native artifacts become the common unit of deployment, users want to know the artifacts in their environments are authentic and unmodified.
 
 The Notary Project scenarios define end-to-end scenarios for signing artifacts in a generalized way, storing and moving them between OCI compliant registries, validating them with various artifact hosts and tooling.
-The Notary Project focuses on the signing of content, enabling e2e workflows, without specifying what those workflows must be.
+The Notary Project focuses on the signing of content, enabling end-to-end (e2e) workflows, without specifying what those workflows must be.
 
 By developing a generalized solution, artifact authors may develop their unique artifact types, allowing them to leverage Notary for signing and OCI Compliant registries for distribution.
 
 ## Scenarios
 
 The Notary Project aims to solve the core issue of trusting content within, and across registries.
-There are many elements of an end to end scenario that are not implemented by Notary Project specification implementation, rather enabled because the content is verifiable.
+There are many elements of an e2e scenario that are not implemented by Notary Project specification implementation, rather enabled because the content is verifiable.
 
 ### Scenario #0: Build, Publish, Consume, Enforce Policy, Deploy
 
