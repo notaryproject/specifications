@@ -9,18 +9,18 @@ The following diagram illustrates the architecture and components.
 ![Notation system overview](../media/notation-system.svg)
 
 - **User**: The actor could be a signer or a verifier. A signer interacts with Notation CLI to sign artifacts. A verifier interacts with Notation CLI to verify artifacts against signatures.
-- **Artifact Builder**: The actor who is responsible for producing software artifacts using build systems. Notation supports signing and verification of software artifacts including but are not limited to container images, helm charts, SBOM (Software Bill of Materials). These artifacts can be stored either in remote registries or locally on disk using [OCI image layout](https://github.com/opencontainers/image-spec/blob/v1.0.0/image-layout.md).
+- **Artifact Builder**: The actor who is responsible for producing software artifacts using build systems. Notation supports signing and verification of software artifacts including but are not limited to container images, helm charts, Software Bill of Materials (SBOMs). These artifacts can be stored either in remote registries or locally on disk using [OCI image layout](https://github.com/opencontainers/image-spec/blob/v1.0.0/image-layout.md).
 - **Execution Environment**: The execution environment includes the host and **File System** where notation CLI will be installed and executed. Notation works with a shared responsibility model which means users/organizations are responsible for securing the notation execution environment. Following are the various directories and files used by the Notation:
   - `config.json` file is used to store various configurations such as credential store information, etc.
-  - `trustpolicy.json` file is used to store trust policy-related data.
-  - `truststore` directory is used to store various trusted certificates used for verifying the signature.
+  - `trustpolicy.json` file is used to store trust policy related data.
+  - `truststore` directory is used to store various trusted certificates used for signature verification.
   - `localkeys` directory is used to store test keys.
   - `plugins` directory is used to store various plugins.
   
   Notation uses credential stores to securely store the registry credentials.
 - **Notation Plugin**: An external component/binary that can integrate as one of the steps in Notation’s workflow for signature generation or verification, see [plugin spec](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/plugin-extensibility.md) for details.
-- **Registry**: A registry stores container images as well as related content formats, such as Helm charts, OCI artifacts built to the OCI image format specification. Registries are outside Notation trust boundary.
-- **KMS**: A Key Management System that supports the generation and management of signing material such as certificates (along with private key) management or a signing service. KMS are outside Notation trust boundary.
+- **Registry**: An OCI-compliant registry that stores OCI artifacts, like container images, Helm charts or other OCI artifacts. Registries are outside Notation trust boundary.
+- **KMS**: A Key Management System that manages the the certificate along with private key that used for signing artifacts or a signing service. KMS are outside Notation trust boundary.
 - **OCSP Responder**: The [Online Certificate Status Protocol (OCSP)](https://www.rfc-editor.org/rfc/rfc6960) is an Internet protocol used for obtaining the revocation status of an X.509 digital certificate. Notation uses OCSP to check the certificate's revocation status.
 
 ## Notation sign artifacts using remote key
@@ -50,8 +50,8 @@ As per the [Notary signature specification](../specs/signature-specification.md)
 | Tampered files                  | Tampering              | Mitigated     | High     | File System     | Files read by Notation are tampered, this may lead to failure of notation sign operation | Notation must be installed on secure and trusted infrastructure(shared responsibility with users)|
 | Disclosure of files             | Information disclosure | Mitigated     | High     | File System     | Files are accessed by attackers, this may lead to disclosure of notation config files and credential files | Notation must be installed on secure and trusted infrastructure(shared responsibility mode). Notation stores the credentials securely using credential store. Notation interacts with notation plugin to access signing keys via remote KMS or a HSM device |
 | Malicious plugin                | Tampering              | Mitigated     | High     | Notation Plugin | A malicious plugin is installed, this may lead to arbitrary code being executed by attackers | Verify the integrity and authenticity of the plugin before using the plugin |
-| Using weak crypto algorithms during the signing | Repudiation         | Mitigated     | High     | Bypass of signature verification | Notation restricts the signing algorithm to the following [set](https://github.com/notaryproject/notaryproject/blob/main/specs/signature-specification.md#algorithm-selection) |
-| Compromised Notation dependencies | Tampering              | Not mitigated  | High     | Notation       | The dependencies that built into Notation binary was compromised, this may lead to arbitrary code being executed | Notation keeps dependencies up-to-date |
+| Using weak crypto algorithms during the signing | Repudiation         | Mitigated     | High     | Notation Plugin | Bypass of signature verification | Notation restricts the signing algorithm to the following [set](https://github.com/notaryproject/notaryproject/blob/main/specs/signature-specification.md#algorithm-selection) |
+| Compromised Notation dependencies | Tampering              | Not mitigated  | High     | Notation       | The dependencies that built into Notation binary was compromised, this may lead to arbitrary code being executed | Notation keeps dependencies up-to-date. Always use static build instead of dynamic linking |
 
 ## Notation verify artifacts against signatures
 
