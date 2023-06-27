@@ -68,7 +68,7 @@ An experimental docker plug-in called [docker-generate](https://github.com/shizh
 
 This prototype inspired a new [OCI Artifact Manifest][oci-artifact-manifest], which provides a way for artifacts to define the target artifact (`manifest`) they are linking to.
 
-![net-monitor signed image](./media/net-monitor-signatures.svg)
+![net-monitor signed image](/media/net-monitor-signatures.svg)
 
 Additional signature types have also been discussed, including [IBM Simple Signing](https://cloud.ibm.com/docs/Registry?topic=Registry-registry_trustedcontent) and a [cosign prototype](https://github.com/projectcosign/cosign), developed by [Dan Lorenc](https://github.com/dlorenc) which would benefit from the [OCI Artifact Manifest][oci-artifact-manifest] linking proposal. Supporting additional signature types is not within the Notary v2 scope, rather a benefit from the OCI Artifact manifest approach for linking Notary v2 signatures.
 

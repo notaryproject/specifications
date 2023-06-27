@@ -17,7 +17,7 @@ There are many elements of an end to end scenario that are not implemented by No
 To put Notary v2 in context, the following end-to-end scenario is outlined.
 The blue elements are the scope of Notary v2, with the other elements providing generic references to other projects or products that demonstrate how Notary v2 may be utilized.
 
-![Notary e2e Scenarios](./media/notary-e2e-scenarios.svg)
+![Notary e2e Scenarios](/media/notary-e2e-scenarios.svg)
 
 In a world of consuming public software, we must account for content that's acquired from a public source, copied into a trusted environment, then deployed.
 In this scenario, the consumer is not re-building or adding additional content.
