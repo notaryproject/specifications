@@ -1,6 +1,6 @@
 # Signature Specification
 
-This document provides the following details for the Notary Project signature:
+This document provides the following details for Notary Project signature:
 
 - **[Storage](#storage)**: Describes how signatures are stored and retrieved from an OCI registry.
 - **[Signature Envelope](#signature-envelope)**: Describes the structure of the Notary Project signature.
@@ -9,7 +9,7 @@ This document provides the following details for the Notary Project signature:
 
 This section describes how a Notary Project signature is stored in an OCI Distribution conformant registry.
 OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.1.0-rc3][oci-image-manifest] for details.
-The signature manifest has a configuration media type that specifies it's the Notary Project signature, a subject referencing the manifest of the artifact being signed, a layer referencing the signature, and a collection of annotations.
+The signature manifest has a configuration media type that specifies it's a Notary Project signature, a subject referencing the manifest of the artifact being signed, a layer referencing the signature, and a collection of annotations.
 
 ![Signature storage inside registry](../media/signature-specification.svg)
 
@@ -46,7 +46,7 @@ Signature manifest example per OCI image manifest:
 Besides the [image manifest property requirements][image-manifest-property-descriptions], the properties have the following additional restrictions:
 
 - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.oci.image.manifest.v1+json`.
-- **`config`** (*descriptor*): This property is REQUIRED to be compatible with [OCI image specification][oci-image-manifest]. The Notary Project signature specification doesn't require any configuration for a signature, and the configuration content is not consumed by implementations of the Notary Project signature specification.
+- **`config`** (*descriptor*): This property is REQUIRED to be compatible with [OCI image specification][oci-image-manifest]. The Notary Project signature specification doesn't require any configuration for a signature, and the configuration content is not consumed by implementations of Notary Project signature specification.
   - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.cncf.notary.signature`.
   - **`digest`** (*string*): This REQUIRED property is the digest of the config content.
   - **`size`** (*int64*): This REQUIRED property specifies the size, in bytes, of the raw config content.
@@ -57,19 +57,19 @@ Besides the [image manifest property requirements][image-manifest-property-descr
 - **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest.
 - **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the image manifest.
   It is being used to store information about the signature.
-  Keys using the `io.cncf.notary` namespace are reserved for use in the Notary Project signature specification and MUST NOT be used by other specifications.
+  Keys using the `io.cncf.notary` namespace are reserved for use in Notary Project signature specification and MUST NOT be used by other specifications.
   - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprints of signing certificate and certificate chain (including root) used for signature generation. The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
 
 ### Signature Discovery
 
 The client should be able to discover all the signatures belonging to an artifact (such as image manifest) by using [OCI Distribution Referrers API][oci-distribution-referrers].
 OCI Distribution Referrers API returns a paginated list of all artifacts belonging to a target artifact (such as container images, SBoMs).
-The implementation can filter the Notary Project signatures by either using OCI Distribution Referrers API or using custom logic on the client.
+The implementation can filter Notary Project signatures by either using OCI Distribution Referrers API or using custom logic on the client.
 Each Notary Project signature refers to a signature envelope blob.
 
 ### Signature Filtering
 
-An OCI artifact can have multiple signatures, implementations of the Notary Project signature specification uses annotations of the signature manifest to filter relevant signatures based on the applicable trust policy.
+An OCI artifact can have multiple signatures, implementations of Notary Project signature specification uses annotations of the signature manifest to filter relevant signatures based on the applicable trust policy.
 The Notary Project signature manifest's `io.cncf.notary.x509chain.thumbprint#S256` annotation key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
 
 ## Signature Envelope
@@ -96,8 +96,8 @@ The Notary Project signature supports the following envelope formats:
 The Notary Project signature payload is a JSON document with media type `application/vnd.cncf.notary.payload.v1+json` and has following properties.
 
 - `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed. Only [OCI descriptor][oci-descriptor] is supported.
-  - Descriptor MUST contain `mediaType`, `digest`, `size` fields.
-  - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. The Notary Project signature uses annotations for storing both the Notary Project specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in the Notary Project signature and MUST NOT be used outside this specification.
+  - Descriptor MUST contain `mediaType`, `digest`, and `size` fields.
+  - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. The Notary Project signature uses annotations for storing both Notary Project specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary Project signature and MUST NOT be used outside this specification.
   - Descriptor MAY contain `artifactType` field for the `config.mediaType` of OCI image based manifests.
 
 #### Examples
@@ -147,19 +147,19 @@ The Notary Project signature specification requires the signature envelope to su
 
 #### Extended attributes
 
-Implementations of the Notary Project signature specification MAY include additional signed attributes in the signature envelope.
+Implementations of Notary Project signature specification MAY include additional signed attributes in the signature envelope.
 These attributes MAY be marked critical, i.e. the attribute MUST be understood and processed by a verifier, unknown critical attributes MUST cause signature verification to fail.
 Usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature, these are discussed in [Signature Portability](#signature-portability) section.
 
 #### Extended attributes for *Notation* Plugins
 
-Notation is a CLI and has set of libraries that offer an implementation of the Notary Project signature specification. Notation allows you to sign artifacts as well as verify artifacts against the Notary Project signatures.
+[Notation](https://github.com/notaryproject/notation) is a CLI and has set of libraries that offer an implementation of Notary Project signature specification. Notation allows you to sign artifacts as well as verify artifacts against Notary Project signatures.
 
 This section documents extended attributes used by Notation to support plugins.
 Plugins is a *Notation* concept that allows parts of signing and verification logic to be performed by an external provider.
-*Signing plugins* allow *Notation* to be extended for integration with remote keys remote key management services and signing services, where as *verification plugins* allow for customization of verification logic.
+*Signing plugins* allow *Notation* to be extended for integration with remote keys, remote key management services, and signing services, where as *verification plugins* allow for customization of verification logic.
 Detailed specification for plugins can be found [here](https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md#notation-extensibility-for-signing-and-verification).
-These extended attributes are documented in this spec, as other implementations of the Notary Project signature specification may encounter these attributes if they verify a signature that indicated it required a verification plugin for complete signature verification.
+These extended attributes are documented in this spec, as other implementations of Notary Project signature specification may encounter these attributes if they verify a signature that indicated it required a verification plugin for complete signature verification.
 
 - **Verification Plugin** (critical): An OPTIONAL attribute that specifies the name of the verification plugin that MAY be used to verify the signature e.g. “com.example.nv2plugin”.
 [Notation plugin](https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md#plugin-contract) aware implementations use this attribute to load and execute a *Notation* compliant plugin.
@@ -169,7 +169,7 @@ A Notation plugin aware implementations MUST use this attribute to verify the si
 The plugin MUST use [Semantic Versioning](https://semver.org/) (SemVer) to use this feature i.e the `get-plugin-metadata` plugin command MUST return a SemVer compliant version in the response.
 A use case for this feature is for a plugin publisher to address security bug in older plugin version, by setting the minimum version to the plugin version with fixes.
 
-See [Guidelines for implementations of the Notary Project signature specification](#guidelines-for-notary-project-signature-implementors) for options to handle these attributes during signature verification.
+See [Guidelines for implementations of Notary Project signature specification](#guidelines-for-notary-project-signature-implementors) for options to handle these attributes during signature verification.
 
 ### Unsigned Attributes
 
@@ -241,18 +241,18 @@ The `keyUsage` extension MUST be present and MUST be marked critical. Bit positi
     - The certificate MUST NOT chain to multiple parents/roots.
     - The certificate chain MUST NOT contain a certificate that is unrelated to the certificate chain.
 1. Any certificate in the certificate chain MUST NOT use SHA1WithRSA and ECDSAWithSHA1 signatures.
-1. Only Basic Constraints, Key Usage, and Extended Key Usage extensions of X.509 certificates are honored. For rest of the extensions, implementations of the Notary Project signature specification MUST fail open i.e. rest of the extensions MUST NOT be evaluated or honored.
-1. The certificates in the certificate chain MUST be valid at signing time. Implementations of the Notary Project signature specification MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
-1. In the absence of an Authentic Timestamp, each and every certificate in the certificate chain i.e. signing certificate, intermediate certificates, and the root certificate must be valid i.e. not expired at the time of signature verification.
+2. Only Basic Constraints, Key Usage, and Extended Key Usage extensions of X.509 certificates are honored. For rest of the extensions, implementations of Notary Project signature specification MUST fail open i.e. rest of the extensions MUST NOT be evaluated or honored.
+3. The certificates in the certificate chain MUST be valid at signing time. Implementations of Notary Project signature specification MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
+4. In the absence of an Authentic Timestamp, each and every certificate in the certificate chain i.e. signing certificate, intermediate certificates, and the root certificate must be valid i.e. not expired at the time of signature verification.
 
 ## FAQ
 
-**Q: How will the Notary Project signature specification support multiple signature envelope formats?**
+**Q: How will Notary Project signature specification support multiple signature envelope formats?**
 
 **A:** The `mediaType` of image manifest's layer identifies the signature envelope type.  
 The client implementation can use the aforementioned `mediaType` to parse the signature envelope.
 
-**Q: How will the Notary Project signature specification support multiple payload formats?**
+**Q: How will Notary Project signature specification support multiple payload formats?**
 
 **A:** The Signature envelope MUST have a versioning mechanism to support multiple payload formats.
 
@@ -294,7 +294,7 @@ The Notary Project signature specification allows multiple signatures to be asso
 #### Verification requirements
 
 The Notary Project signature specification supports a range of signed artifacts intended for public and private distribution.
-Signatures generated without extended signature attributes marked critical can be verified in any environment where Notation client or another Notary Project signature specification compliant verification tool is available, without any additional dependencies.
+Signatures generated without extended signature attributes marked critical can be verified in any environment where Notation or another Notary Project signature specification compliant verification tool is available, without any additional dependencies.
 It should be noted that revocations checks, which usually relies on an external mechanism such as CRL/OCSP may require the verification environment to have access to local network or public internet, to have access to the CRL/OCSP endpoint.
 
 The Notary Project signature specification also supports signatures generated using compliant signing plugins, which allow vendors to optionally provide additional features on top of Notation standard features.
@@ -303,15 +303,15 @@ This allows users to implement security controls required for their organization
 E.g. Integration with a signature transparency log as part of signature verification.
 
 Based on user’s requirements, a user can select appropriate signing mechanism that produces signatures with desired portability.
-The Notary Project signatures without any critical extended attributes do not impose any additional dependency requirements for verifiers as these can be validated with just the Notation client.
+The Notary Project signatures without any critical extended attributes do not impose any additional dependency requirements for verifiers as these can be validated with just Notation.
 Whereas, the Notary Project signatures that contain critical extended attributes will require additional dependencies for signature validation, either on Notation compliant plugins or equivalent tooling which may not be available in all environments.
 Similarly, Notation compliant plugin vendors should be aware that usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature.
 
-### Guidelines for implementations of the Notary Project signature specification
+### Guidelines for implementations of Notary Project signature specification
 
-Implementations of the Notary Project signature specification, can choose to be [Notation plugin protocol](./plugin-extensibility.md#plugin-contract) aware or not. If an implementation chooses to be plugin protocol aware, and it encounters the Verification Plugin and Verification Plugin minimum version attributes during signature verification, it MUST process these attributes. This involves finding the appropriate plugin and the version to use, and executing `verify-signature` plugin command with correct inputs and processing the plugin response, as per the [Verification Plugin interface](./plugin-extensibility.md#verification-extensibility).
+Implementations of Notary Project signature specification, can choose to be [Notation plugin protocol](./plugin-extensibility.md#plugin-contract) aware or not. If an implementation chooses to be plugin protocol aware, and it encounters the Verification Plugin and Verification Plugin minimum version attributes during signature verification, it MUST process these attributes. This involves finding the appropriate plugin and the version to use, and executing `verify-signature` plugin command with correct inputs and processing the plugin response, as per the [Verification Plugin interface](./plugin-extensibility.md#verification-extensibility).
 
-Alternatively, an implementation of the Notary Project signature specification can choose not to implement plugin protocol.
+Alternatively, an implementation of Notary Project signature specification can choose not to implement plugin protocol.
 
 - The implementation MUST itself perform equivalent verification logic that is usually performed by plugin specified in the signature.
 - An implementation MUST fail signature verification if it cannot perform the equivalent verification logic, as skipping the plugin equivalent verification logic will cause incorrect and inconsistent signature verification behavior.
