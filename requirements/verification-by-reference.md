@@ -189,7 +189,7 @@ Updating the existing tag could cause inconsistencies as some verification syste
 
 **What if** we supported a reverse lookup, where a client can ask for all the verification objects for a given artifact? Reverse lookup refers to the ability to find which manifests are referenced by index objects.
 
-![Two notary artifacts refering a single image](./media/oci-manifest-index-reverse-lookup.png)
+![Two notary artifacts refering a single image](/media/oci-manifest-index-reverse-lookup.png)
 
 We could still use the oci index schema with two changes:
 
@@ -341,7 +341,7 @@ We’ve debated whether a signature is the verification, or something more must 
 For instance, should some TUF metadata or an SBoM be required as well?
 The reverse lookup index could be expanded as follows:
 
-![Multi-platform manifest with SBoM, TUF, and Scan artifacts](./media/oci-manifest-index-reverse-lookup-sbom.png)
+![Multi-platform manifest with SBoM, TUF, and Scan artifacts](/media/oci-manifest-index-reverse-lookup-sbom.png)
 
 The user still references `registry.contoso.com/web:a2b2`, while other parts of the system that adhere to notary v2 would know to query the registry for the additional verification information.
 

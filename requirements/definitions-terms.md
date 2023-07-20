@@ -23,7 +23,7 @@ Artifacts are a generalization of how images are stored in an instance of the [O
 An [OCI Image][oci-image] is a type of [OCI Artifact][oci-artifact].
 When referencing artifacts, within a [fully qualified reference](#registry-fully-qualified-reference), the artifact is right most element of the namespace, combined with the `:tag`.
 Reference: [OCI Artifacts][oci-artifact]  
-![artifact name and tag](./media/artifact-ref.png)
+![artifact name and tag](/media/artifact-ref.png)
 
 ## Fingerprint
 
@@ -59,25 +59,25 @@ OCI spec reference: [OCI Image Manifest][oci-manifest]
 
 A registry is a collection of [OCI Indexes][oci-index] and [OCI Manifests][oci-manifest] for a specific org or entity.
 A unique registry may be uniquely identified with a domain or a root namespace:  
-![registry name](./media/unique-registry-domain-ref.png)
-![registry and namespace](./media/unique-registry-namespace-ref.png)
+![registry name](/media/unique-registry-domain-ref.png)
+![registry and namespace](/media/unique-registry-namespace-ref.png)
 
 ## Repo/Repository
 
 A repo/repository refers to the unique location, within a registry.
 When referring to a repo, the registry is assumed, based on the context.
-![registry and repository](./media/registry-repo-ref.png)
+![registry and repository](/media/registry-repo-ref.png)
 
 ## Repository Path
 
 A path, within the [unique registry org](#multi-tenant-registry), up to, but not including the repository (repo) name.
-![repository path](./media/registry-namespace-ref.png)
+![repository path](/media/registry-namespace-ref.png)
 
 ## Registry: Fully Qualified Reference
 
 In order to deploy an artifact, a fully qualified reference is required.
 This includes the unique registry, namespace, repo and tag.
-![fully qualified reference](./media/fully-qualified-artifact-ref.png)
+![fully qualified reference](/media/fully-qualified-artifact-ref.png)
 
 ## SBoM
 
