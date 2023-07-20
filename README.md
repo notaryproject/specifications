@@ -34,11 +34,7 @@ The Notary Project has had several public security audits:
 - [July 31, 2015 by NCC](https://github.com/notaryproject/notary/blob/master/docs/resources/ncc_docker_notary_audit_2015_07_31.pdf) covering `Notary` repository
 - [Mar 21, 2023 by ADA Logics](https://github.com/notaryproject/notaryproject/blob/main/security/reports/fuzzing/ADA-fuzzing-audit-22-23.pdf) fuzzing audit covering `Notary`, `notation-go` and `notation-core-go` repositories
 
-![Notary v2 scenarios](./media/notary-e2e-scenarios.svg)
-
 ## About this repository
-
-![Notary v2 dependent projects](./media/oss-project-sequence.svg)
 
 - [Requirements](./requirements/): The Notary Project goals, scenarios, and requirements are stored in this folder.
 - [Specification](./specs/): The Notary Project specifications are stored in this folder. You can develop your own implementation based on the specifications. The Notary Project specifications now includes:
