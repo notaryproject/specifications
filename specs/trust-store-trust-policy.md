@@ -1,18 +1,18 @@
 # Trust Store and Trust Policy Specification
 
-The Notary Project currently supports X.509 based PKI and identities, and uses a trust store and trust policy to determine if a signed artifact is considered authentic.
+Notary Project currently supports X.509 based PKI and identities, and uses a trust store and trust policy to determine if a signed artifact is considered authentic.
 
 The document consists of the following sections:
 
 - **[Trust Store](#trust-store)**: Contains a set of trusted identities through which trust is derived for the rest of the system. For X.509 PKI, the trust store typically contains a set of root certificates.
 - **[Trust Policy](#trust-policy)**: A policy language which indicates which identities are trusted to produce artifacts. Both trust store and trust policy need to be configured by users/administrators before artifact signature can be evaluated.
-- **[Signature Verification](#signature-verification)**: Describes how signatures are evaluated using the policy, to determine if a signed artifact is authentic. This section is meant for implementations of the Notary Project specification.
+- **[Signature Verification](#signature-verification)**: Describes how signatures are evaluated using the policy, to determine if a signed artifact is authentic. This section is meant for implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md).
 
 Other types of identities and trust models may be supported in future, which may introduce other constructs/policy elements to support signature evaluation.
 
 ## Scenario
 
-All examples use the actors defined in the Notary Project [scenario](https://github.com/notaryproject/notaryproject/blob/main/scenarios.md#scenario-0-build-publish-consume-enforce-policy-deploy)
+All examples use the actors defined in the Notary Project [scenarios](../requirements/scenarios.md#scenario-0-build-publish-consume-enforce-policy-deploy)
 
 - Wabbit Networks company builds, signs and distributes their `net-monitor` software though public registries.
 - ACME Rockets consumes the `net-monitor` software from a public registry importing the artifacts and reference artifacts (signatures, SBoMs) into their private registry. The private registry also contains additional artifacts that ACME Rockets themselves sign.
@@ -27,7 +27,7 @@ Contains a set of trusted identities through which trust is derived for the rest
 - Symlinks are not supported for the named store directories or certificate files. Implementation MUST validate that the named store directory or certificate files are not symlinks, and fail if it does not meet this condition.
 - Certificates in a trust store are root certificates. Placing intermediate certificates in the trust store is not recommended this is a form of certificate pinning that can break signature verification unexpectedly anytime the intermediate certificate is rotated.
 
-The Notary Project uses following directory structure to represent the trust store. The example shows named stores `acme-rockets` and `wabbit-networks`, which are subseqently references in the trust policy. Without this reference, presence of a named store and certificates in it does not confer trust automatically to the named store. The trust store is configured ahead of verification time, by an out of band mechanism that is beyond the scope of this document. Different entities and organizations have their own processes and policies to configure and distribute trust stores.
+The Notary Project uses following directory structure to represent the trust store. The example shows named stores `acme-rockets` and `wabbit-networks`, which are subsequently references in the trust policy. Without this reference, presence of a named store and certificates in it does not confer trust automatically to the named store. The trust store is configured ahead of verification time, by an out of band mechanism that is beyond the scope of this document. Different entities and organizations have their own processes and policies to configure and distribute trust stores.
 
 ```text
 $XDG_CONFIG_HOME/notation/trust-store
@@ -180,7 +180,7 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
   - If a validation is *logged*, a failure causes details to be logged, and the next validation is evaluated till all validations succeed or a critical failure is encountered.
 - Implementations may change the ordering of these validations based on efficiency, but all validation MUST be performed till the first critical failure is encountered, or all validation succeed, for the overall signature verification process to be considered complete.
 
- The Notary Project defines the following signature verification levels to provide different levels of enforcement for different scenarios.
+ Notary Project defines the following signature verification levels to provide different levels of enforcement for different scenarios.
 
 - `strict` : Signature verification is performed at `strict` level, which enforces all validations. If any of these validations fail, the signature verification fails. This is the recommended level in environments where a signature verification failure does not have high impact to other concerns (like application availability). It is recommended that build and development environments where images are initially injested, or for high assurance at deploy time use `strict` level.
 - `permissive` : The `permissive` level enforces most validations, but will only logs failures for revocation and expiry. The `permissive` level is recommended to be used if signature verification is done at deploy time or runtime, and the user only needs integrity and authenticity guarantees.
@@ -205,7 +205,7 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 - **NOTE**: `notation` RC1 will generate trusted timestamp using a TSA when the signature is generated, but will not support verification of TSA countersignatures. Related issue - [#59](https://github.com/notaryproject/roadmap/issues/59).
 
-**Expiry** : This is an optional feature that guarantees that artifact is within “best by use” date indicated in the signature. The Notary Project allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
+**Expiry** : This is an optional feature that guarantees that artifact is within “best by use” date indicated in the signature. Notary Project allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
 **Revocation check** : Guarantees that the signing identity is still trusted at signature verification time. Events such as key or system compromise can make a signing identity that was previously trusted, to be subsequently untrusted. This guarantee typically requires a verification-time call to an external system, which may not be consistently reliable. The `permissive` verification level only logs failures of revocation check and does not enforce it. If a particular revocation mechanism is reliable, use `strict` verification level instead.
 
@@ -245,7 +245,7 @@ Signature verification levels defined behavior for each validation e.g. `strict`
 #### Selecting a trust policy based on artifact URI
 
 - For a given artifact there MUST be only one applicable trust policy, except for trust policy with global scope.
-- For a given artifact, if there is no applicable trust policy then implementations of the Notary Project specification MUST consider the artifact as untrusted and fail signature verification.
+- For a given artifact, if there is no applicable trust policy then implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md) MUST consider the artifact as untrusted and fail signature verification.
 - The scope MUST NOT support reference expansion i.e. URIs must be fully qualified.
   E.g. the scope should be `docker.io/library/registry` rather than `registry`.
 - Evaluation order of trust policies:
@@ -283,7 +283,7 @@ The RDN consists of an attribute type name followed by an equal sign and the str
 
 ### Extended Validation
 
-The Notary Project allows user to execute custom validations during verification using plugins. Please refer [plugin-extensibility.md](plugin-extensibility.md#verification-extensibility) for more information.
+Notary Project allows user to execute custom validations during verification using plugins. Please refer [plugin-extensibility.md](plugin-extensibility.md#verification-extensibility) for more information.
 
 ## Signature Verification
 
@@ -365,9 +365,9 @@ There are two types of CRLs (per RFC 3280), Base CRLs and Delta CRls.
   Delta CRLs are signed by the certificate issuing CAs.
 - **Indirect CRLs:** Special Case in which BaseCRLs and Delta CRLs are not signed by the certificate issuing CAs, instead they are signed with a completely different certificate.
 
-Implementations of the Notary Project specification MUST support BaseCRLs and Delta CRLs.
-Implementations of the Notary Project specification MAY support Indirect CRLs.
-Implementations of the Notary Project specification support only HTTP CRL URLs.
+Implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md) MUST support BaseCRLs and Delta CRLs.
+Implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md) MAY support Indirect CRLs.
+Implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md) support only HTTP CRL URLs.
 
 Implementations MAY add support for caching CRLs and OCSP response to improve availability, latency and avoid network overhead.
 
@@ -435,12 +435,12 @@ To check the revocation status of a certificate using OCSP, the following steps 
 
 ## FAQ
 
-**Q: Does the Notary Project specification supports `n` out of `m` signatures verification requirement?**
+**Q: Does the Notary Project trust policy supports `n` out of `m` signatures verification requirement?**
 
-**A:** The Notary Project specification doesn't support n out m signature requirement verification scheme.
+**A:** The Notary Project verification workflow doesn't support n out m signature requirement verification scheme.
 Signature verification workflow succeeds if verification succeeds for at least one signature.
 
-**Q: Does the Notary Project specification support overriding of revocation endpoints to support signature verification in disconnected environments?**
+**Q: Does the Notary Project trust policy support overriding of revocation endpoints to support signature verification in disconnected environments?**
 
 **A:** TODO: Update after verification extensibility spec is ready.
 Not natively supported but a user can configure `revocationValidations` to `skip` and then use extended validations to check for revocation.
