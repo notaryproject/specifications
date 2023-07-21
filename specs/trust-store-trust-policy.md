@@ -161,10 +161,10 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
     The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
     For more information, see [registry scopes constraints](#registry-scopes-constraints) section.
   - **`signatureVerification`**(*object*): This REQUIRED property dictates how signature verification is performed.
-  An *object* that specifies a predefined verification level, with an option to override the Notary Project defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
-    - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explaination of each level is present [here](#signatureverification-details).
+  An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
+    - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
     - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
-  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For publicly trusted TSA, `tsa:publicly-trusted-tsa` is the default value, and implied without explictly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
+  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For publicly trusted TSA, `tsa:publicly-trusted-tsa` is the default value, and implied without explicitly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
   - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
 
 #### Signature Verification details
@@ -182,7 +182,7 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
 
  Notary Project defines the following signature verification levels to provide different levels of enforcement for different scenarios.
 
-- `strict` : Signature verification is performed at `strict` level, which enforces all validations. If any of these validations fail, the signature verification fails. This is the recommended level in environments where a signature verification failure does not have high impact to other concerns (like application availability). It is recommended that build and development environments where images are initially injested, or for high assurance at deploy time use `strict` level.
+- `strict` : Signature verification is performed at `strict` level, which enforces all validations. If any of these validations fail, the signature verification fails. This is the recommended level in environments where a signature verification failure does not have high impact to other concerns (like application availability). It is recommended that build and development environments where images are initially created, or for high assurance at deploy time use `strict` level.
 - `permissive` : The `permissive` level enforces most validations, but will only logs failures for revocation and expiry. The `permissive` level is recommended to be used if signature verification is done at deploy time or runtime, and the user only needs integrity and authenticity guarantees.
 - `audit` : The `audit` level only enforces signature integrity if a signature is present. Failure of all other validations are only logged.
 - `skip` : The `skip` level does not fetch signatures for artifacts and does not perform any signature verification. This is useful when an application uses multiple artifacts, and has a mix of signed and unsigned artifacts. Note that `skip` cannot be used with a global scope (`*`), the value of `registryScopes` MUST contain fully qualified registry URL(s).
@@ -211,7 +211,7 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 #### Custom Verification Level
 
-Signature verification levels defined behavior for each validation e.g. `strict` will always *enforce* authenticity validation. For fine grained control over validations that occur during signature verification, users can define a custom level which overrides the behavior of an existing verification level.
+Signature verification levels provide defined behavior for each validation e.g. `strict` will always *enforce* authenticity validation. For fine grained control over validations that occur during signature verification, users can define a custom level which overrides the behavior of an existing verification level.
 
 - To use this feature, the `level` property MUST be specified along with an OPTIONAL `override` map.
 - Supported values for `level` are - `strict`, `permissive` and `audit`. A `skip` level cannot be customized.
@@ -437,7 +437,7 @@ To check the revocation status of a certificate using OCSP, the following steps 
 
 **Q: Does the Notary Project trust policy supports `n` out of `m` signatures verification requirement?**
 
-**A:** The Notary Project verification workflow doesn't support n out m signature requirement verification scheme.
+**A:** The Notary Project trust policy doesn't support n out m signature requirement verification scheme.
 Signature verification workflow succeeds if verification succeeds for at least one signature.
 
 **Q: Does the Notary Project trust policy support overriding of revocation endpoints to support signature verification in disconnected environments?**
