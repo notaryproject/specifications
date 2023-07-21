@@ -345,11 +345,9 @@ The Notary Project allows user to execute custom validations during verification
 
 ### Certificate Revocation Evaluation
 
-This section should be considered as **DRAFT** and will be updated after RC1 release.
-
 If the certificate revocation validation is set to `skip` using policy, skip the below steps, otherwise check for revocation status for certificate and certificate chain.
 
-- If the revocation status of any of the certificates is revoked or cannot be determined (revocation status unavailable), fail this step. This will fail the overall signature verification or log the error, depending on if revocations status check is `enforced` or `logged`, as per the signature verification level.
+If the revocation status of any of the certificates is revoked or cannot be determined (revocation unavailable), fail this step. This will fail the overall signature verification or log the error, depending on if revocations status check is `enforced` or `logged`, as per the signature verification level.
 
 Starting from Root to leaf certificate, for each certificate in the certificate chain, perform the following steps to check its revocation status:
 
@@ -377,10 +375,10 @@ Implementations MAY add support for caching CRLs and OCSP response to improve av
 ##### CRL Download
 
 CRL download location (URL) can be obtained from the certificate's CRL Distribution Point (CDP) extension.
-If the certificate contains multiple CDP locations then each location download is attempted in sequential order.
-For each CDP location, Implementations of the Notary Project specification will try to download the CRL for the default threshold of 10 seconds.
-If the CRL cannot be downloaded within the timeout threshold the revocation result will be "revocation unavailable".
+If the certificate contains multiple CDP locations then each location download is attempted in sequential order, until a 2xx response is received for any of the location.
+For each CDP location, Notary V2 will try to download the CRL for the default threshold of 5 seconds.
 The user may be able to configure this threshold.
+If the CRL cannot be downloaded within the timeout threshold the revocation result will be "revocation unavailable".
 
 ##### Revocation Checking with CRL
 
@@ -392,10 +390,10 @@ To check the revocation status of a certificate against CRL, the following steps
 1. Look up the certificate’s serial number in the CRL.
     1. If the certificate’s serial number is listed in the CRL, look for `InvalidityDate`.
        If CRL has an invalidity date and artifact signature is timestamped then compare the invalidity date with the timestamping date.
-       If the invalidity date is before the timestamping date, the certificate is considered revoked.
-       If the invalidity date is not present in CRL, the certificate is considered revoked.
+       1. If the invalidity date is before the timestamping date, the certificate is considered revoked.
+       1. If the invalidity date is not present in CRL, the certificate is considered revoked.
     1. If the CRL is expired and the certificate is listed in the CRL for any reason other than `certificate hold`, the certificate is considered revoked.
-    1. If the certificate is not listed in the CRL or the revocation reason is `certificate hold`, a new CRL is retrieved if the current time is past the time in the `NextUpdate` field in the current CRL.
+    1. If the certificate is not listed in the CRL or the revocation reason is `certificate hold`, a new CRL is retrieved if the current time is past the time in the `NextPublish` field in the current CRL.
        The new CRL is then checked to determine if the certificate is revoked.
        If the original reason was `certificate hold`, the CRL is checked to determine if the certificate is unrevoked by looking for the `RemoveFromCRL` revocation code.
 
@@ -414,10 +412,11 @@ When delta CRLs are implemented, the following results can occur during revocati
 
 ##### OCSP Download
 
-OCSP URLs can be obtained from the certificate's authority information access (AIA) extension as defined in [RFC-2560](https://datatracker.ietf.org/doc/html/rfc2560).
-Implementations of the Notary Project specification will wait for a default threshold of 5 seconds to receive an OCSP response.
-If OCSP response is not available within the timeout threshold the revocation result will be "revocation unavailable".
+OCSP URLs can be obtained from the certificate's authority information access (AIA) extension as defined in [RFC 6960](https://www.rfc-editor.org/rfc/rfc6960).
+If the certificate contains multiple OCSP URLs, then each URL is invoked in sequential order, until a 2xx response is received for any of the URL.
+For each OCSP URL, Notary V2 will wait for a default threshold of 2 seconds to receive an OCSP response.
 The user may be able to configure this threshold.
+If OCSP response is not available within the timeout threshold the revocation result will be "revocation unavailable".
 
 ##### Revocation Checking with OCSP
 
@@ -427,11 +426,12 @@ To check the revocation status of a certificate using OCSP, the following steps 
    This step also includes verifying the OSCP response signing certificate is valid and trusted.
    The OCSP signing certificate must be issued by the same CA as the certificate being verified or the OCSP response must be signed by the issuing CA.
 1. Verify that the OCSP response is valid (not expired).
-   A CRL is considered expired if the current date is after the `NextUpdate` field in the CRL.
+   Response is considered expired if the current date is after the `NextUpdate` field in the response.
 1. Verify that the OCSP response indicates that the certificate is not revoked i.e `CertStatus` is `good`.
     1. If the certificate is revoked i.e `CertStatus` is `revoked`, look for `InvalidityDate`.
-       If the invalidity date is present and timestamp signature is also present then if the invalidity date is before the timestamping date, the certificate is considered revoked.
-       If the invalidity date is not present in OCSP response, the certificate is considered revoked.
+        1. If the invalidity date is present and timestamp signature is also present then if the invalidity date is before the timestamping date, the certificate is considered revoked.
+        1. If the invalidity date is not present in OCSP response, the certificate is considered revoked.
+    1. If the certificate status is `unknown`, the revocation status is considered `revocation unavailable`.
 1. If `id-pkix-ocsp-nocheck`(1.3.6.1.5.5.7.48.1.5) extension is not present on the OCSP signing certificate then revocation checking must be performed using CRLs for the OCSP signing certificate.
 
 ## FAQ
