@@ -2,22 +2,22 @@
 
 As containers and cloud native artifacts become the common unit of deployment, users want to know the artifacts in their environments are authentic and unmodified.
 
-The Notary Project scenarios define end-to-end scenarios for signing artifacts in a generalized way, storing and moving them between OCI compliant registries, validating them with various artifact hosts and tooling.
+The Notary Project signing scenarios define end-to-end scenarios for signing artifacts in a generalized way, storing and moving them between OCI compliant registries, validating them with various artifact hosts and tooling.
 The Notary Project focuses on the signing of content, enabling end-to-end (e2e) workflows, without specifying what those workflows must be.
 
-By developing a generalized solution, artifact authors may develop their unique artifact types, allowing them to leverage Notary for signing and OCI Compliant registries for distribution.
+By developing a generalized solution, artifact authors may develop their unique artifact types, allowing them to leverage [Notary Project signature specification](../specs/signature-specification.md) for signing and OCI Compliant registries for distribution.
 
 ## Scenarios
 
-The Notary Project aims to solve the core issue of trusting content within, and across registries.
-There are many elements of an e2e scenario that are not implemented by Notary Project specification implementation, rather enabled because the content is verifiable.
+Notary Project aims to solve the core issue of trusting content within, and across registries.
+There are many elements of an e2e scenario that are not in the scope of Notary Project, rather enabled because the content is verifiable.
 
 ### Scenario #0: Build, Publish, Consume, Enforce Policy, Deploy
 
-To put the Notary Project in context, the following end-to-end scenario is outlined.
-The blue elements are the scope of the Notary Project, with the other elements providing generic references to other projects or products that demonstrate how the Notary Project may be utilized.
+To put Notary Project in context, the following end-to-end scenario is outlined.
+The blue elements are the scope of Notary Project, with the other elements providing generic references to other projects or products that demonstrate how Notary Project may be utilized.
 
-![Notary e2e Scenarios](/media/notary-e2e-scenarios.svg)
+![Notary Project e2e Scenarios](/media/notary-project-e2e-scenarios.svg)
 
 In a world of consuming public software, we must account for content that's acquired from a public source, copied into a trusted environment, then deployed.
 In this scenario, the consumer is not re-building or adding additional content.
@@ -27,25 +27,25 @@ However, they do wish to add attestations to the validity of the content.
       - As a result of the build, they produce an [OCI Image][oci-image], a Software Bill of Materials (`SBoM`) and to comply with gpl licensing, produce another artifact which contains the source (`src`) to all the gpl licensed projects.
       - The `SBoM` and `src` artifacts are created as reference types to the image, creating a graph of artifacts.
       - Each of the artifacts are signed with the wabbit-networks key.
-1. The Wabbit Networks signed contents are pushed to a public OCI compliant registry.
+2. The Wabbit Networks signed contents are pushed to a public OCI compliant registry.
       - Docker can provide an additional Docker hub signature providing an extra level of certification confidence.
-1. ACME Rockets consumes the `net-monitor` software, importing the referenced artifacts into their private registry.
+3. ACME Rockets consumes the `net-monitor` software, importing the referenced artifacts into their private registry.
       - ACME Rockets verifies the content, including additional scanning and functional testing for their environment.
       - The SBoM is trusted as they trust artifacts signed by wabbit-networks, or possibly defer trust to the Docker Hub certification signature.
       - They denote verification of the SBoM and scanning with an ACME Rockets signature.
       - A `deploy` artifact, referencing a specific configuration definition, may also be signed and saved, providing a historical record of what was deployed.
-1. The ACME Rockets environment may enforce various policies prior to deployment:
+4. The ACME Rockets environment may enforce various policies prior to deployment:
       - Evaluating the content in the `SBoM` for policies on specific packages.
       - ACME Rockets only allows content signed by ACME Rockets to be deployed, and only from the registry identified in the ACME Rockets signature.
       - Once validated, the `src` and `SBoM` are no longer needed for deployment allowing the `image` to be deployed separately with it's own signature.
-1. Once the policy manager completes its validation (k8s ingress controller with OPA), the deployment to the hosting environment is initiated.
+5. Once the policy manager completes its validation (k8s ingress controller with OPA), the deployment to the hosting environment is initiated.
       - ACME Rockets runs in an air-gapped environment, requiring all key access to be resolved within their environment.
 
 **Implications of this requirement:**
 
 - Signatures can be placed on any type of [artifact](artifacts-repo) stored in an OCI compliant registry using an [OCI Manifest][oci-manifest]
 - Signatures can be persisted as references to the [OCI Manifest][oci-manifest], allowing a entity to define a collection of artifacts.
-- Signatures and their public keys can be moved within, and across OCI compliant registries which support the Notary Project signature.
+- Signatures and their public keys can be moved within, and across OCI compliant registries which support Notary Project signatures.
 - Because content is trusted, an ecosystem of other projects and products can leverage information in various formats.
 
 ### Scenario #1: Local Build, Sign, Validate
@@ -89,8 +89,8 @@ Once the developer has locally validated the build, sign, validate scenario, the
 - The artifact can be renamed from the unique build id `net-monitor:abc123` to a product versioned tag `wabbitnetworks.example.com/networking/net-monitor:1.0` without invalidating the signature.
 - Users may reference the `sha256` digest directly, or the `artifact:tag`.
   While tag locking is not part of the [OCI Distribution Spec][oci-distribution], various registries support this capability, allowing users to reference human readable tags, as opposed to long digests.
-  Either reference is supported with the Notary Project, however it's the unique manifest that is signed.
-- The Notary Project supports a pattern for signing any type of artifact, from OCI Images, Helm Charts, Singularity to yet unknown types.
+  Either reference is supported with Notary Project, however it's the unique manifest that is signed.
+- Notary Project supports a pattern for signing any type of artifact, from OCI Images, Helm Charts, Singularity to yet unknown types.
 - Orchestrators may require signatures, but not enforce specific specific signatures.
   This enables a host to understand what content is deployed, without having to manage specific keys.
 
@@ -213,8 +213,7 @@ They pushed unsigned content to existing tags.
 1. How a registry implements the rollback to the previously secured state is a differentiating capability.
    The scenario simply calls out a compromise that must be discoverable through forensic logging of who, when and what was pushed.
    The logged updates must include previous digests that represented updated tags allowing a registry, or external tools, to reset its original state.
-1. A registry may choose to make repos, or the entire registry, restricted to pushing only signed content, and potentially only signed content with one or more keys.
-   The Notary Project doesn't require this capability, rather highlights the scenario for registry operators to innovate means to secure from this scenario.
+2. A registry may choose to restrict repositories or the entire registry to pushing only signed content, and potentially only signed content with one or more keys. With this, attackers cannot push unsigned content to the registry, mitigating the threat described by scenario #7.
 
 #### Scenario #7.1: Repository Compromise - Mutable Tags Modified
 
@@ -253,9 +252,9 @@ A developer accidentally discloses the private key they use to certify their sof
 
 **Implications of this requirement:**
 
-1. All implementations of the Notary Project specification support key revocation as part of their implementation to assure signed content is still valid content.
+1. All implementations of the [Notary Project signature specification](../specs/signature-specification.md) support key revocation as part of their implementation to assure signed content is still valid content.
 1. Registry operators routinely check for revoked keys and remediate the exploited content.
-1. Implementations of the Notary Project specification routinely check for revoked keys and block the content.
+2. Implementations of the [Notary Project verification specification](../specs/signing-and-verification-workflow.md) routinely check for revoked keys and block the content.
 
 ### Scenario #9: A Crypto Algorithm Is Deprecated
 
@@ -282,7 +281,7 @@ Maybe this is an internally created artifact with a known signing key.
 This key may be distributed using a trusted third party mechanism.
 
 1. The user obtains a trusted key for a particular artifact.
-1. The user downloads and verifies the artifact using implementations of the Notary Project specification and their known key.
+1. The user downloads and verifies the artifact using implementations of the [Notary Project verification specification](../specs/signing-and-verification-workflow.md) and their public key.
 
 **Implications of this requirement:**
 
@@ -310,7 +309,7 @@ It should be possible for the signer to revoke the trust in that vulnerable arti
 If a user does not have a specific key for a given artifact, verified using a third party system, they will need to determine the trusted signing key(s) for an artifact by chaining from a trusted key.
 
 1. The user determines the trusted key(s) for a specific artifact using delegations from a trusted root.
-1. The user downloads and verifies an artifact using implementations of the Notary Project specification and the trusted key(s) discovered in the previous step.
+1. The user downloads and verifies an artifact using implementations of the [Notary Project verification specification](../specs/signing-and-verification-workflow.md) and the trusted key(s) discovered in the previous step.
 
 **Implications of this requirement:**
 

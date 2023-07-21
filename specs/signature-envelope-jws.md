@@ -1,6 +1,6 @@
 # JWS Signature Envelope
 
-This specification implements the [Notary Project signature specification](signature-specification.md) using JSON Web Signature (JWS). JWS ([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)) is a JSON based envelope format for digital signatures over any type of payload (e.g. JSON, binary). JWS is the Notary Project supported signature format and specifically uses the *JWS JSON Serialization* representation.
+This specification implements the [Notary Project signature specification](./signature-specification.md) using JSON Web Signature (JWS). JWS ([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)) is a JSON based envelope format for digital signatures over any type of payload (e.g. JSON, binary). JWS is the Notary Project supported signature format and specifically uses the *JWS JSON Serialization* representation.
 
 ## Storage
 
@@ -99,11 +99,11 @@ Example with Signing Scheme `notary.x509.signingAuthority`
 
 - **[`alg`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.1)**(*string*): This REQUIRED header defines which signing algorithm was used to generate the signature. JWS specification defines `alg` as a required header, that MUST be present and MUST be understood and processed by verifier. The signature algorithm of the signing key (first certificate in `x5c`) is the source of truth, and during signing the value of `alg` MUST be set corresponding to signature algorithm of the signing key using [this mapping](#supported-alg-header-values) that lists the Notary Project signature allowed subset of `alg` values supported by JWS. Similarly verifier of the signature MUST match `alg` with signature algorithm of the signing key to mitigate algorithm substitution attacks.
 - **[`cty`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.10)**(*string*): The REQUIRED header content-type is used to declare the media type of the secured content (the payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`.
-- **`io.cncf.notary.signingScheme`**(*string*)(critical): This REQUIRED header specifies the [Notary Project Signing Scheme](./signing-scheme.md) used by the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
+- **`io.cncf.notary.signingScheme`**(*string*)(critical): This REQUIRED header specifies the [Notary Project signing scheme](./signing-scheme.md) used by the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
 - **`io.cncf.notary.signingTime`**(*string*): This header specifies the time at which the signature was generated. This is an untrusted timestamp, and therefore not used in trust decisions. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509`.
 - **`io.cncf.notary.authenticSigningTime`**(*string*)(critical): This header specifies the authenticated time at which the signature was generated. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority` .
 - **`io.cncf.notary.expiry`**(*string*)(critical): This OPTIONAL header provides a “best by use” time for the artifact, as defined by the signer. Its value is a [RFC 3339][rfc3339] formatted date time, the optional fractional second ([time-secfrac][rfc3339][[1](https://datatracker.ietf.org/doc/html/rfc3339#section-5.3)]) SHOULD NOT be used.
-- **[`crit`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.11)**(*array of strings*): This REQUIRED (optional as per JWS spec, but required in Notary JWS signature) header lists the headers that implementation MUST understand and process. It MUST only contain headers apart from registered headers (e.g. `alg`, `cty`) in JWS specification. This header MUST contain `io.cncf.notary.signingScheme` which is a required critical header, and optionally contain `io.cncf.notary.authenticSigningTime` and `io.cncf.notary.expiry` if these critical headers are present in the signature.
+- **[`crit`](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.11)**(*array of strings*): This REQUIRED (optional as per JWS spec, but required in Notary Project JWS signature) header lists the headers that implementation MUST understand and process. It MUST only contain headers apart from registered headers (e.g. `alg`, `cty`) in JWS specification. This header MUST contain `io.cncf.notary.signingScheme` which is a required critical header, and optionally contain `io.cncf.notary.authenticSigningTime` and `io.cncf.notary.expiry` if these critical headers are present in the signature.
 
 ## Extended Protected Headers for *Notation* Plugins
 
@@ -171,7 +171,7 @@ Since the Notary Project restricts one signature per signature envelope, the com
 
 ### Supported `alg` header values
 
-Implementations of the Notary Project specification  MUST enforce the following constraints on signature generation and verification:
+Implementations of the [Notary Project signature specification](./signature-specification.md) MUST enforce the following constraints on signature generation and verification:
 
 1. `alg` header value MUST NOT be `none` or any symmetric-key algorithm such as `HMAC`.
 1. `alg` header value MUST be same as that of signature algorithm identified using signing certificate's public key algorithm and size.
@@ -199,7 +199,7 @@ Implementations of the Notary Project specification  MUST enforce the following 
 
 **Q:** Why JWT `exp` and `iat` claims are not used?
 
-**A:** Unlike JWT which always contains a JSON payload, The Notary Project signature envelope can support payloads other than JSON, like binary. Reusing the JWT payload structure and claims, limits the Notary Project signature JWS envelope to only support JSON payload, which is undesirable. Also, reusing JWT claims requires following same claim semantics as defined in JWT specifications. The [`exp`](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4) claim requires that verifier MUST reject the signature if current time equals or is greater than `exp`, where as the Notary Project specification allows verification policy to define how expiry is handled.
+**A:** Unlike JWT which always contains a JSON payload, The Notary Project signature envelope can support payloads other than JSON, like binary. Reusing the JWT payload structure and claims, limits the Notary Project signature JWS envelope to only support JSON payload, which is undesirable. Also, reusing JWT claims requires following same claim semantics as defined in JWT specifications. The [`exp`](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4) claim requires that verifier MUST reject the signature if current time equals or is greater than `exp`, where as the [Notary Project signature specification](./signature-specification.md) allows verification policy to define how expiry is handled.
 
 [jws-alg-values]: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
 [rfc3339]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6

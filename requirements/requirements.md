@@ -1,6 +1,6 @@
 # Requirements
 
-A collection of requirements and scenarios, framing the scope of the Notary Project.
+A collection of requirements and scenarios, framing the scope of Notary Project.
 
 ## TOC
 
@@ -16,27 +16,27 @@ A collection of requirements and scenarios, framing the scope of the Notary Proj
 
 ## Goals
 
-The Notary Project aims to address the learnings and limitations of [Notary TUF-based implementation](https://github.com/notaryproject/notary), while establishing and prioritizing a set of goals and [scenarios](./scenarios.md) for the new implementation (this repo).
+Notary Project aims to address the learnings and limitations of [TUF-based implementation](https://github.com/notaryproject/notary), while establishing and prioritizing a set of goals and [scenarios](./scenarios.md) for the new implementation (this repo).
 
 1. Offline signature creation
 2. Signatures attesting to authenticity and/or certification
 3. Maintain the original artifact digest and collection of associated tags, supporting existing dev through deployment workflows
 4. Multiple signatures per artifact, enabling the originating vendor signature, public registry certification and user/environment signatures
-5. Native persistance within an [OCI Artifact][oci-artifacts] enabled, [distribution-spec][distribution-spec] based registry
-6. Artifact and signature copying within and across [OCI Artifact][oci-artifacts] enabled, [distribution-spec][distribution-spec] based registries
+5. Native persistance within an [OCI Image][oci-image] enabled, [OCI distribution specification][oci-distribution] based registry
+6. Artifact and signature copying within and across [OCI Image][oci-image] enabled, [OCI distribution specification][oci-distribution] based registries
 7. Support multi-tenant registries enabling cloud providers and enterprises to support managed services at scale
 8. Support private registries, where public content may be copied to, and new content originated within
 9. Air-gapped environments, where the originating registry of content is not accessible
 10. Key hierarchies and delegation
 11. Key revocation, including private and air-gapped registries
 12. Key acquisition must support users from hobbyists, open source projects to large software vendors
-13. Usable workflows, enabled for adopters to easily create and consume Notary signatures
+13. Usable workflows, enabled for adopters to easily create and consume Notary Project signatures
 
 ## Non Goals
 
 1. Trust on first use
 1. Implicit permissions on rotated keys
-1. Compatibility with Notary v1
+1. Compatibility with [TUF-based implementation](https://github.com/notaryproject/notary)
 
 ## Key Stake Holders & Contributors
 
@@ -67,15 +67,13 @@ As we identify the requirements and constraints, a number of key contributors wi
   
 ## Contributing & Conversations
 
-Regular conversations for the Notary Project occur on the [Cloud Native Computing Slack](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287?) channel.
+Regular conversations for Notary Project occur on the [Cloud Native Computing Slack](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287?) channel.
 
 Weekly meetings occur each Monday.
 Please see the [CNCF Calendar](https://www.cncf.io/community/calendar/) for details.
 
 Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw).
 
-[distribution-spec]:    https://github.com/opencontainers/distribution-spec
-[oci-artifacts]:        https://github.com/opencontainers/artifacts
 [acr]:                  https://aka.ms/acr/artifacts
 [artifacts-repo]:       https://github.com/opencontainers/artifacts
 [docker-hub]:           https://hub.docker.com/

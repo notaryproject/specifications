@@ -266,7 +266,7 @@ The RDN consists of an attribute type name followed by an equal sign and the str
   - The value of each `trustedIdentities` list item, if it begins with `x509.subject:`, MUST be followed by comma-separated one or more RDNs.
     Other types of trusted identities may be supported, by using an alternate prefix, or a different format.
     For example, `x509.subject: C=${country}, ST=${state}, L=${locallity}, O={organization}, OU=${organization-unit}, CN=${common-name}`.
-  - Each identity in `identities` list MUST contain country (CN), state Or province (ST), and organization (O) RDNs.
+  - Each identity in `identities` list MUST contain country (C), state or province (ST), and organization (O) RDNs.
     All other RDNs are optional.
     The minimal possible value is `x509.subject: C=${country}, ST=${state}, O={organization}`,
   - `trustedIdentities` list items MUST NOT have overlapping values,
@@ -284,7 +284,6 @@ The RDN consists of an attribute type name followed by an equal sign and the str
 ### Extended Validation
 
 The Notary Project allows user to execute custom validations during verification using plugins. Please refer [plugin-extensibility.md](plugin-extensibility.md#verification-extensibility) for more information.
-
 
 ## Signature Verification
 
@@ -414,7 +413,7 @@ When delta CRLs are implemented, the following results can occur during revocati
 
 OCSP URLs can be obtained from the certificate's authority information access (AIA) extension as defined in [RFC 6960](https://www.rfc-editor.org/rfc/rfc6960).
 If the certificate contains multiple OCSP URLs, then each URL is invoked in sequential order, until a 2xx response is received for any of the URL.
-For each OCSP URL, Notary V2 will wait for a default threshold of 2 seconds to receive an OCSP response.
+For each OCSP URL, wait for a default threshold of 2 seconds to receive an OCSP response.
 The user may be able to configure this threshold.
 If OCSP response is not available within the timeout threshold the revocation result will be "revocation unavailable".
 
