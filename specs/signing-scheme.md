@@ -7,15 +7,15 @@ There is interest in the community to support other ways to establish integrity 
 These approaches also can provide different feature sets than ones traditionally provided by standard X.509 PKI based signing.
 E.g. TUF is geared for software update systems and provides a freshness guarantee.
 
-The Notary Project will initially support X.509 PKI identity based signing, but provide the flexibility for additional systems through an abstraction called Signing Scheme.
+Notary Project will initially support X.509 PKI identity based signing, but provide the flexibility for additional systems through an abstraction called Signing Scheme.
 The Signing Scheme covers aspects of signature generation and verification, and formalizes the feature set (guarantees) provided by the signature produced using a signing scheme.
 Generally it covers the following aspects, but can be extended to other aspects as required by newer systems.
 
 *Signature creation*
 
 1. Supported entities that can generate signatures - typically an end user generates the signature, other models can be supported using signature scheme.
-2. Representation of identities - e.g. X.509 certificates are used to represent end users and entities which verify the end user’s authenticity (CAs).
-3. Signature schema - Defines the signed and unsigned attributes to be included in a signature envelope, and which attributes are required, optional and critical.
+1. Representation of identities - e.g. X.509 certificates are used to represent end users and entities which verify the end user’s authenticity (CAs).
+1. Signature schema - Defines the signed and unsigned attributes to be included in a signature envelope, and which attributes are required, optional and critical.
 
 *Signature verification*
 
@@ -24,7 +24,7 @@ Generally it covers the following aspects, but can be extended to other aspects 
 
 ## Signing Scheme
 
-The Notary Project currently defines the following Signing Schemes.
+Notary Project currently defines the following Signing Schemes.
 
 `notary.x509` - Defines a signing scheme that uses the traditional signing workflow in which an end user generates signatures using X.509 certificates.
 
