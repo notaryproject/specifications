@@ -25,7 +25,7 @@ This doc experiments with the avoidance of signatures as the reference.
 1. Leverage the garbage collection infrastructure registry operators have implemented.
    Garbage collection represents significant investments for registry services which are based on OCI Manifest and OCI Index.
    We should aim to utilize these existing schemas, or only slight verifications from them to maximize the opportunity for registry implementations to adopt [Notary Project signature specification](../specs/signature-specification.md).
-2. Minimize requirements to change persistence and object stores used by registry operators.
+1. Minimize requirements to change persistence and object stores used by registry operators.
    Similar to garbage collection, we should work within the constraints of manifest, index and layers to represent verification objects.
 
 ## Non-goals
@@ -45,16 +45,16 @@ However, a deployment document (Helm chart, Kube deploy yaml) must not be requir
 
 1. A dev team builds a container image, `(web:a2b2)`.
    They sign the image (provide verification).
-2. An artifact scanning solution validates the image, storing an assessment of the current state of known vulnerabilities.
+1. An artifact scanning solution validates the image, storing an assessment of the current state of known vulnerabilities.
    It pushes a verification object for `web:a2b2`, stating on May 1, 2020, it was verified.
-3. A test environment validates the image, it passes a set of tests and the image is promoted to staging.
+1. A test environment validates the image, it passes a set of tests and the image is promoted to staging.
    The image has a test verification added to the image.
    However, the deployment document doesn’t change the reference.
    It’s still referenced as `web:a2b2`.
    The additional verification document is associated with the image.
-4. A staging environment is requested to run the `web:a2b2` image, but requires scanning verification and test verification before the image can be run.
+1. A staging environment is requested to run the `web:a2b2` image, but requires scanning verification and test verification before the image can be run.
    As the artifacts are approved in staging, another verification object is pushed to the registry, attesting to the images and the deployment documents have passed all tests, as of a given date.
-5. As the collection of artifacts are moved to production, a deployment policy verifies each artifact being requested for deployment has Staging, Test and Scanning verifications.
+1. As the collection of artifacts are moved to production, a deployment policy verifies each artifact being requested for deployment has Staging, Test and Scanning verifications.
    The scanning verification must be within a given date range.
    Each verification must come from entities the production system trusts.
 
@@ -304,7 +304,7 @@ Another index of type `notary.verification`, which adds the scanning verificatio
 }
 ```
 
-Notation CLI could retrieve all signatures with the following command
+Users could retrieve all signatures with the following command
 
 ```shell
 notation verify registry.contoso.com/marketing/web:a2b2
@@ -345,7 +345,7 @@ The reverse lookup index could be expanded as follows:
 
 The user still references `registry.contoso.com/web:a2b2`, while other parts of the system that adhere to [Notary Project signature specification](../specs/signature-specification.md) would know to query the registry for the additional verification information.
 
-Notation CLI queries for all indexes with a `"config.mediaType"` of `"application/vnd.cncf.notary.verification.config.v1+json"`. It would read all the verification objects and decide how to proceed.
+Notation CLI verify command queries for all indexes with a `"config.mediaType"` of `"application/vnd.cncf.notary.verification.config.v1+json"`. It would read all the verification objects and decide how to proceed.
 
 For customers that aren’t comfortable with tags, you could query for the digest of `web:a2b2`.
 It would return the same list of verification objects.

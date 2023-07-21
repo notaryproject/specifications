@@ -1,9 +1,9 @@
-# The Notary Project Signing Scenarios
+# Notary Project Signing Scenarios
 
 As containers and cloud native artifacts become the common unit of deployment, users want to know the artifacts in their environments are authentic and unmodified.
 
-The Notary Project signing scenarios define end-to-end scenarios for signing artifacts in a generalized way, storing and moving them between OCI compliant registries, validating them with various artifact hosts and tooling.
-The Notary Project focuses on the signing of content, enabling end-to-end (e2e) workflows, without specifying what those workflows must be.
+Notary Project signing scenarios define end-to-end scenarios for signing artifacts in a generalized way, storing and moving them between OCI compliant registries, validating them with various artifact hosts and tooling.
+Notary Project focuses on the signing of content, enabling end-to-end (e2e) workflows, without specifying what those workflows must be.
 
 By developing a generalized solution, artifact authors may develop their unique artifact types, allowing them to leverage [Notary Project signature specification](../specs/signature-specification.md) for signing and OCI Compliant registries for distribution.
 
@@ -27,18 +27,18 @@ However, they do wish to add attestations to the validity of the content.
       - As a result of the build, they produce an [OCI Image][oci-image], a Software Bill of Materials (`SBoM`) and to comply with gpl licensing, produce another artifact which contains the source (`src`) to all the gpl licensed projects.
       - The `SBoM` and `src` artifacts are created as reference types to the image, creating a graph of artifacts.
       - Each of the artifacts are signed with the wabbit-networks key.
-2. The Wabbit Networks signed contents are pushed to a public OCI compliant registry.
+1. The Wabbit Networks signed contents are pushed to a public OCI compliant registry.
       - Docker can provide an additional Docker hub signature providing an extra level of certification confidence.
-3. ACME Rockets consumes the `net-monitor` software, importing the referenced artifacts into their private registry.
+1. ACME Rockets consumes the `net-monitor` software, importing the referenced artifacts into their private registry.
       - ACME Rockets verifies the content, including additional scanning and functional testing for their environment.
       - The SBoM is trusted as they trust artifacts signed by wabbit-networks, or possibly defer trust to the Docker Hub certification signature.
       - They denote verification of the SBoM and scanning with an ACME Rockets signature.
       - A `deploy` artifact, referencing a specific configuration definition, may also be signed and saved, providing a historical record of what was deployed.
-4. The ACME Rockets environment may enforce various policies prior to deployment:
+1. The ACME Rockets environment may enforce various policies prior to deployment:
       - Evaluating the content in the `SBoM` for policies on specific packages.
       - ACME Rockets only allows content signed by ACME Rockets to be deployed, and only from the registry identified in the ACME Rockets signature.
       - Once validated, the `src` and `SBoM` are no longer needed for deployment allowing the `image` to be deployed separately with it's own signature.
-5. Once the policy manager completes its validation (k8s ingress controller with OPA), the deployment to the hosting environment is initiated.
+1. Once the policy manager completes its validation (k8s ingress controller with OPA), the deployment to the hosting environment is initiated.
       - ACME Rockets runs in an air-gapped environment, requiring all key access to be resolved within their environment.
 
 **Implications of this requirement:**
@@ -213,7 +213,7 @@ They pushed unsigned content to existing tags.
 1. How a registry implements the rollback to the previously secured state is a differentiating capability.
    The scenario simply calls out a compromise that must be discoverable through forensic logging of who, when and what was pushed.
    The logged updates must include previous digests that represented updated tags allowing a registry, or external tools, to reset its original state.
-2. A registry may choose to restrict repositories or the entire registry to pushing only signed content, and potentially only signed content with one or more keys. With this, attackers cannot push unsigned content to the registry, mitigating the threat described by scenario #7.
+1. A registry may choose to restrict repositories or the entire registry to pushing only signed content, and potentially only signed content with one or more keys. With this, attackers cannot push unsigned content to the registry, mitigating the threat described by scenario #7.
 
 #### Scenario #7.1: Repository Compromise - Mutable Tags Modified
 
@@ -254,7 +254,7 @@ A developer accidentally discloses the private key they use to certify their sof
 
 1. All implementations of the [Notary Project signature specification](../specs/signature-specification.md) support key revocation as part of their implementation to assure signed content is still valid content.
 1. Registry operators routinely check for revoked keys and remediate the exploited content.
-2. Implementations of the [Notary Project verification specification](../specs/signing-and-verification-workflow.md) routinely check for revoked keys and block the content.
+1. Implementations of the [Notary Project verification specification](../specs/signing-and-verification-workflow.md) routinely check for revoked keys and block the content.
 
 ### Scenario #9: A Crypto Algorithm Is Deprecated
 
