@@ -21,7 +21,7 @@ Notary Project aims to address the learnings and limitations of [TUF-based imple
 1. Signatures attesting to authenticity and/or certification
 1. Maintain the original artifact digest and collection of associated tags, supporting existing dev through deployment workflows
 1. Multiple signatures per artifact, enabling the originating vendor signature, public registry certification and user/environment signatures
-1. Native persistance within an [OCI Image][oci-image] enabled, [OCI distribution specification][oci-distribution] based registry
+1. Native persistance within an [OCI distribution specification v1.1][oci-distribution] compliant registry
 1. Artifact and signature copying within and across [OCI Image][oci-image] enabled, [OCI distribution specification][oci-distribution] based registries
 1. Support multi-tenant registries enabling cloud providers and enterprises to support managed services at scale
 1. Support private registries, where public content may be copied to, and new content originated within
