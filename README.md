@@ -26,7 +26,7 @@ In this README
 
 ## Requirements
 
-| Name     | Description |
+| File Name     | Description |
 | -------- | ----------- |
 | [definitions-terms.md](./requirements/definitions-terms.md) | A collection of definitions and terms used within this repository |
 | [key-revocation.md](./requirements/key-revocation.md) | Requirements and proposals for key revocation |
@@ -37,14 +37,14 @@ In this README
 
 ## Security Documents
 
-| Name     | Description |
+| File Name     | Description |
 | -------- | ----------- |
 | [ADA-notation-security-audit-23.pdf](./security/reports/audit/ADA-notation-security-audit-23.pdf) | Security audit report in 2023 covering [notation](https://github.com/notaryproject/notation), [notation-go](https://github.com/notaryproject/notation-go), and [notation-core-go](https://github.com/notaryproject/notation-core-go) repositories |
 | [ADA-fuzzing-audit-22-23.pdf](./security/reports/fuzzing/ADA-fuzzing-audit-22-23.pdf) | Fuzz testing audit in 2023 covering [notary](https://github.com/notaryproject/notaty), [notation-go](https://github.com/notaryproject/notation-go), and [notation-core-go](https://github.com/notaryproject/notation-core-go) repositories |
 
 ## Specifications
 
-| Name     | Description |
+| File Name     | Description |
 | -------- | ----------- |
 | [plugin-extensibility.md](./specs/plugin-extensibility.md) | Notation Plugin specification |
 | [signature-envelope-cose.md](./specs/signature-envelope-cose.md) | Notary Project OCI COSE signature envelope |
@@ -57,9 +57,9 @@ In this README
 
 ## Threat Models
 
-| Name     | Description |
+| File Name     | Description |
 | -------- | ----------- |
-| [notation-threatmodel.md](./threatmodels/notation-threatmodel.md) | Threat modes for [Notation CLI](https://github.com/notaryproject/notation) |
+| [notation-threatmodel.md](./threatmodels/notation-threatmodel.md) | Threat models for [Notation CLI](https://github.com/notaryproject/notation) |
 
 ## Community
 
