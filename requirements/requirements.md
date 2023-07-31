@@ -21,8 +21,8 @@ Notary Project aims to address the learnings and limitations of [TUF-based imple
 1. Signatures attesting to authenticity and/or certification
 1. Maintain the original artifact digest and collection of associated tags, supporting existing dev through deployment workflows
 1. Multiple signatures per artifact, enabling the originating vendor signature, public registry certification and user/environment signatures
-1. Native persistance within an [OCI distribution specification v1.1][oci-distribution] compliant registry
-1. Artifact and signature copying within and across [OCI distribution specification v1.1][oci-distribution] compliant registries
+1. Native persistance within an [OCI image specification v1.1][oci-image-spec] enabled, [OCI distribution specification v1.1][oci-distribution] compliant registry
+1. Artifact and signature copying within and across an [OCI image specification v1.1][oci-image-spec] enabled, [OCI distribution specification v1.1][oci-distribution] compliant registries
 1. Support multi-tenant registries enabling cloud providers and enterprises to support managed services at scale
 1. Support private registries, where public content may be copied to, and new content originated within
 1. Air-gapped environments, where the originating registry of content is not accessible
@@ -59,7 +59,7 @@ As we identify the requirements and constraints, a number of key contributors wi
   - [Mirantis Container Runtime (formerly Docker Engine – Enterprise)][mirantis-runtime]
   - [Mirantis Kubernetes Engine (mke, formerly Docker Enterprise/UCP)][mke]
 - Artifact Types
-  - [OCI & Docker Container Images][image-spec]
+  - [OCI & Docker Container Images][oci-image-spec]
   - [Helm Charts][helm-registry]
   - [Singularity][singularity]
   - Operator Bundles
@@ -85,12 +85,10 @@ Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWru
 [harbor]:               https://goharbor.io/
 [icr]:                  https://icr.io/
 [helm-registry]:        https://v3.helm.sh/docs/topics/registries/
-[image-spec]:           https://github.com/opencontainers/image-spec
 [jfrog]:                https://jfrog.com/integration/docker-registry/
 [oci-distribution]:     https://github.com/opencontainers/distribution-spec
-[oci-image]:            https://github.com/opencontainers/image-spec
+[oci-image-spec]:       https://github.com/opencontainers/image-spec
 [oci-index]:            https://github.com/opencontainers/image-spec/blob/master/image-index.md
-[oci-manifest]:         https://github.com/opencontainers/image-spec/blob/master/manifest.md
 [oci-tob]:              https://github.com/opencontainers/tob
 [singularity]:          https://github.com/sylabs/singularity
 [quay]:                 https://quay.io/
