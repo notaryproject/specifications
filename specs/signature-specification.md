@@ -98,7 +98,7 @@ The Notary Project signature payload is a JSON document with media type `applica
 - `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed. Only [OCI descriptor][oci-descriptor] is supported.
   - Descriptor MUST contain `mediaType`, `digest`, and `size` fields.
   - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. The Notary Project signature uses annotations for storing both Notary Project specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary Project signature and MUST NOT be used outside this specification.
-  - Descriptor MAY contain `artifactType` field for the `config.mediaType` of OCI image based manifests.
+  - Descriptor MAY contain `artifactType` field for the `config.mediaType` of OCI image manifests.
 
 #### Examples
 
