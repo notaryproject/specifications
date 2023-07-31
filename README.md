@@ -1,6 +1,6 @@
 # Notary Project Specifications
 
-This repositories is in active maintenance and contains specifications shared across repositories under Notary Project as well as used by other open source projects and/or vendor tools that want to interoperate with Notary Project tooling.
+This repository is in active maintenance and contains specifications shared across repositories under Notary Project as well as used by other open source projects and/or vendor tools that want to interoperate with Notary Project tooling.
 
 Please see the Notary Project [README](https://github.com/notaryproject/.github/blob/main/README.md) file to learn about overall Notary Project.
 
