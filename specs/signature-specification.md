@@ -153,7 +153,7 @@ Usage of extended signed attributes which are marked critical in signature will 
 
 #### Extended attributes for *Notation* Plugins
 
-[Notation](https://github.com/notaryproject/notation) is a CLI and has set of libraries that offer an implementation of the Notary Project signature specification. Notation allows you to sign artifacts as well as verify artifacts against Notary Project signatures.
+[Notation](https://github.com/notaryproject/notation) is a CLI and has set of libraries that offer an implementation of the Notary Project signature specification. Notation allows you to sign as well as verify artifacts against Notary Project signatures.
 
 This section documents extended attributes used by Notation to support plugins.
 Plugins is a *Notation* concept that allows parts of signing and verification logic to be performed by an external provider.
