@@ -59,7 +59,7 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
                    If all signature artifact descriptors have already been processed, fail the signature verification and exit.
         1. If the artifact manifest is filtered out, skip the below steps and move to the next signature artifact descriptor(step 3.1).
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
-    1. **Get and verify signatures:** On the filtered the manifest of the Notary Project signature, perform the following steps:
+    1. **Get and verify signatures:** On the filtered manifest of the Notary Project signature, perform the following steps:
         1. Download the signature envelope.
         1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
         1. If the signature verification fails, skip the below steps and move to the next signature artifact descriptor(step 3.1).
