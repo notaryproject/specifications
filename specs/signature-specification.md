@@ -140,9 +140,9 @@ The Notary Project signature specification requires the signature envelope to su
 #### Standard attributes
 
 - **Signing Scheme** (critical): A REQUIRED claim that defines the [Notary Project Signing Scheme](./signing-scheme.md) used by the signature. This attribute dictates the rest of signature schema - the set of signed and unsigned attributes to be included in the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
-- **Signing Time**: A claim that indicates the time at which the signature was generated. Though this claim is signed by the signing key, it’s considered unauthenticated as a signer can modify local time and manipulate this claim. More details [here](#signing-time). This claim is REQUIRED and only valid when signing scheme is `notary.x509` .
-- **Authentic Signing Time** (critical): The authenticated time at which the signature was generated. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority` . More details [here](#signing-time).
-- **Expiry** (critical): An OPTIONAL claim that provides a “best by use” time for the artifact, as defined by the signer. More details [here](#expiry).
+- **Signing Time**: A claim that indicates the time at which the signature was generated. Though this claim is signed by the signing key, it's considered unauthenticated as a signer can modify local time and manipulate this claim. More details [here](#signing-time). This claim is REQUIRED and only valid when signing scheme is `notary.x509`.
+- **Authentic Signing Time** (critical): The authenticated time at which the signature was generated. This claim allows a verifier to determine if the signature was generated when the certificate was valid. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority`. More details [here](#signing-time).
+- **Expiry** (critical): An OPTIONAL claim that provides a "best by use" time for the artifact, as defined by the signer. More details [here](#expiry).
 - **Content Type** (critical): A REQUIRED claim that indicates the content type of the [payload](#payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`. Other payload types MAY be supported in future.
 
 #### Extended attributes
@@ -159,9 +159,9 @@ This section documents extended attributes used by Notation to support plugins.
 Plugins is a *Notation* concept that allows parts of signing and verification logic to be performed by an external provider.
 *Signing plugins* allow *Notation* to be extended for integration with remote keys, remote key management services, and signing services, where as *verification plugins* allow for customization of verification logic.
 Detailed specification for plugins can be found [here](https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md#notation-extensibility-for-signing-and-verification).
-These extended attributes are documented in this spec, as other implementations of the Notary Project signature specification may encounter these attributes if they verify a signature that indicated it required a verification plugin for complete signature verification.
+This specification documents these extended attributes, as implementations of the Notary Project signature specification may encounter these attributes, if they verify a signature that requires a verification plugin for complete signature verification.
 
-- **Verification Plugin** (critical): An OPTIONAL attribute that specifies the name of the verification plugin that MAY be used to verify the signature e.g. “com.example.nv2plugin”.
+- **Verification Plugin** (critical): An OPTIONAL attribute that specifies the name of the verification plugin that MAY be used to verify the signature e.g. "com.example.nv2plugin".
 [Notation plugin](https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md#plugin-contract) aware implementations use this attribute to load and execute a *Notation* compliant plugin.
 The plugin participates in the overall signature verification workflow and performs specific steps in it.
 - **Verification Plugin Minimum Version** (critical): An OPTIONAL attribute that specifies the minimum version of the verification plugin that MUST be used to verify the signature.
@@ -177,7 +177,7 @@ These attributes are considered unsigned with respect to the signing key that ge
 
 - **Certificate Chain**: This is a REQUIRED attribute that contains the ordered list of X.509 public certificates associated with the signing key used to generate the signature. The ordered list starts with the signing certificate, any intermediate certificates and ends with the root certificate. The certificate chain MUST be authenticated against a trust store as part of signature validation. Specific requirements for the certificates in the chain are provided [here](#certificate-requirements).
 - **Timestamp signature** : An OPTIONAL counter signature which provides [authentic timestamp](#signing-time)e.g. Time Stamp Authority (TSA) generated timestamp signature. Only [RFC3161][ietf-rfc3161] compliant TimeStampToken are currently supported.
-- **Signing Agent**: An OPTIONAL claim that provides the identifier of the software (e.g. Notation) that produced the signature on behalf of the user. It is an opaque string set by the software that produces the signature. It's intended primarily for diagnostic and troubleshooting purposes, this attribute is unsigned, the verifier MUST NOT validate formatting, or fail validation based on the content of this claim. The suggested format is one or more tokens of the form `{id}/{version}` containing identifier and version of the software, separated by spaces. E.g. “notation/1.0.0”, “notation/1.0.0 myplugin/0.8”.
+- **Signing Agent**: An OPTIONAL claim that provides the identifier of the software (e.g. Notation) that produced the signature on behalf of the user. It is an opaque string set by the software that produces the signature. It's intended primarily for diagnostic and troubleshooting purposes, this attribute is unsigned, the verifier MUST NOT validate formatting, or fail validation based on the content of this claim. The suggested format is one or more tokens of the form `{id}/{version}` containing identifier and version of the software, separated by spaces. E.g. "notation/1.0.0", "notation/1.0.0 myplugin/0.8".
 
 ## Signature Algorithm Requirements
 
