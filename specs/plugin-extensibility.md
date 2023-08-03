@@ -1,11 +1,11 @@
 # Notation Extensibility for Signing and Verification
 
-Keys and associated certificates used for signing artifacts using Notary could be available to users through varied solutions that provide secure key generation, storage and cryptographic operations. Some are well established with standards like [PIV](https://csrc.nist.gov/projects/piv/piv-standards-and-supporting-documentation) and [PKCS #11](https://docs.oasis-open.org/pkcs11/pkcs11-base/v3.0/os/pkcs11-base-v3.0-os.html) implemented by hardware tokens, smart cards. More recent options which use varied authentication and API protocols are remote key management services and signing services by third party vendors and cloud service providers. Notation will support a few built-in integrations with standard providers, and will provide plugin interfaces for users, and vendors to implement their own integrations with the solutions they use. This allows a plugin publisher to implement, test, release and patch their solutions independent of Notation’s development and release cycle. This document provides specification for the plugin model, and interfaces to implement. This specification aims to work both for [existing](./signature-specification.md) and future signature formats adopted by Notary.
+Keys and associated certificates used for signing artifacts using Notation could be available to users through varied solutions that provide secure key generation, storage and cryptographic operations. Some are well established with standards like [PIV](https://csrc.nist.gov/projects/piv/piv-standards-and-supporting-documentation) and [PKCS #11](https://docs.oasis-open.org/pkcs11/pkcs11-base/v3.0/os/pkcs11-base-v3.0-os.html) implemented by hardware tokens, smart cards. More recent options which use varied authentication and API protocols are remote key management services and signing services by third party vendors and cloud service providers. Notation will support a few built-in integrations with standard providers, and will provide plugin interfaces for users, and vendors to implement their own integrations with the solutions they use. This allows a plugin publisher to implement, test, release and patch their solutions independent of Notation’s development and release cycle. This document provides specification for the plugin model, and interfaces to implement. This specification aims to work both for [existing](./signature-specification.md) and future signature formats adopted by Notary Project.
 
 ## Terminology
 
 * **Plugin Publisher** - A user, organization, open source project or 3rd party vendor that creates a Notation plugin for internal or public distribution.
-* **Plugin** - A component external to Notation that can integrate as one of the steps in  Notation’s workflow for signature generation or verification.
+* **Plugin** - A component external to Notation that can integrate as one of the steps in Notation’s workflow for signature generation or verification.
 * **Default provider** - Signing and verification mechanisms built into Notation itself to provide default experience without requiring to install/configure additional plugins. ***[We are yet to define what is included in the default experience]***.
 
 ## Plugin mechanism
@@ -20,7 +20,7 @@ Keys and associated certificates used for signing artifacts using Notary could b
   * Notation MUST work with a plugin that implements a matching or lower minor version of the plugin contract. Notation SHALL NOT support using a plugin with higher version of plugin contract.
   * A plugin MUST support a single plugin contract version, per major version.
 
-Notation will invoke plugins as executable, pass parameters using command line arguments, and use standard IO streams to pass request/response payloads. This mechanism is used as Go language (used to develop [Notation library](https://github.com/notaryproject/notation-go)) does not have a [in built support](https://github.com/golang/go/issues/19282) to load and execute plugins that works across OS platforms. Other mechanisms like gRPC require every plugin to be implemented as a service/daemon.
+Notation will invoke plugins as executable, pass parameters using command line arguments, and use standard IO streams to pass request/response payloads. This mechanism is used as Go language (used to develop [Notation Go library](https://github.com/notaryproject/notation-go)) does not have a [in built support](https://github.com/golang/go/issues/19282) to load and execute plugins that works across OS platforms. Other mechanisms like gRPC require every plugin to be implemented as a service/daemon.
 
 ### Plugin lifecycle management
 
@@ -101,7 +101,7 @@ Plugin config can be also set/overriden during signing with the `notation sign` 
 ### Plugin contract
 
 * Notation will invoke the plugin executable for each command (e.g. sign, verify), pass inputs through `stdin` and get output through `stdout` and `stderr`.
-* The command will be passed as the first argument to the plugin e.g. `notary-{plugin-name} <command>`. A JSON request is passed using `stdin`. The plugin is expected to return a JSON response through `stdout` with a `0` exit code for successful response, and a non-zero exit code with a JSON error response in `stderr` for error response. Each command defines its request, response and error contract. To avoid any additional content like debug or info level logging from dependencies and inbuilt libraries, the plugin implementation should redirect any output to `stdout` on initialization, and only send the JSON response away from `stdout` when the command execution completes. E.g. For golang, set [`os.Stdout`](https://pkg.go.dev/os#pkg-variables) to point to a log file.
+* The command will be passed as the first argument to the plugin e.g. `notation-{plugin-name} <command>`. A JSON request is passed using `stdin`. The plugin is expected to return a JSON response through `stdout` with a `0` exit code for successful response, and a non-zero exit code with a JSON error response in `stderr` for error response. Each command defines its request, response and error contract. To avoid any additional content like debug or info level logging from dependencies and inbuilt libraries, the plugin implementation should redirect any output to `stdout` on initialization, and only send the JSON response away from `stdout` when the command execution completes. E.g. For golang, set [`os.Stdout`](https://pkg.go.dev/os#pkg-variables) to point to a log file.
 * Every request JSON will contain a `contractVersion` top level attribute whose value will indicate the plugin contract version. Contract version is revised when there are changes to command request/response, new plugin commands are introduced, and supported through Notation.
 * To maintain forward compatibility plugin implementors MUST ignore unrecognized attributes in command request which are introduced in minor version updates of the plugin contract.
 * For an error response, every command returns a non-zero exit code 1, with an OPTIONAL JSON error response in `stderr`. It is recommended to return an error response to help user troubleshoot the error.  There is no need to send different exit codes for different error conditions, as Notation (which will call the plugin and parse the response) will use `error-code` in the error response to interpret different error conditions if needed. Notation will attempt to parse the error response in `stderr` when exit code is 1, else treat it as a general error for any other non-zero exit codes.
@@ -189,20 +189,20 @@ Notation will support plugins to be developed against the following interfaces -
 
 ### Signature Generator
 
-This interface targets plugins that integrate with providers of basic cryptographic operations. E.g. Local PIV/PKCS#11 hardware tokens, remote KMS, or key vault services. Plugins that target this interface will only generate a raw signature given a payload to sign. Notation will package this signature into a signature envelope, and generate the signature manifest. Notation will also generate the TSA signature if indicated by the user. The plugin does not need to be signature envelope format aware, and will continue to work if Notary adopts additional signature formats.
+This interface targets plugins that integrate with providers of basic cryptographic operations. E.g. Local PIV/PKCS#11 hardware tokens, remote KMS, or key vault services. Plugins that target this interface will only generate a raw signature given a payload to sign. Notation will package this signature into a signature envelope, and generate the signature manifest. Notation will also generate the TSA signature if indicated by the user. The plugin does not need to be signature envelope format aware, and will continue to work if Notary Project adopts additional signature formats.
 
 #### Signing workflow using plugin
 
 1. Given a user request to sign `oci-artifact`, with signing key `keyName` (the friendly key name)
 2. Pull the image manifest using `oci-artifact` url, and construct a descriptor
-3. Append any user provided metadata and Notary metadata as descriptor annotations.
+3. Append any user provided metadata and metadata defined in [Notary Project signature specification](signature-specification.md) as descriptor annotations.
 4. Determine if the registered key uses a plugin
 5. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR.RAW`
         1. Execute the plugin with `describe-key` command, set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
         2. Generate the payload to be signed for [JWS](./signature-specification.md#supported-signature-envelopes) envelope format.
            1. Create the JWS protected headers collection and set `alg` to value corresponding to `describe-key.response.keySpec` as per [signature algorithm selection](./signature-specification.md#algorithm-selection).
-           2. Create the Notary v2 Payload (JWS Payload) as defined [here](./signature-specification.md#payload).
+           2. Create the Notary Project signature Payload (JWS Payload) as defined [here](./signature-specification.md#payload).
            3. The *payload to sign* is then created as - `ASCII(BASE64URL(UTF8(ProtectedHeaders)) ‘.’ BASE64URL(JWSPayload))`
         3. Execute the plugin with `generate-signature` command.
            1. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
@@ -335,17 +335,17 @@ All response attributes are required.
 
 ### Signature Envelope Generator
 
-This interface targets plugins that in addition to signature generation want to generate the complete signature envelope. This interface allows plugins to have full control over the generated signature envelope, and can append additional signed and unsigned metadata, including timestamp signatures. The plugin must be signature envelope format aware, and implement new formats when Notary adopts new formats.
+This interface targets plugins that in addition to signature generation want to generate the complete signature envelope. This interface allows plugins to have full control over the generated signature envelope, and can append additional signed and unsigned metadata, including timestamp signatures. The plugin must be signature envelope format aware, and implement new formats when Notary Project adopts new formats.
 
 #### Signing workflow using plugin
 
 1. Given a user request to sign `image`, with `keyName` (friendly key name)
 1. Pull the image manifest using `image` url, and construct a descriptor
-1. Append any user provided metadata and Notary metadata as descriptor annotations.
+1. Append any user provided metadata and metadata defined in [Notary Project signature specification](signature-specification.md) as descriptor annotations.
 1. Determine if the registered key uses a plugin
 1. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE`
-        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded [Notary v2 Payload](./signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/jose+json` for JWS).
+        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded the [Notary Project signature Payload](./signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/jose+json` for JWS).
         2. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match `request.signatureEnvelopeType`.
         3. Validate the generated signature, return an error if of the checks fails.
            1. Check if `response.signatureEnvelopeType` is a supported envelope type and `response.signatureEnvelope`'s format matches `response.signatureEnvelopeType`.
@@ -433,7 +433,7 @@ All response attributes are required.
   * Revocation check validation
 * The interface MAY be extended in future to support additional steps which can be customized through a plugin.
 * The interface MUST be agnostic of sequencing of steps in signature verification workflow as implemented in Notation or other implementations.
-* The interface MUST allow processing of [extended attributes](./signature-specification.md#extended-attributes) that are not part of Notary v2 [standard attributes](./signature-specification.md#standard-attributes).
+* The interface MUST allow processing of [extended attributes](./signature-specification.md#extended-attributes) that are not part of the Notary Project signature [standard attributes](./signature-specification.md#standard-attributes).
 
 ### Guidelines for Verification plugin publishers
 
@@ -443,7 +443,7 @@ Therefore, signatures intended for public distribution which require broad signa
 
 * Signatures which require a plugin for verification may be distributed privately (e.g. within an organization) or publicly (e.g. via a public registry).
 If the plugin publisher wants their plugin used publicly they SHOULD publish specifications for the verification logic the plugin performs and test vectors.
-This allows Notary v2 implementations to perform the same logic themselves, if they choose to.
+This allows implementations of the [Notary Project signature specification](./signature-specification.md) to perform the same logic themselves, if they choose to.
 
 ### Signature Verifier
 
@@ -461,7 +461,7 @@ This allows Notary v2 implementations to perform the same logic themselves, if t
 3. Complete steps *Validate Integrity, Validate Expiry* and *Validate Trust Store* from [signature verification workflow](./trust-store-trust-policy.md#steps).
 4. Based on the signature verification level, each validation may be enforced, logged or skipped.
 5. Populate `verify-signature` request. NOTE: The processing order of remaining known attributes does not matter as long as they are processed before the end of signature verification workflow.
-    1. Set `request.signature.criticalAttributes` to the set of [standard Notary v2 attributes](./signature-specification.md#standard-attributes) that are marked critical, from the signature envelope.
+    1. Set `request.signature.criticalAttributes` to the set of [standard Notary Project signature attributes](./signature-specification.md#standard-attributes) that are marked critical, from the signature envelope.
     2. Set `request.signature.criticalAttributes.extendedAttributes` to extended attributes that Notation does not recognize. Notation only supports JSON primitive types for critical extended attributes. If a signature producer required complex types, it MUST set the value to a primitive type by encoding it (e.g. Base64), and MUST be decoded by the plugin which processed the attribute.
     3. Set `request.signature.unprocessedAttributes` to set of critical attribute names that are marked critical, but unknown to Notation, and therefore cannot be processed by Notation.
     4. Set `request.signature.certificateChain` to ordered array of certificates from signing envelope.
@@ -484,7 +484,7 @@ This allows Notary v2 implementations to perform the same logic themselves, if t
   "contractVersion" : "<major-version.minor-version>",
   
    "signature" : {
-    // Array of all Notary V2 defined critical attributes and their values
+    // Array of all the Notary Project defined critical attributes and their values
     // in the signature envelope. Agnostic of header names and value serialization
     // in specific envelope formats like JWS or COSE.
     "criticalAttributes" : 
