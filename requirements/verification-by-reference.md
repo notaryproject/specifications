@@ -1,11 +1,11 @@
-# Notary v2 - Verification  by Reference
+# Notary Project - Verification by Reference
 
 5/1/2020
 [Steve Lasker](https://github.com/SteveLasker)
 
 ## Overview
 
-One of the many questions of Notary v2 is how will verification (signatures) be persisted within a registry.
+One of the many questions of Notary Project is how verification (signatures) will be persisted within a registry.
 This paper outlines an option for persisting verification content as additional artifacts in the registry, with a reverse lookup.
 This would enable multiple verifications to exist without changing the original artifact, or the digest of the original content.
 
@@ -24,23 +24,23 @@ This doc experiments with the avoidance of signatures as the reference.
 1. A collection of verification objects may be associated with an artifact.
 1. Leverage the garbage collection infrastructure registry operators have implemented.
    Garbage collection represents significant investments for registry services which are based on OCI Manifest and OCI Index.
-   We should aim to utilize these existing schemas, or only slight verifications from them to maximize the opportunity for registry implementations to adopt Notary v2.
+   We should aim to utilize these existing schemas, or only slight verifications from them to maximize the opportunity for registry implementations to adopt [Notary Project signature specification](../specs/signature-specification.md).
 1. Minimize requirements to change persistence and object stores used by registry operators.
    Similar to garbage collection, we should work within the constraints of manifest, index and layers to represent verification objects.
 
 ## Non-goals
 
 1. Work within the constraints of the existing OCI-distribution spec api set.
-   Supporting Notary v1, or Docker Content Trust, requires new APIs.
+   Supporting [TUF-based implementation](https://github.com/notaryproject/notary), or Docker Content Trust, requires new APIs.
    APIs are comparatively cheap to implement atop the persistence stores of registries.
-   New APIs should be part of the Notary v2 spec, which may represent changes to the OCI-distribution spec or implementations of a new extension model over the Distribution spec.
-1. Compatibility with Notary v1.
-   Registries that have implemented Notary v1 are looking for a better solution.
-   We cumulatively have little existing usage, and if successful, we expect all customers would rapidly move to Notary v2 eliminating the need to maintain two sets of APIs for an extended period of time.
+   New APIs should be part of the [Notary Project signature specification](../specs/signature-specification.md), which may represent changes to the OCI-distribution spec or implementations of a new extension model over the Distribution spec.
+1. Compatibility with [TUF-based implementation](https://github.com/notaryproject/notary).
+   Registries that have implemented [TUF-based implementation](https://github.com/notaryproject/notary) are looking for a better solution.
+   We cumulatively have little existing usage, and if successful, we expect all adopters would rapidly move to implement [Notary Project signature specification](../specs/signature-specification.md) eliminating the need to maintain two sets of APIs for an extended period of time.
 
 ## Adding verifications along a workflow
 
-To address [Notary v2 Scenario #6: Multiple Signatures](https://github.com/notaryproject/requirements/blob/master/scenarios.md#scenario-6-multiple-signatures), an artifact must be capable of having additional signatures (verifications) be added.
+To address [scenario #6: Multiple Signatures](./scenarios.md#scenario-6-multiple-signatures), an artifact must be capable of having additional signatures (verifications) added.
 However, a deployment document (Helm chart, Kube deploy yaml) must not be required to change.
 
 1. A dev team builds a container image, `(web:a2b2)`.
@@ -189,12 +189,12 @@ Updating the existing tag could cause inconsistencies as some verification syste
 
 **What if** we supported a reverse lookup, where a client can ask for all the verification objects for a given artifact? Reverse lookup refers to the ability to find which manifests are referenced by index objects.
 
-![Two notary artifacts refering a single image](/media/oci-manifest-index-reverse-lookup.png)
+![Reverse lookup](/media/oci-manifest-index-reverse-lookup.png)
 
 We could still use the oci index schema with two changes:
 
 1. Index is versioned to include `index.config` (artifactType in red)
-1. Add a new notary API that finds all indexes, with `"index.config.mediaType": "application/vnd.cncf.notary.verification.v1.config.json"`
+1. Add a new API that finds all indexes, with `"index.config.mediaType": "application/vnd.cncf.notary.verification.v1.config.json"`
 
 ### web:a2b2 image as an OCI Manifest
 
@@ -225,7 +225,7 @@ Same as above.
 
 ### web:a2b2 staging verification w/ index
 
-An index is pushed that supports `index.config`, which tells the registry this index is a type of Notary Verification.
+An index is pushed that supports `index.config`, which tells the registry this index is a type of Notary Project Verification.
 This follows the same pattern we use with [OCI Artifacts to identify oci manifest as specific type](https://github.com/opencontainers/artifacts/blob/master/artifact-authors.md#defining-oci-artifact-types).
 This index would NOT be pushed with a tag.
 It would be a digest only reference.
@@ -304,7 +304,7 @@ Another index of type `notary.verification`, which adds the scanning verificatio
 }
 ```
 
-The notation client could retrieve all signatures with the following command
+Users could retrieve all signatures with the following command
 
 ```shell
 notation verify registry.contoso.com/marketing/web:a2b2
@@ -324,7 +324,7 @@ The pros of this approach are:
 The cons of this approach:
 
 - A new API must be added.
-  We’ve said this was within scope and ok as registries must add Notary v1, Content Trust to support existing scenarios.
+  We’ve said this was within scope and ok as registries must add [TUF-based implementation](https://github.com/notaryproject/notary), Content Trust to support existing scenarios.
   Since most registries need to do some work, adding a new API is not a stretch
 - Reverse lookup, and its impact on garbage collection.
   Registries tend to traverse down.
@@ -343,9 +343,9 @@ The reverse lookup index could be expanded as follows:
 
 ![Multi-platform manifest with SBoM, TUF, and Scan artifacts](/media/oci-manifest-index-reverse-lookup-sbom.png)
 
-The user still references `registry.contoso.com/web:a2b2`, while other parts of the system that adhere to notary v2 would know to query the registry for the additional verification information.
+The user still references `registry.contoso.com/web:a2b2`, while other parts of the system that adhere to [Notary Project signature specification](../specs/signature-specification.md) would know to query the registry for the additional verification information.
 
-An notation client queries for all indexes with a `"config.mediaType"` of `"application/vnd.cncf.notary.verification.config.v1+json"` It would read all the verification objects and decide how to proceed.
+Notation CLI verify command queries for all indexes with a `"config.mediaType"` of `"application/vnd.cncf.notary.verification.config.v1+json"`. It would read all the verification objects and decide how to proceed.
 
 For customers that aren’t comfortable with tags, you could query for the digest of `web:a2b2`.
 It would return the same list of verification objects.
