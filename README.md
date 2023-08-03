@@ -52,7 +52,7 @@ In this README
 | [signature-specification.md](./specs/signature-specification.md) | Notary Project OCI signature specification |
 | [signing-and-verification-workflow.md](./specs/signing-and-verification-workflow.md) | Notary Project OCI signing and verification workflow |
 | [signing-scheme.md](./specs/signing-scheme.md) | Notary Project signing scheme|
-| [trust-store-trust-policy.md](./specs/trust-store-trust-policy.md) | Notation Trust Store and Trust Policy  |
+| [trust-store-trust-policy.md](./specs/trust-store-trust-policy.md) | Notary Project Trust Store and Trust Policy  |
 
 
 ## Threat Models
