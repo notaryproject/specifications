@@ -3,8 +3,8 @@
 This document provides the following details for Notary Project signature:
 
 - **[Signature Envelope](#signature-envelope)**: Describes the structure of the Notary Project signature.
-- **[OCI Signature Storage](#storage)**: Describes how signatures are stored and retrieved from an OCI registry.
-- **[Detached Blob Signature Structure](#storage)**: Describes how detached signatures of Blobs are structured.
+- **[OCI Signatures](#storage)**: Describes how signatures are stored and retrieved from an OCI registry.
+- **[Detached Signatures](#storage)**: Describes how detached signatures of Blobs are stored on file system
 
 ## Signature Envelope
 
@@ -137,7 +137,7 @@ These attributes are considered unsigned with respect to the signing key that ge
 - **Timestamp signature** : An OPTIONAL counter signature which provides [authentic timestamp](#signing-time)e.g. Time Stamp Authority (TSA) generated timestamp signature. Only [RFC3161][ietf-rfc3161] compliant TimeStampToken are currently supported.
 - **Signing Agent**: An OPTIONAL claim that provides the identifier of the software (e.g. Notation) that produced the signature on behalf of the user. It is an opaque string set by the software that produces the signature. It's intended primarily for diagnostic and troubleshooting purposes, this attribute is unsigned, the verifier MUST NOT validate formatting, or fail validation based on the content of this claim. The suggested format is one or more tokens of the form `{id}/{version}` containing identifier and version of the software, separated by spaces. E.g. "notation/1.0.0", "notation/1.0.0 myplugin/0.8".
 
-## OCI Signature Storage
+## OCI Signatures
 
 This section describes how a Notary Project signature is stored in an OCI Distribution conformant registry.
 OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.1.0-rc3][oci-image-manifest] for details.
@@ -204,11 +204,17 @@ Each Notary Project signature refers to a signature envelope blob.
 An OCI artifact can have multiple signatures, implementations of the Notary Project signature specification uses annotations of the signature manifest to filter relevant signatures based on the applicable trust policy.
 The Notary Project signature manifest's `io.cncf.notary.x509chain.thumbprint#S256` annotation key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
 
-## Detached Blob Signature Structure
+## Detached Signatures
 
-Notary Project supports signing arbitrary blobs and producing detached signatures. These detached signatures can be transferred in any medium that the user prefers and be verified on the verification side. Notary Project detached signature is a self-contained JSON file that contains the signature envelope. The file extension of the signature file, which can be either `jws` or `cose`, describes the signature envelope format.
+Notary Project supports signing arbitrary blobs and producing detached signatures. These detached signatures can be transferred on any medium that the user prefers and be verified on the verification side. Notary Project detached signature is a self-contained binary file that contains the signature envelope. The file extension of the signature file, which can be either `jws` or `cose`, describes the signature envelope format.
 
 ![Signature storage inside file system](../media/detached-signature-specification.svg)
+
+### Differences between OCI and Detached signatures
+
+1. Apart from the `payload` field, all other fields of a signature envelope are identical between OCI and detached signatures.
+1. While OCI signatures have signature manifest files, there is no such concept for detached signatures.
+1. While the format aka `mediaType` of the signature envelope (`application/jose+json` or `application/cose`) is present in the signature manifest file for OCI signatures, detached signatures carry the format information as part of the detached signature file extension i.e. `jws` or `cose`.
 
 ## Signature Algorithm Requirements
 
@@ -300,10 +306,10 @@ The signing time denotes the time at which the signature was generated. A X509 c
 
 This is an optional feature that provides a "best by use" time for the artifact, as defined by the signer. The Notary Project signature specification allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
-### Signature Portability
+### OCI Signature Portability
 
 Portability of signatures is associated with the portability of associated artifacts which are being signed.
-OCI artifacts are inherently location agnostic, artifacts can be pulled from and pushed to any OCI compliant registry to which a user has access.
+OCI artifacts are inherently registry agnostic, artifacts can be pulled from and pushed to any OCI compliant registry to which a user has access.
 The artifacts themselves can be classified as follow.
 
 1. *Public Artifacts* -  Artifacts that are distributed publicly for broad consumption.
@@ -314,13 +320,13 @@ Signatures associated with these artifacts require broad portability.
 E.g. Images for containerized applications and services used within an organization, or shared with limited authorized parties.
 Based on user requirements a private artifact can have different levels of portability, the signature’s portability should at least match the the artifact’s portability.
 
-*The Notary Project signature portability* is based on the following
+*The Notary Project OCI signature portability* is based on the following
 
 #### Signature discovery
 
-The Notary Project signature specification addressed signature discovery by storing signatures in the same registry (location) where an artifact is present.
+The Notary Project OCI signature specification addressed signature discovery by storing signatures in the same registry (location) where an artifact is present.
 This is supported through [OCI Distribution Referrers API][oci-distribution-referrers] which allows reference artifacts such as signatures, SBOMs to be associated with existing artifacts like Images.
-The Notary Project signature specification allows multiple signatures to be associated with an artifact, and clients may automatically push signatures for an artifact to a destination registry when a signed artifact moves from one registry to other.
+The Notary Project OCI signature specification allows multiple signatures to be associated with an artifact, and clients may automatically push signatures for an artifact to a destination registry when a signed artifact moves from one registry to other.
 
 #### Verification requirements
 
@@ -337,6 +343,9 @@ Based on user’s requirements, a user can select appropriate signing mechanism 
 The Notary Project signatures without any critical extended attributes do not impose any additional dependency requirements for verifiers as these can be validated with just Notation.
 Whereas, the Notary Project signatures that contain critical extended attributes will require additional dependencies for signature validation, either on Notation compliant plugins or equivalent tooling which may not be available in all environments.
 Similarly, Notation compliant plugin vendors should be aware that usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature.
+
+### Detached Signature Portability
+Notary Project detached signatures provide the maximum portability as there are no requirements on storage or transport medium. Users can can store and transport their blobs and associated detached signatures however they like.
 
 ### Guidelines for implementations of the Notary Project signature specification
 

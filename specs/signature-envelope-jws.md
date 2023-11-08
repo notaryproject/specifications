@@ -2,7 +2,7 @@
 
 This specification implements the [Notary Project signature specification](./signature-specification.md) using JSON Web Signature (JWS). JWS ([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)) is a JSON based envelope format for digital signatures over any type of payload (e.g. JSON, binary). JWS is the Notary Project supported signature format and specifically uses the *JWS JSON Serialization* representation.
 
-## Storage
+## OCI Storage
 
 A JWS signature envelope will be stored in an OCI registry as a layer, and referenced in the signature manifest as a layer blob with `mediaType` of `"application/jose+json"`.
 
@@ -35,11 +35,21 @@ Signature Manifest Example
 }
 ```
 
+## Detached Signature Storage
+
+For detached signatures associated with arbitrary blobs, a COSE signature envelope will be stored on the file system as a binary file with `jws` as the file extension.
+
+COSE detached signature file contains
+1. Blob's payload descriptor
+1. Signed Attributes
+1. Unsigned Attributes
+1. Signature
+
 ## JWS Payload
 
 The JWS envelope contains the [Notary Project signature payload](./signature-specification.md#payload).
 
-Example of the Notary Project signature payload
+Example of the Notary Project OCI signature payload
 
 ```jsonc
 {
@@ -50,6 +60,18 @@ Example of the Notary Project signature payload
     "annotations": {
         "io.wabbit-networks.buildId": "123"  // user defined metadata
     }
+  }
+}
+```
+
+Example of the Notary Project detached signature payload:
+
+```jsonc
+{
+  "targetArtifact": {
+    "mediaType": "application/octet-stream",
+    "digest": "sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345",
+    "size": 1024
   }
 }
 ```
