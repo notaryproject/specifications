@@ -72,7 +72,10 @@ Example of the Notary Project detached signature payload:
   "targetArtifact": {
     "mediaType": "application/octet-stream",
     "digest": "sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345",
-    "size": 1024
+    "size": 1024,
+    "annotations": {
+        "io.wabbit-networks.buildId": "123"  // user defined metadata
+    }
   }
 }
 ```

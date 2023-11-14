@@ -4,7 +4,7 @@ This document provides the following details for Notary Project signature:
 
 - **[Signature Envelope](#signature-envelope)**: Describes the structure of the Notary Project signature.
 - **[OCI Signatures](#storage)**: Describes how signatures are stored and retrieved from an OCI registry.
-- **[Detached Signatures](#storage)**: Describes how detached signatures of Blobs are stored on file system
+- **[Detached Signatures](#storage)**: Describes how detached signatures of Blobs are stored on file system.
 
 ## Signature Envelope
 
@@ -18,7 +18,7 @@ A signature envelope consists of the following components:
 
 A signature envelope is `e = {m, v, u, s}` where `s` is signature.
 
-This specification defines the set of signed and unsigned attributes that make up a valid Notary Project signature. This specification aims to be be agnostic of signature envelope format (e.g. COSE, JWS), details of encoding the envelope in a specific signature envelope format are covered in separate specs.
+This specification defines the set of signed and unsigned attributes that make up a valid Notary Project signature. This specification aims to be agnostic of signature envelope format (e.g. COSE, JWS), details of encoding the envelope in a specific signature envelope format are covered in separate specs.
 
 The Notary Project signature supports following envelope formats:
 
@@ -36,7 +36,7 @@ The Notary Project signature payload is a JSON document with media type `applica
   - Descriptor MAY contain `artifactType` field for the `config.mediaType` of OCI image manifests.
 - For Blob artifacts, the descriptor MUST describe the blob that is being signed
   - Descriptor MUST contain `mediaType`, `digest`, and `size` fields.
-  - `digest` MUST be the hash of the blob using the hashing algorithm deduced from signing certificate's public key. See [Algorithm Selection](#algorithm-selection)
+  - `digest` MUST be in the format of `<digest algorithm>:<digest value>`. Example: `sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345`
   - `mediaType` can be any arbitrary media type that the user chooses to describe the blob. An example can be `application/octet-stream` 
   - `size` MUST be the raw size of the blob in bytes.
   - Blob descriptors MAY optionally contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. 
