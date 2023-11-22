@@ -36,7 +36,7 @@ Signature Manifest Example
     }
 }
 ```
-## Detached Signature Storage
+## Detached Blob Signature Storage
 
 For detached signatures associated with arbitrary blobs, a COSE signature envelope will be stored on the file system as a binary file with `cose` as the file extension.
 

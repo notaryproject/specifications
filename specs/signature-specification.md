@@ -37,6 +37,7 @@ The Notary Project signature payload is a JSON document with media type `applica
 - For Blob artifacts, the descriptor MUST describe the blob that is being signed
   - Descriptor MUST contain `mediaType`, `digest`, and `size` fields.
   - `digest` MUST be in the format of `<digest algorithm>:<digest value>`. Example: `sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345`
+  - SHA-256, SHA-384, SHA-512 are the only allowed digest algorithms.
   - `mediaType` can be any arbitrary media type that the user chooses to describe the blob. An example can be `application/octet-stream` 
   - `size` MUST be the raw size of the blob in bytes.
   - Blob descriptors MAY optionally contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. 
@@ -220,7 +221,7 @@ The Notary Project signature manifest's `io.cncf.notary.x509chain.thumbprint#S25
 
 ## Detached Signatures
 
-Notary Project supports signing arbitrary blobs and producing detached signatures. These detached signatures can be transferred on any medium that the user prefers and be verified on the verification side. Notary Project detached signature is a self-contained binary file that contains the signature envelope. The file extension of the signature file, which can be either `jws` or `cose`, describes the signature envelope format.
+The Notary Project facilitates signing of arbitrary blobs and generating detached signatures. These detached signatures can be conveyed via any preferred medium and verified on the receiving end. The Notary Project's detached signature is a self-contained binary file encompassing the signature envelope. The file extension can either be 'jws' or 'cose', indicating the signature envelope format.
 
 ![Signature storage inside file system](../media/detached-signature-specification.svg)
 
@@ -245,7 +246,7 @@ For ECDSA equivalent NIST curves and ANSI curves can be found at [RFC4492 Append
 
 ### Algorithm Selection
 
-The signing certificate's public key algorithm and size MUST be used to determine the signature algorithm.
+The signing certificate's public key algorithm and size MUST be used to determine the signature algorithm. Below are the only supported Signature Algorithms in the Notary project.
 
 | Public Key Algorithm | Key Size (bits) | Signature Algorithm             |
 | -------------------- | --------------- | ------------------------------- |
