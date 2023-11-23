@@ -1,8 +1,8 @@
 # Signing and Verification Workflow
 
-This document describes the workflow of signing and verifying OCI artifacts.
+This document describes the workflow of signing and verifying artifacts likes OCI images and arbitrary blobs.
 
-## Signing workflow
+## OCI artifact signing workflow
 
 The user wants to sign an OCI artifact and push the signature to a repository.
 
@@ -27,7 +27,7 @@ The user wants to sign an OCI artifact and push the signature to a repository.
 
 The user pushes the OCI artifact to the repository before the signature generation process as the signature reference must exist for the signature push to succeed.
 
-## Verification workflow
+## OCI artifact verification workflow
 
 The user wants to pull an OCI artifact only if they are signed by a trusted publisher and the signature is valid.
 
@@ -70,3 +70,46 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
 1. **Get OCI artifact:** Using the verified digest, download the OCI artifact.
    This step is not in the purview of Notary Project.
+
+## Arbitrary blob signing workflow
+
+The user wants to sign an arbitrary blob with a detached signature.
+
+### Signing Prerequisites
+
+- User has access to the signing certificate and private key or a remote signing service through a notation plug-in.
+
+### Signing Steps
+
+1. **Generate signature:** Using notation CLI or any other compliant signing tool, sign the blob. The signing tool should follow the following guideline.
+    1. Construct the blob payload as defined in [`signature specification`](./signature-specification.md#payload)
+    1. Verify that the signing certificate is valid and satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
+    1. Verify that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
+    1. Generate signature.
+        1. Generate signature using signature formats specified in [supported signature envelopes](./signature-specification.md#supported-signature-envelopes). Also, as part of this step, the user-defined/supplied custom attributes should be added to the annotations of the signature's descriptor.
+        1. If the user wants to timestamp the signature, obtain an [RFC-3161](https://datatracker.ietf.org/doc/html/rfc3161.html) compliant timestamp for the signature generated in the previous step. Otherwise, continue to the next step.
+            1. Verify that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
+            1. Verify that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
+        1. Embed timestamp to the signature envelope.
+1. **Save the signature envelope:** Save the signature envelope generated in the previous step to a file.
+
+## Arbitrary blob verification workflow
+
+The user wants to consume an arbitrary blob only if if was signed by a trusted publisher and the signature associated with the blob is valid.
+
+### Verification Prerequisites
+
+- User has the blob that they want to consume, along with its detached signature.
+- User has configured [trust store and trust policy](./trust-store-trust-policy.md) required for signature verification.
+
+### Verification Steps
+
+1. **Should implementations of this specification verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#trust-policy) configuration, determine whether implementations of this specification need to verify the signature or not.
+   If signature verification should be skipped for the given blob, skip the below steps and directly jump to step 4.
+1. **verify the detached signature:**
+    1. Parse and validate the signature envelope using the detached signature's file extension as the envelope type.
+    1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
+    1. If the signature verification fails, exit.
+1. Construct the blob payload as defined in [`signature specification`](./signature-specification.md#payload)
+1. Compare the payload derived from the above step with the payload present in the signature envelope. Fail signature verification if there is mismatch.
+1. Calculate the digest of the blob using the digest algorithm specified at `targetArtifact.payload.digest` and make sure the blob digest matches the digest present in the `targetArtifact.payload.digest`. If the digests are equal, signature verification is considered successful

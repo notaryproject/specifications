@@ -2,7 +2,7 @@
 
 Notary Project currently supports X.509 based PKI and identities, and uses a trust store and trust policy to determine if a signed artifact is considered authentic.
 
-The document consists of the following sections:
+This document consists of the following sections:
 
 - **[Trust Store](#trust-store)**: Contains a set of trusted identities through which trust is derived for the rest of the system. For X.509 PKI, the trust store typically contains a set of root certificates.
 - **[Trust Policy](#trust-policy)**: A policy language which indicates which identities are trusted to produce artifacts. Both trust store and trust policy need to be configured by users/administrators before artifact signature can be evaluated.
@@ -14,8 +14,8 @@ Other types of identities and trust models may be supported in future, which may
 
 All examples use the actors defined in the Notary Project [scenarios](../requirements/scenarios.md#scenario-0-build-publish-consume-enforce-policy-deploy)
 
-- Wabbit Networks company builds, signs and distributes their `net-monitor` software though public registries.
-- ACME Rockets consumes the `net-monitor` software from a public registry importing the artifacts and reference artifacts (signatures, SBoMs) into their private registry. The private registry also contains additional artifacts that ACME Rockets themselves sign.
+- Wabbit Networks company builds, signs and distributes their `net-monitor` software.
+- ACME Rockets consumes the `net-monitor` software from Wabbit Networks.
 
 ## Trust Store
 
@@ -53,31 +53,71 @@ $XDG_CONFIG_HOME/notation/trust-store
 The Trust store currently supports three kinds of identities, additional identities may be supported in future :
 
 - **Certificates**: The `x509/ca` trust store contains named stores that contain Certificate Authority (CA) root certificates.
-- **SigningAuthority Certificate**: The `x509/signingAuthority` trust store contains named stores that contain Siging Authority's root certificates.
+- **SigningAuthority Certificate**: The `x509/signingAuthority` trust store contains named stores that contain Signing Authority's root certificates.
 - **Timestamping Certificates**: The `x509/tsa` trust store contains named stores with Time Stamping Authority (TSA) root certificates.
 
-Any additional sub directories under names stores and certificates in it are ignored. **NOTE**: Implementation SHOULD warn if it finds sub directories with certificates under a named store, to help diagnose misconfigured store.
+Any additional sub directories under a named store and certificates in it are ignored. **NOTE**: Implementation SHOULD warn if it finds sub directories with certificates under a named store, to help diagnose misconfigured store.
 
 ## Trust Policy
 
-Users who consume signed artifact from a registry use the trust policy to specify trusted identities which will sign the artifacts, and level of signature verification to use.
+Users who consume signed artifacts from OCI registries or signed arbitrary blobs with detached signatures use trust policies to specify trusted identities that signed the artifacts, and level of signature verification to enforce. The trust policy is a JSON document.
+
+**NOTE**: Support for verifying signed arbitrary blob has been added in policy version 1.1. While the policy version 1.1 can be used for verifying both signed OCI artifacts as well as signed arbitrary blobs, policy version 1.0 can only be used for verifying signed OCI artifacts.
 
 ### Trust Policy Schema
 
-The trust policy is a JSON document, here are some examples.
+#### Version 1.1
 
-Trust policy for a simple scenario where ACME Rockets uses only artifacts signed by their CI/CD. Any third party artifacts also are vetted and signed by ACME Rockets.
+- **`version`**(*string*): This REQUIRED property is the version of the trust policy. This MUST be either `1.1` or `1.0`.
+- **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
+  - **`name`**(*string*): This REQUIRED property represents the name of the trust policy.
+  - **`scopes`**(*array of strings*): This REQUIRED property acts as a policy selector and determines which trust policy is applicable for verifying a given artifact. Values MUST be prefixed with either `oci:` or `blob:` to indicate what artifact type the scope must be applied to.
+    For verifying signed OCI artifacts, the scope value must be a valid OCI reference prefixed with `oci:`. The OCI reference acts as a policy selector for filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
+    For verifying signed arbitrary blobs, the scope value is an arbitrary name prefixed with `blob:` that acts as a policy selector. The arbitrary name must be alpha-numeric text with `-` and `_` characters.
+    For more information, see [scopes constraints](#scopes-constraints) section.
+  - **`signatureVerification`**(*object*): This REQUIRED property dictates how signature verification is performed.
+  An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
+    - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
+    - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
+  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For publicly trusted TSA, `tsa:publicly-trusted-tsa` is the default value, and implied without explicitly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
+  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
+
+Policy version 1.1 made below changes over version 1.0
+
+1. Added support for verifying signed arbitrary blobs
+2. Replaced `registryScopes` with `scopes`. Values of `scopes` require prefixes `oci:` or `blob:` to differentiate OCI and blob scopes
+
+#### Version 1.0
+
+- **`version`**(*string*): This REQUIRED property is the version of the trust policy.
+- **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
+  - **`name`**(*string*): This REQUIRED property represents the name of the trust policy.
+  - **`registryScopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
+    The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
+    For more information, see [scopes constraints](#scopes-constraints) section.
+  - **`signatureVerification`**(*object*): This REQUIRED property dictates how signature verification is performed.
+  An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
+    - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
+    - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
+  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For publicly trusted TSA, `tsa:publicly-trusted-tsa` is the default value, and implied without explicitly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
+  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
+
+Note: Version 1.0 does not support verifying signed arbitrary blobs. See [Version 1.1](#version-1.1) for that.
+
+### Trust Policy Examples
+
+1. Trust policy for a simple scenario where ACME Rockets consumes only the OCI artifacts signed by their own CI/CD. Any third party artifacts consumed by ACME Rockets are also signed and vetted by their CI/CD. 
 
 ```jsonc
 {
-    "version": "1.0",
+    "version": "1.1",
     "trustPolicies": [
         {
-            // Policy for all artifacts, from any registry location.
+            // Policy for all artifacts, from any OCI registry location.
             "name": "wabbit-networks-images",   // Name of the policy.
-            "registryScopes": [ "*" ],          // The registry artifacts to which the policy applies.
+            "scopes": [ "oci:*" ],              // The registry artifacts to which the policy applies.
             "signatureVerification": {          // The level of verification - strict, permissive, audit, skip.
-              "level" : "audit" 
+              "level" : "audit"
             },
             "trustStores": ["ca:acme-rockets"], // The trust stores that contains the X.509 trusted roots.
             "trustedIdentities": [              // Identities that are trusted to sign the artifact.
@@ -88,7 +128,70 @@ Trust policy for a simple scenario where ACME Rockets uses only artifacts signed
 }
 ```
 
-Trust policy for the scenario where ACME Rockets uses some artifacts signed by Wabbit Networks and some signed by ACME Rockets.
+2.Trust policy for a scenario where ACME Rockets consumes some OCI artifacts signed by Wabbit Networks and some signed by ACME Rockets.
+
+```jsonc
+{
+    "version": "1.1",
+    "trustPolicies": [
+        {
+            // Policy for set of artifacts signed by Wabbit Networks
+            // that are pulled from ACME Rockets repository
+            "name": "wabbit-networks-images",
+            "scopes": [
+              "oci:registry.acme-rockets.io/software/net-monitor",
+              "oci:registry.acme-rockets.io/software/net-logger"
+            ],
+            "signatureVerification": {
+              "level" : "strict" 
+            },
+            "trustStores": ["wabbit-networks"],
+            "trustedIdentities": [ 
+              "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
+            ]
+        },
+        {
+            // Exception policy for a single unsigned OCI artifact pulled from
+            // Wabbit Networks repository
+            "name": "unsigned-image",
+            "scopes": [ "oci:registry.wabbit-networks.io/software/unsigned/net-utils" ],
+            "signatureVerification": {
+              "level" : "skip" 
+            }
+        },
+        {
+            // Policy that uses custom verification level to relax the strict verification.
+            // It logs expiry and skips revocation check for a specific OCI artifact.
+            "name": "use-expired-image",
+            "scopes": [ "oci:registry.acme-rockets.io/software/legacy/metrics" ],
+            "signatureVerification": {
+              "level" : "strict",
+              "override" : {
+                "expiry" : "log",
+                "revocation" : "skip"
+              }
+            },
+            "trustStores": ["ca:acme-rockets"],
+            "trustedIdentities": ["*"]
+        },
+        {
+            // Policy for all other OCI artifacts signed by ACME Rockets
+            // from any registry location. The policy also specified multiple trust stores.
+            "name": "global-policy-for-all-other-images",
+            "scopes": [ "oci:*" ],
+            "signatureVerification": {
+              "level" : "audit"
+            },
+            "trustStores": ["ca:acme-rockets", "ca:acme-rockets-ca2"],
+            "trustedIdentities": [
+              "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
+            ]
+        }
+    ]
+}
+```
+
+3.Trust policy in version 1.0 for a scenario where ACME Rockets consumes some OCI artifacts signed by Wabbit Networks and some signed by ACME Rockets.
 
 ```jsonc
 {
@@ -111,7 +214,7 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
             ]
         },
         {
-            // Exception policy for a single unsigned artifact pulled from
+            // Exception policy for a single unsigned OCI artifact pulled from
             // Wabbit Networks repository
             "name": "unsigned-image",
             "registryScopes": [ "registry.wabbit-networks.io/software/unsigned/net-utils" ],
@@ -121,7 +224,7 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
         },
         {
             // Policy that uses custom verification level to relax the strict verification.
-            // It logs expiry and skips recovocation check for a specific artifact.
+            // It logs expiry and skips revocation check for a specific OCI artifact.
             "name": "use-expired-image",
             "registryScopes": [ "registry.acme-rockets.io/software/legacy/metrics" ],
             "signatureVerification": {
@@ -135,10 +238,62 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
             "trustedIdentities": ["*"]
         },
         {
-            // Policy for all other artifacts signed by ACME Rockets
+            // Policy for all other OCI artifacts signed by ACME Rockets
             // from any registry location. The policy also specified multiple trust stores.
             "name": "global-policy-for-all-other-images",
             "registryScopes": [ "*" ],
+            "signatureVerification": {
+              "level" : "audit"
+            },
+            "trustStores": ["ca:acme-rockets", "ca:acme-rockets-ca2"],
+            "trustedIdentities": [
+              "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
+            ]
+        }
+    ]
+}
+```
+
+4. Trust policy for the scenario where ACME Rockets consumes arbitrary blobs signed by Wabbit Networks and some signed by ACME Rockets.
+
+```jsonc
+{
+    "version": "1.1",
+    "trustPolicies": [
+        {
+            // Policy for set of blobs signed by Wabbit Networks
+            // that are pulled from ACME Rockets repository
+            "name": "wabbit-networks-blobs",
+            "scopes": [
+              "blob:wabbit-networks"  // limit the scope of the policy to blobs coming from wabbit-networks
+            ],
+            "signatureVerification": {
+              "level" : "strict"
+            },
+            "trustStores": ["wabbit-networks"],
+            "trustedIdentities": [
+              "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
+            ]
+        },
+        {
+            // Policy that uses custom verification level to relax the strict verification.
+            // It logs expiry and skips revocation check using a specific scope.
+            "name": "use-expired-blobs",
+            "scopes": [ "blob:relaxed-blob-verification" ],
+            "signatureVerification": {
+              "level" : "strict",
+              "override" : {
+                "expiry" : "log",
+                "revocation" : "skip"
+              }
+            },
+            "trustStores": ["ca:acme-rockets"],
+            "trustedIdentities": ["*"]
+        },
+        {
+            // Policy for all arbitrarily blobs with a wildcard scope
+            "name": "global-policy-for-all-blobs",
+            "scopes": [ "blob:*" ],
             "signatureVerification": {
               "level" : "audit" 
             },
@@ -150,22 +305,6 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
     ]
 }
 ```
-
-### Trust Policy Properties
-
-- **`version`**(*string*): This REQUIRED property is the version of the trust policy.
-  The supported value is `1.0`.
-- **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
-  - **`name`**(*string*): This REQUIRED property represents the name of the trust policy.
-  - **`registryScopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
-    The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
-    For more information, see [registry scopes constraints](#registry-scopes-constraints) section.
-  - **`signatureVerification`**(*object*): This REQUIRED property dictates how signature verification is performed.
-  An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
-    - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
-    - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
-  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For publicly trusted TSA, `tsa:publicly-trusted-tsa` is the default value, and implied without explicitly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
-  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
 
 #### Signature Verification details
 
@@ -185,7 +324,7 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
 - `strict` : Signature verification is performed at `strict` level, which enforces all validations. If any of these validations fail, the signature verification fails. This is the recommended level in environments where a signature verification failure does not have high impact to other concerns (like application availability). It is recommended that build and development environments where images are initially created, or for high assurance at deploy time use `strict` level.
 - `permissive` : The `permissive` level enforces most validations, but will only logs failures for revocation and expiry. The `permissive` level is recommended to be used if signature verification is done at deploy time or runtime, and the user only needs integrity and authenticity guarantees.
 - `audit` : The `audit` level only enforces signature integrity if a signature is present. Failure of all other validations are only logged.
-- `skip` : The `skip` level does not fetch signatures for artifacts and does not perform any signature verification. This is useful when an application uses multiple artifacts, and has a mix of signed and unsigned artifacts. Note that `skip` cannot be used with a global scope (`*`), the value of `registryScopes` MUST contain fully qualified registry URL(s).
+- `skip` : The `skip` level does not perform any signature verification. This is useful when an application uses multiple artifacts, and has a mix of signed and unsigned artifacts. Note that `skip` cannot be used with a global scope (`oci:*` or `blob:*`).
 
 The following table shows the resultant validation action, either *enforced* (verification fails), or *logged* for each of the checks, based on signature verification level.
 
@@ -231,9 +370,24 @@ Signature verification levels provide defined behavior for each validation e.g. 
     }
 ```
 
-#### Registry Scopes Constraints
+#### Scopes Constraints
 
-- Each trust policy MUST contain scope property and the scope collection MUST contain at least one value.
+##### Policy Version 1.1
+
+- Each trust policy MUST contain `scopes` property and the scope collection MUST contain at least one value.
+- The scope MUST contain one of the following:
+  - List of one or more fully qualified OCI URIs with `oci:` prefix.
+    The repository URI MUST NOT contain the asterisk character `*`.
+  - List of one or more policy selector strings for blobs with `blob:` prefix.
+    Policy selector string can only contain alphabets, numbers, hyphen (`-`) and underscore (`_`) characters.
+  - A global scope
+    The scope `oci:*` or `blob:*` is called a global scope.
+    The trust policy with global scope applies when a more specific scope is not available.
+    There can only be one trust policy with a global scope of either kind (`oci:*` or `blob:*`).
+
+##### Policy Version 1.0
+
+- Each trust policy MUST contain scope property `registryScopes` and the scope collection MUST contain at least one value.
 - The scope MUST contain one of the following:
   - List of one or more fully qualified repository URIs.
     The repository URI MUST NOT contain the asterisk character `*`.
@@ -242,16 +396,29 @@ Signature verification levels provide defined behavior for each validation e.g. 
     The trust policy with global scope applies to all the artifacts.
     There can only be one trust policy that uses a global scope.
 
-#### Selecting a trust policy based on artifact URI
+#### Selecting a trust policy based on OCI artifact URI as the scope
 
-- For a given artifact there MUST be only one applicable trust policy, except for trust policy with global scope.
-- For a given artifact, if there is no applicable trust policy then implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md) MUST consider the artifact as untrusted and fail signature verification.
+- The URI of an OCI artifact dictates the trust policy that gets applied to verify the artifact's signature.
+- For a given OCI artifact there MUST be only one applicable trust policy, except for trust policy with a global scope.
+- For a given OCI artifact, if there is no applicable trust policy then implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md) MUST consider the artifact as untrusted and fail signature verification.
 - The scope MUST NOT support reference expansion i.e. URIs must be fully qualified.
   E.g. the scope should be `docker.io/library/registry` rather than `registry`.
 - Evaluation order of trust policies:
   1. *Exact match*: If there exists a trust policy whose scope contains the artifact's repository URI then the aforementioned policy MUST be used for signature evaluation.
      Otherwise, continue to the next step.
-  1. *Global*: If there exists a trust policy with global scope then use that policy for signature evaluation.
+  1. *Global*: If there exists a trust policy with global scope (`oci:*`) then use that policy for signature evaluation.
+     Otherwise, fail the signature verification.
+
+#### Selecting a trust policy based on blob scope
+
+- The signature verifier must select the appropriate trust policy for blob signature verification using scopes.  
+- Scopes prefixed with `blob:` allow a verifier to choose the trust policy for verifying signed arbitrary blobs.
+- For a given scope selected by the verifier, there MUST be only one trust policy with that exact scope.
+- For a given scope selected by the verifier, if there is no matching trust policy with that scope, then implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md) MUST consider the blob as untrusted and fail signature verification.
+- Evaluation order of trust policies:
+  1. *Exact match*: If there exists a trust policy whose scope value exactly matches the one provided by the signature verifier then the aforementioned policy MUST be used for signature evaluation.
+     Otherwise, continue to the next step.
+  1. *Global*: If verifier does not select a scope and if there exists a trust policy with global scope (`blob:*`) then use that policy for signature evaluation.
      Otherwise, fail the signature verification.
 
 ### Trusted Identities Constraints
@@ -295,17 +462,20 @@ Notary Project allows user to execute custom validations during verification usi
 ### Steps
 
 1. **Identify applicable trust policy**
-   1. For the given artifact URI [determine the applicable trust policy](#selecting-a-trust-policy-based-on-artifact-uri) using `registryScopes`.
-      1. If an applicable trust policy for the artifact URI cannot be found, fail signature verification.
+   1. For OCI artifacts, use [the artifact URI as the policy selector](#selecting-a-trust-policy-based-on-oci-artifact-uri-as-the-scope) and select the policy with matching scope from `scopes` (in policy version 1.0, use `registryScopes` field).
+   2. For Blob artifacts, use [the scope value provided by the verifier](#selecting-a-trust-policy-based-on-blob-scope) as the policy selector and select the policy with matching scope from `scopes`.
+        1. If an applicable trust policy for the artifact URI cannot be found, fail signature verification.
 1. **Proceed based on signature verification level**
    1. If `signatureVerification` level is set to `skip` in the trust policy, return success.
    1. For all other `signatureVerification` levels, `strict`, `permissive` and `audit`, perform each of the validation defined in the next sections - `integrity`, `authenticity`, `trusted timestamp`, `expiry` and `revocation`.
    1. The `signatureVerification` level defines if each validation is `enforced` or `logged`
-      1. `enforced` - validation failures are treated as critical, causes the overall signature verification to fail and exit. Subsequent validations are not processed.
-      1. `logged` - validation failure is logged and the next validation step is processed.
+        1. `enforced` - validation failures are treated as critical, causes the overall signature verification to fail and exit. Subsequent validations are not processed.
+        1. `logged` - validation failure is logged and the next validation step is processed.
    1. A signature verification is considered successful when all validation steps are completed without critical failure.
 1. **Validate Integrity.**
-    1. Validate that signature envelope can be parsed sucessfully based on the signature envelope type specified in the `blobs[0].mediaType` attribute of the signature artifact manifest.
+    1. Validate signature envelope
+        1. For OCI artifacts, validate that signature envelope can be parsed successfully based on the signature envelope type specified in the `blobs[0].mediaType` attribute of the signature artifact manifest.
+        1. For Blob artifacts, validate that signature envelope can be parsed successfully based on the signature envelope type specified in the detached signature file extension. If no file extension is available, guess the envelope type by trying each of the [supported signature envelopes](./signature-specification.md#supported-signature-envelopes). Fail integrity check if unsuccessful. 
     1. Validate that the content type indicated by the `content type` signed attribute in the signature envelope is supported.
     1. Get the signing certificate from the parsed [signature envelope](https://github.com/notaryproject/notaryproject/blob/7b7d283038/signature-specification.md#signature-envelope).
     1. Determine the signing algorithm(hash+encryption) from the signing certificate and validate that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements)
@@ -340,6 +510,10 @@ Notary Project allows user to execute custom validations during verification usi
 1. **Validate Revocation Status:**
     1. Validate signing identity(certificate and certificate chain) revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section as per `signingIdentityRevocation` setting in trust-policy.
 1. Perform extended validation using the applicable (if any) plugin.
+1. Verify signature `payload`
+    1. Verify the signature envelope's `payload` matches the source [`payload`](./signature-specification.md#payload) that is getting verified.
+    1. For Blob artifacts, calculate the digest of the blob using the digest algorithm specified at `targetArtifact.payload.digest` and make sure the digests match.
+1. If present, verify user metadata/custom annotations match the signature attributes.
 1. If all the steps are completed without critical failures then the signatures is successfully verified.
 
 ### Certificate Revocation Evaluation
