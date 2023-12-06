@@ -35,7 +35,7 @@ Signature Manifest Example
 }
 ```
 
-## Detached Signature Storage
+## Blob Signature Storage
 
 For detached signatures associated with arbitrary blobs, a JWS signature envelope will be stored on the file system as a binary file with `jws` as the file extension.
 

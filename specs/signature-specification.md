@@ -3,8 +3,8 @@
 This document provides the following details for Notary Project signature:
 
 - **[Signature Envelope](#signature-envelope)**: Describes the structure of the Notary Project signature.
-- **[OCI Signatures](#storage)**: Describes how signatures are stored and retrieved from an OCI registry.
-- **[Detached Signatures](#storage)**: Describes how detached signatures of Blobs are stored on file system.
+- **[OCI Signatures](#storage)**: Describes how signatures for OCI artifacts are stored and retrieved from an OCI registry.
+- **[Blob Signatures](#storage)**: Describes how detached signatures for signed Blobs are stored on file system.
 
 ## Signature Envelope
 
@@ -38,7 +38,7 @@ The Notary Project signature payload is a JSON document with media type `applica
   - Descriptor MUST contain `mediaType`, `digest`, and `size` fields.
   - `digest` MUST be in the format of `<digest algorithm>:<digest value>`. Example: `sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345`
   - SHA-256, SHA-384, SHA-512 are the only allowed digest algorithms.
-  - `mediaType` can be any arbitrary media type that the user chooses to describe the blob. An example can be `application/octet-stream` 
+  - `mediaType` can be any arbitrary media type that the user provides to describe the blob. An example can be `application/octet-stream`
   - `size` MUST be the raw size of the blob in bytes.
   - Blob descriptors MAY optionally contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. 
 
@@ -219,9 +219,9 @@ Each Notary Project signature refers to a signature envelope blob.
 An OCI artifact can have multiple signatures, implementations of the Notary Project signature specification uses annotations of the signature manifest to filter relevant signatures based on the applicable trust policy.
 The Notary Project signature manifest's `io.cncf.notary.x509chain.thumbprint#S256` annotation key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
 
-## Detached Signatures
+## Blob Signatures
 
-The Notary Project facilitates signing of arbitrary blobs and generating detached signatures. These detached signatures can be conveyed via any preferred medium and verified on the receiving end. The Notary Project's detached signature is a self-contained binary file encompassing the signature envelope. The file extension can either be 'jws' or 'cose', indicating the signature envelope format.
+The Notary Project facilitates signing arbitrary blobs using detached signatures. These detached signatures can be transported via any preferred medium and verified on the receiving end. A detached signature refers to a signature that is not embedded within (and therefore does not modify) the original blob, instead it consists of a detached signature envelope with a signature over the unique representation of the blob (i.e. blob's digest). The file extension can either be 'jws' or 'cose', indicating the signature envelope format.
 
 ![Signature storage inside file system](../media/detached-signature-specification.svg)
 
@@ -246,7 +246,7 @@ For ECDSA equivalent NIST curves and ANSI curves can be found at [RFC4492 Append
 
 ### Algorithm Selection
 
-The signing certificate's public key algorithm and size MUST be used to determine the signature algorithm. Below are the only supported Signature Algorithms in the Notary project.
+The signing certificate's public key algorithm and size MUST be used to determine the signature algorithm. Notary Project supports the following Signature Algorithms.
 
 | Public Key Algorithm | Key Size (bits) | Signature Algorithm             |
 | -------------------- | --------------- | ------------------------------- |
@@ -360,7 +360,7 @@ Whereas, the Notary Project signatures that contain critical extended attributes
 Similarly, Notation compliant plugin vendors should be aware that usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature.
 
 ### Detached Signature Portability
-Notary Project detached signatures provide the maximum portability as there are no requirements on storage or transport medium. Users can can store and transport their blobs and associated detached signatures however they like.
+Notary Project detached signatures provide the maximum portability as there are no requirements on storage or transport medium. Users can can store and transport their blobs and associated detached signatures as required.
 
 ### Guidelines for implementations of the Notary Project signature specification
 

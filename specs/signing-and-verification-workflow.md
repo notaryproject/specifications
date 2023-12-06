@@ -1,6 +1,6 @@
 # Signing and Verification Workflow
 
-This document describes the workflow of signing and verifying artifacts likes OCI images and arbitrary blobs.
+This document describes workflows for signing and verifying OCI artifacts and arbitrary blobs.
 
 ## OCI artifact signing workflow
 
@@ -86,16 +86,16 @@ The user wants to sign an arbitrary blob with a detached signature.
     1. Verify that the signing certificate is valid and satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
     1. Verify that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
     1. Generate signature.
-        1. Generate signature using signature formats specified in [supported signature envelopes](./signature-specification.md#supported-signature-envelopes). Also, as part of this step, the user-defined/supplied custom attributes should be added to the annotations of the signature's descriptor.
+        1. Generate signature using a signature format specified in [supported signature envelopes](./signature-specification.md#supported-signature-envelopes). Also, as part of this step, the user-defined/supplied custom attributes should be added to the annotations of the signature payload.
         1. If the user wants to timestamp the signature, obtain an [RFC-3161](https://datatracker.ietf.org/doc/html/rfc3161.html) compliant timestamp for the signature generated in the previous step. Otherwise, continue to the next step.
             1. Verify that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
             1. Verify that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
         1. Embed timestamp to the signature envelope.
-1. **Save the signature envelope:** Save the signature envelope generated in the previous step to a file.
+1. **Save the signature envelope:** Save the signature envelope generated in the previous step to a file. File extension should be the original blob file name plus `.sig.jws` for JWS signatures and `.sig.cose` for COSE signatures.
 
 ## Arbitrary blob verification workflow
 
-The user wants to consume an arbitrary blob only if if was signed by a trusted publisher and the signature associated with the blob is valid.
+The user wants to consume an arbitrary blob only if it was signed by a trusted publisher and the signature associated with the blob is valid.
 
 ### Verification Prerequisites
 
@@ -111,5 +111,5 @@ The user wants to consume an arbitrary blob only if if was signed by a trusted p
     1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
     1. If the signature verification fails, exit.
 1. Construct the blob payload as defined in [`signature specification`](./signature-specification.md#payload)
-1. Compare the payload derived from the above step with the payload present in the signature envelope. Fail signature verification if there is mismatch.
-1. Calculate the digest of the blob using the digest algorithm specified at `targetArtifact.payload.digest` and make sure the blob digest matches the digest present in the `targetArtifact.payload.digest`. If the digests are equal, signature verification is considered successful
+1. Calculate the digest of the blob using the digest algorithm specified at `targetArtifact.payload.digest` and make sure the blob digest matches the digest present in `targetArtifact.payload.digest`. Fail signature verification if there is a mismatch.
+1. Verify blob's media type and size match the values present in `targetArtifact.payload`. If they match, signature verification is considered successful.

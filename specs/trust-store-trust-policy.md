@@ -60,7 +60,7 @@ Any additional sub directories under a named store and certificates in it are ig
 
 ## Trust Policy
 
-Users who consume signed artifacts from OCI registries or signed arbitrary blobs with detached signatures use trust policies to specify trusted identities that signed the artifacts, and level of signature verification to enforce. The trust policy is a JSON document.
+Users who consume signed artifacts from OCI registries, or signed arbitrary blobs stored on file system, use trust policies to specify trusted identities that signed the artifacts, and level of signature verification to enforce. The trust policy is a JSON document.
 
 **NOTE**: Support for verifying signed arbitrary blob has been added in policy version 1.1. While the policy version 1.1 can be used for verifying both signed OCI artifacts as well as signed arbitrary blobs, policy version 1.0 can only be used for verifying signed OCI artifacts.
 
@@ -104,7 +104,15 @@ Policy version 1.1 made below changes over version 1.0
 
 Note: Version 1.0 does not support verifying signed arbitrary blobs. See [Version 1.1](#version-1.1) for that.
 
+### Migrating a trust policy from 1.0 to 1.1
+
+1. Update the version value from `1.0` to `1.1`
+2. Rename `registryScopes` key to `scopes`
+3. Prefix each of the values under `scopes` with either `oci:` or `blob:` depending on whether the scope is for  OCI artifacts and arbitrary blobs
+
 ### Trust Policy Examples
+
+#### Trust Policy in version 1.1 for OCI artifacts
 
 1. Trust policy for a simple scenario where ACME Rockets consumes only the OCI artifacts signed by their own CI/CD. Any third party artifacts consumed by ACME Rockets are also signed and vetted by their CI/CD. 
 
@@ -191,7 +199,31 @@ Note: Version 1.0 does not support verifying signed arbitrary blobs. See [Versio
 }
 ```
 
-3.Trust policy in version 1.0 for a scenario where ACME Rockets consumes some OCI artifacts signed by Wabbit Networks and some signed by ACME Rockets.
+#### Trust Policy in version 1.0 for OCI artifacts
+
+1. Trust policy for a simple scenario where ACME Rockets consumes only the OCI artifacts signed by their own CI/CD. Any third party artifacts consumed by ACME Rockets are also signed and vetted by their CI/CD. 
+
+```jsonc
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            // Policy for all artifacts, from any OCI registry location.
+            "name": "wabbit-networks-images",   // Name of the policy.
+            "registryScopes": [ "*" ],          // The registry artifacts to which the policy applies.
+            "signatureVerification": {          // The level of verification - strict, permissive, audit, skip.
+              "level" : "audit"
+            },
+            "trustStores": ["ca:acme-rockets"], // The trust stores that contains the X.509 trusted roots.
+            "trustedIdentities": [              // Identities that are trusted to sign the artifact.
+              "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
+            ]
+        }
+    ]
+}
+```
+
+2.Trust policy for a scenario where ACME Rockets consumes some OCI artifacts signed by Wabbit Networks and some signed by ACME Rockets.
 
 ```jsonc
 {
@@ -254,7 +286,9 @@ Note: Version 1.0 does not support verifying signed arbitrary blobs. See [Versio
 }
 ```
 
-4. Trust policy for the scenario where ACME Rockets consumes arbitrary blobs signed by Wabbit Networks and some signed by ACME Rockets.
+#### Trust Policy for Blobs
+
+1. Trust policy for the scenario where ACME Rockets consumes arbitrary blobs signed by Wabbit Networks and some signed by ACME Rockets.
 
 ```jsonc
 {
@@ -384,7 +418,7 @@ Signature verification levels provide defined behavior for each validation e.g. 
     The scope `oci:*` or `blob:*` is called a global scope.
     The trust policy with global scope applies when a more specific scope is not available.
     There can only be one trust policy with a global scope of either kind (`oci:*` or `blob:*`).
-
+- A policy can contain either `oci:` scopes or `blob:` scopes, but not both.
 ##### Policy Version 1.0
 
 - Each trust policy MUST contain scope property `registryScopes` and the scope collection MUST contain at least one value.
@@ -464,7 +498,7 @@ Notary Project allows user to execute custom validations during verification usi
 1. **Identify applicable trust policy**
    1. For OCI artifacts, use [the artifact URI as the policy selector](#selecting-a-trust-policy-based-on-oci-artifact-uri-as-the-scope) and select the policy with matching scope from `scopes` (in policy version 1.0, use `registryScopes` field).
    2. For Blob artifacts, use [the scope value provided by the verifier](#selecting-a-trust-policy-based-on-blob-scope) as the policy selector and select the policy with matching scope from `scopes`.
-        1. If an applicable trust policy for the artifact URI cannot be found, fail signature verification.
+        1. If an applicable trust policy for the blob cannot be found, fail signature verification.
 1. **Proceed based on signature verification level**
    1. If `signatureVerification` level is set to `skip` in the trust policy, return success.
    1. For all other `signatureVerification` levels, `strict`, `permissive` and `audit`, perform each of the validation defined in the next sections - `integrity`, `authenticity`, `trusted timestamp`, `expiry` and `revocation`.
@@ -480,6 +514,9 @@ Notary Project allows user to execute custom validations during verification usi
     1. Get the signing certificate from the parsed [signature envelope](https://github.com/notaryproject/notaryproject/blob/7b7d283038/signature-specification.md#signature-envelope).
     1. Determine the signing algorithm(hash+encryption) from the signing certificate and validate that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements)
     1. Using the public key of the signing certificate and signing algorithm identified in the previous step, validate the integrity of the signature envelope.
+    1. Verify signature `payload`
+        1. Verify the signature envelope's `payload` matches the source [`payload`](./signature-specification.md#payload) that is getting verified. Make sure the artifact's digest, media type and size match the ones present in the signature envelope.
+        1. Additionally for Blob artifacts, calculate the digest of the blob using the digest algorithm specified at `targetArtifact.payload.digest` and make sure the digests match.
 1. **Validate Authenticity.**
     1. For the applicable trust policy, **validate trust store and identities:**
         1. Validate that the signature envelope contains a complete certificate chain that starts from a code signing certificate and terminates with a root certificate. Also, validate that code signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
@@ -510,10 +547,7 @@ Notary Project allows user to execute custom validations during verification usi
 1. **Validate Revocation Status:**
     1. Validate signing identity(certificate and certificate chain) revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section as per `signingIdentityRevocation` setting in trust-policy.
 1. Perform extended validation using the applicable (if any) plugin.
-1. Verify signature `payload`
-    1. Verify the signature envelope's `payload` matches the source [`payload`](./signature-specification.md#payload) that is getting verified.
-    1. For Blob artifacts, calculate the digest of the blob using the digest algorithm specified at `targetArtifact.payload.digest` and make sure the digests match.
-1. If present, verify user metadata/custom annotations match the signature attributes.
+1. If present, verify the user provided metadata/custom annotations match the signed attributes present in the signature envelope.
 1. If all the steps are completed without critical failures then the signatures is successfully verified.
 
 ### Certificate Revocation Evaluation
