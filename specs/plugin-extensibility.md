@@ -347,12 +347,13 @@ This interface targets plugins that in addition to signature generation want to 
     1. If plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE`
         1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded the [Notary Project signature Payload](./signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/jose+json` for JWS).
         2. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match `request.signatureEnvelopeType`.
-        3. Validate the generated signature, return an error if of the checks fails.
+        3. Validate the generated signature, return an error if any of the checks fails.
            1. Check if `response.signatureEnvelopeType` is a supported envelope type and `response.signatureEnvelope`'s format matches `response.signatureEnvelopeType`.
            2. Check if the signing algorithm in the signature envelope is one of [supported signing algorithms](./signature-specification.md#algorithm-selection).
            3. Check that the [`targetArtifact` descriptor](./signature-specification.md#payload) in JWSPayload in `response.signatureEnvelope` matches `request.payload`. Plugins MAY append additional annotations but MUST NOT replace/override existing descriptor attributes and annotations.
-           4. Check that `response.signatureEnvelope` can be verified using the public key and signing algorithm specified in the signing certificate, which is embedded as part of certificate chain in `response.signatureEnvelope` . This step does not include certificate chain validation (certificate chain leads to a trusted root configure in Notation), or revocation check.
-           5. Check that the certificate chain in `response.signatureEnvelope` confirm to [Certificate Requirements].
+           4. Check that `response.signatureEnvelope` can be verified using the public key and signing algorithm specified in the signing certificate, which is embedded as part of certificate chain in `response.signatureEnvelope`. This step does not include certificate chain validation (certificate chain leads to a trusted root configure in Notation), or revocation check.
+           5. If timestamp signatures are included, check that the TimeStampToken received from TSA can be verified.
+           6. Check that the certificate chain in `response.signatureEnvelope` confirm to [Certificate Requirements].
         4. Generate a signature manifest for the given signature envelope, and append `response.annotations` to manifest annotations.
     2. Else if plugin supports capability `SIGNATURE_GENERATOR.RAW` *(covered in previous section)*
     3. Return an error

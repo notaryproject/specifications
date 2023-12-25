@@ -17,10 +17,10 @@ The user wants to sign an OCI artifact and push the signature to a repository.
     1. Verify that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
     1. Generate signature.
         1. Generate signature using signature formats specified in [supported signature envelopes](./signature-specification.md#supported-signature-envelopes). Also, as part of this step, the user-defined/supplied custom attributes should be added to the annotations of the signature's descriptor.
-        1. If the user wants to timestamp the signature, obtain an [RFC-3161](https://datatracker.ietf.org/doc/html/rfc3161.html) compliant timestamp for the signature generated in the previous step. Otherwise, continue to the next step.
+        1. If the user wants to timestamp the signature, obtain an [RFC-3161](https://datatracker.ietf.org/doc/html/rfc3161.html) compliant timestamp for the raw signature (the digital signatures computed on payload and signed attributes) generated in the previous step. Otherwise, continue to the next step.
             1. Verify that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
             1. Verify that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
-        1. Embed timestamp to the signature envelope.
+        1. Embed timestamp countersignature to the signature envelope.
 1. **Push the signature envelope:** Push the signature envelope generated in the previous step to the repository.
 1. **Generate signature artifact manifest:** As described in [signature specification](./signature-specification.md#storage) create the Notary Project signature manifest for the signature envelope generated in step 1.
 1. **Push signature artifact manifest:** Push the Notary Project signature manifest to the repository.
@@ -61,7 +61,7 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
     1. **Get and verify signatures:** On the filtered manifest of the Notary Project signature, perform the following steps:
         1. Download the signature envelope.
-        1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
+        1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature verification](./trust-store-trust-policy.md#signature-verification) section.
         1. If the signature verification fails, skip the below steps and move to the next signature artifact descriptor(step 3.1).
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
         1. If signature verification succeeds, compare the digest derived from the given OCI artifact reference with the signed digest present in the signature envelope's payload.
