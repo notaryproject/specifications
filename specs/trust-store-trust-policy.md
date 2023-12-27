@@ -54,7 +54,7 @@ The Trust store currently supports three kinds of identities, additional identit
 
 - **Certificates**: The `x509/ca` trust store contains named stores that contain Certificate Authority (CA) root certificates.
 - **SigningAuthority Certificate**: The `x509/signingAuthority` trust store contains named stores that contain Siging Authority's root certificates.
-- **Timestamping Certificates**: The `x509/tsa` trust store contains named stores with Time Stamping Authority (TSA) root certificates.
+- **Timestamping Certificates**: The `x509/tsa` trust store contains named stores with Timestamping Authority (TSA) root certificates.
 
 Any additional sub directories under names stores and certificates in it are ignored. **NOTE**: Implementation SHOULD warn if it finds sub directories with certificates under a named store, to help diagnose misconfigured store.
 

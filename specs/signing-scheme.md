@@ -40,9 +40,9 @@ Defines a signing scheme that uses the traditional signing workflow in which an 
 
 ### `notary.x509.signingAuthority`
 
-Defines a signing scheme in which a `signing authority (SA)` generates signatures on behalf of an end user (the signature requestor) using X.509 certificates. A trusted signing authority is defined as a third party service that is trusted both by the end user (the signature requestor) and verifying entity to generate signatures.
+Defines a signing scheme in which a `Signing Authority (SA)` generates signatures on behalf of an end user (the signature requestor) using X.509 certificates. A trusted Signing Authority is defined as a third party service that is trusted both by the end user (the signature requestor) and verifying entity to generate signatures.
 Authorities trusted by users should have mechanisms for validating, logging, monitoring, and auditing access to their systems and publish incidence response plans.
-A trusted signing authority will need to demonstrate signing keys were only used within their service and only validated entities were allowed to generate signatures using the service.
+A trusted Signing Authority will need to demonstrate signing keys were only used within their service and only validated entities were allowed to generate signatures using the service.
 
 ## Signature Creation
 
