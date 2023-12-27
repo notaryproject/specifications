@@ -352,7 +352,7 @@ This interface targets plugins that in addition to signature generation want to 
            2. Check if the signing algorithm in the signature envelope is one of [supported signing algorithms](./signature-specification.md#algorithm-selection).
            3. Check that the [`targetArtifact` descriptor](./signature-specification.md#payload) in JWSPayload in `response.signatureEnvelope` matches `request.payload`. Plugins MAY append additional annotations but MUST NOT replace/override existing descriptor attributes and annotations.
            4. Check that `response.signatureEnvelope` can be verified using the public key and signing algorithm specified in the signing certificate, which is embedded as part of certificate chain in `response.signatureEnvelope`. This step does not include certificate chain validation (certificate chain leads to a trusted root configure in Notation), or revocation check.
-           5. If timestamp signatures are included, check that the TimeStampToken received from TSA can be verified.
+           5. If timestamp signatures are included and signing scheme is `notary.x509`, check that the TimeStampToken received from TSA can be verified.
            6. Check that the certificate chain in `response.signatureEnvelope` confirm to [Certificate Requirements].
         4. Generate a signature manifest for the given signature envelope, and append `response.annotations` to manifest annotations.
     2. Else if plugin supports capability `SIGNATURE_GENERATOR.RAW` *(covered in previous section)*

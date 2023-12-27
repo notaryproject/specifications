@@ -267,7 +267,7 @@ A `signing time` denotes the time at which the signature was generated. An X509 
 
 An `authentic signing time` is a signing time authenticated by a trusted third party. It allows a verifier to determine if the signature was generated within the certificate's validity. Notary Project supports two such trusted third parties. They are timestamp authority (TSA) and signing authority (SA).
 
-Under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509), the `authentic signing time` is determined by the OPTIONAL *Timestamp Signature* unsigned attribute in the signature envelope. The trusted third party is timestamp authority (TSA) in this case. When NOT provided, every certificate in the chain should be valid at the time of verification.
+Under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509), the `authentic signing time` is determined by the OPTIONAL *Timestamp Signature* unsigned attribute in the signature envelope. The trusted third party is timestamp authority (TSA) in this case. When NOT provided, every certificate in the chain MUST be valid at the time of verification.
 
 Under signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority), the `authentic signing time` is determined and MUST be provided by the *Authentic Signing Time* signed attribute in the signature envelope. The trusted third party is the signing authority (SA) in this case.
 

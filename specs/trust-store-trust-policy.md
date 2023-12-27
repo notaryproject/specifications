@@ -339,8 +339,8 @@ Notary Project allows user to execute custom validations during verification usi
     1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` timestamp is entirely within the signing certificate and certificate chain's validity period. If the validation passes, continue to the next step. Else fail this step.
 
     If under signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority):
-    1. Check for the `authentic signing time` signed attribute. If it does not exist, fail this step.
-    1. Store the `authentic signing time` in variables `timeStampLowerLimit` and `timeStampUpperLimit`.
+    1. Check for the `Authentic Signing Time` signed attribute. If it does not exist, fail this step.
+    1. Store the `Authentic Signing Time` in variables `timeStampLowerLimit` and `timeStampUpperLimit`.
     1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` timestamp is entirely within the signing certificate and certificate chain's validity period. If the validation passes, continue to the next step. Else fail this step.
 
 1. **Validate Revocation Status:**
