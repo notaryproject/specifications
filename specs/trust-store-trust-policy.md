@@ -201,7 +201,7 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 **Authenticity** : Guarantees that the artifact was signed by an identity trusted by the verifier. Its definition does not include revocation, which is when a trusted identity is subsequently untrusted because of a compromise.
 
-**Authentic timestamp** : Guarantees that the signature was generated when the certificate was valid. In the absence of an Authentic Timestamp, a signature is considered invalid if the signing certificate or chain is expired at the time of verification.
+**Authentic timestamp** : Guarantees that the signature was generated within the certificate validity. In the absence of an Authentic Timestamp, a signature is considered invalid if the signing certificate or chain is expired at the time of verification.
 
 **Expiry** : This is an optional feature that guarantees that artifact is within “best by use” date indicated in the signature. Notary Project allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
@@ -319,6 +319,8 @@ Notary Project allows user to execute custom validations during verification usi
 1. **Validate Expiry:**
     1. If an `expiry time` signed attribute is present in the signature envelope, check if the local machine’s current time(in UTC) is greater than `expiry time`. If yes, fail this step.
 1. **Validate Trusted Timestamp:**
+
+    If under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509):
     1. Check for the timestamp signature in the signature envelope.
         1. If the timestamp exists, continue with the next step.
         Otherwise, store the local machine's current time(in  UTC) in variables `timeStampLowerLimit` and `timeStampUpperLimit` and continue with step 6.2.
@@ -335,6 +337,12 @@ Notary Project allows user to execute custom validations during verification usi
         Otherwise, use an accuracy of 0.
         1. Calculate the timestamp range using the lower and upper limits per [RFC-3161 section 2.4.2](https://tools.ietf.org/html/rfc3161#section-2.4.2) and store the limits as `timeStampLowerLimit` and `timeStampUpperLimit` variables respectively.
     1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` timestamp is entirely within the signing certificate and certificate chain's validity period. If the validation passes, continue to the next step. Else fail this step.
+
+    If under signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority):
+    1. Check for the `authentic signing time` signed attribute, if does not exist, fail this step.
+    1. Store the `authentic signing time` in variables `timeStampLowerLimit` and `timeStampUpperLimit`.
+    1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` timestamp is entirely within the signing certificate and certificate chain's validity period. If the validation passes, continue to the next step. Else fail this step.
+
 1. **Validate Revocation Status:**
     1. Validate signing identity(certificate and certificate chain) revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section as per `signingIdentityRevocation` setting in trust-policy.
 1. Perform extended validation using the applicable (if any) plugin.
