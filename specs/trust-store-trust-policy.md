@@ -172,7 +172,7 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
 - Signature verification is a multi step process performs the following validations
   - integrity (artifact is unaltered, signature is not corrupted)
   - authenticity (the signature is really from the identity that claims to have signed it)
-  - trusted timestamping (the signature was generated within certificate validity)
+  - trusted timestamping (the signature was generated within certificate chain validity)
   - expiry (an optional check if the artifact specifies an expiry time)
   - revocation check (is the signing identity still trusted at the present time).
 - Based on the signature verification level, each of these validations is *enforced* or *logged*.
@@ -302,13 +302,13 @@ Notary Project allows user to execute custom validations during verification usi
       1. `enforced` - validation failures are treated as critical, causes the overall signature verification to fail and exit. Subsequent validations are not processed.
       1. `logged` - validation failure is logged and the next validation step is processed.
    1. A signature verification is considered successful when all validation steps are completed without critical failure.
-1. **Validate Integrity.**
+1. **Validate Integrity:**
     1. Validate that signature envelope can be parsed sucessfully based on the signature envelope type specified in the `blobs[0].mediaType` attribute of the signature artifact manifest.
     1. Validate that the content type indicated by the `content type` signed attribute in the signature envelope is supported.
     1. Get the signing certificate from the parsed [signature envelope](https://github.com/notaryproject/notaryproject/blob/7b7d283038/signature-specification.md#signature-envelope).
     1. Determine the signing algorithm(hash+encryption) from the signing certificate and validate that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements)
     1. Using the public key of the signing certificate and signing algorithm identified in the previous step, validate the integrity of the signature envelope.
-1. **Validate Authenticity.**
+1. **Validate Authenticity:**
     1. For the applicable trust policy, **validate trust store and identities:**
         1. Validate that the signature envelope contains a complete certificate chain that starts from a code signing certificate and terminates with a root certificate. Also, validate that code signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
         1. For the `trustStore` configured in applicable trust-policy perform the following steps.
@@ -339,7 +339,7 @@ Notary Project allows user to execute custom validations during verification usi
     1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` timestamp is entirely within the signing certificate and certificate chain's validity period. If the validation passes, continue to the next step. Else fail this step.
 
     If under signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority):
-    1. Check for the `authentic signing time` signed attribute, if does not exist, fail this step.
+    1. Check for the `authentic signing time` signed attribute. If it does not exist, fail this step.
     1. Store the `authentic signing time` in variables `timeStampLowerLimit` and `timeStampUpperLimit`.
     1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` timestamp is entirely within the signing certificate and certificate chain's validity period. If the validation passes, continue to the next step. Else fail this step.
 

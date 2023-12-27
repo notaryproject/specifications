@@ -79,7 +79,7 @@ A signature envelope consists of the following components:
 
 - Payload/Message `m`: The data that is integrity protected - e.g. descriptor of the artifact being signed.
 - Signed attributes `v`: The signature metadata that is integrity protected - e.g. signature expiration time, creation time, etc.
-- Unsigned attributes `u`: These attributes are not signed by the signing key that generates the signature. We anticipate unsigned attributes contain content that may be signed by an different party e.g. Certificate chain signed by a CA, or Timestamping countersignature signed by a TSA.
+- Unsigned attributes `u`: These attributes are not signed by the signing key that generates the signature. We anticipate unsigned attributes contain content that may be signed by a different party e.g. Certificate chain signed by a CA, or Timestamping countersignature signed by a TSA.
 - Cryptographic signatures `s`: The digital signatures computed on payload and signed attributes.
 
 A signature envelope is `e = {m, v, u, s}` where `s` is signature.
@@ -176,7 +176,7 @@ See [Guidelines for implementations of the Notary Project signature specificatio
 These attributes are considered unsigned with respect to the signing key that generates the signature.
 
 - **Certificate Chain**: This is a REQUIRED attribute that contains the ordered list of X.509 public certificates associated with the signing key used to generate the signature. The ordered list starts with the signing certificate, any intermediate certificates and ends with the root certificate. The certificate chain MUST be authenticated against a trust store as part of signature validation. Specific requirements for the certificates in the chain are provided [here](#certificate-requirements).
-- **Timestamp Signature** (critical): An OPTIONAL countersignature which provides [authentic signing time](#signing-time--authentic-signing-time) under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509), e.g. timestamp authority (TSA) generated timestamp signature. Only [RFC3161][ietf-rfc3161] compliant TimeStampToken are currently supported. When provided, this claim is only validated and used under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509).
+- **Timestamp Signature** (critical): An OPTIONAL countersignature which provides [authentic signing time](#signing-time--authentic-signing-time) for signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509), e.g. timestamp authority (TSA) generated timestamp signature. Only [RFC3161][ietf-rfc3161] compliant TimeStampToken are currently supported. When provided, this claim is only validated and used under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509).
 - **Signing Agent**: An OPTIONAL claim that provides the identifier of the software (e.g. Notation) that produced the signature on behalf of the user. It is an opaque string set by the software that produces the signature. It's intended primarily for diagnostic and troubleshooting purposes, this attribute is unsigned, the verifier MUST NOT validate formatting, or fail validation based on the content of this claim. The suggested format is one or more tokens of the form `{id}/{version}` containing identifier and version of the software, separated by spaces. E.g. "notation/1.0.0", "notation/1.0.0 myplugin/0.8".
 
 ## Signature Algorithm Requirements
@@ -263,11 +263,11 @@ The client implementation can use the aforementioned `mediaType` to parse the si
 
 ### Signing time & Authentic Signing time
 
-A `signing time` denotes the time at which the signature was generated. A X509 certificate has a defined [validity](https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5) during which it can be used to generate signatures. The signing time must be greater than or equal to certificate's `notBefore` attribute, and the signing time must be less than or equal to certificate's `notAfter` attribute. Signatures generated outside the certificate's validity are considered invalid. 
+A `signing time` denotes the time at which the signature was generated. An X509 certificate has a defined [validity](https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5) during which it can be used to generate signatures. The signing time must be greater than or equal to certificate's `notBefore` attribute, and the signing time must be less than or equal to certificate's `notAfter` attribute. Signatures generated outside the certificate's validity are considered invalid. 
 
-An `authentic signing time` is a signing time authenticated by a trusted third party. It allows a verifier to determine if the signature was generated within the certificate's validity. Notary project supports two such trusted third parities. They are timestamp authority (TSA) and signing authority (SA).
+An `authentic signing time` is a signing time authenticated by a trusted third party. It allows a verifier to determine if the signature was generated within the certificate's validity. Notary Project supports two such trusted third parities. They are timestamp authority (TSA) and signing authority (SA).
 
-Under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509), the `authentic signing time` is determined by the OPTIONAL *Timestamp Signature* unsigned attribute in the signature envelope. The trusted third party is timestamp authority (TSA) in this case. When NOT provided, every certificate should be valid at the time of verification.
+Under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509), the `authentic signing time` is determined by the OPTIONAL *Timestamp Signature* unsigned attribute in the signature envelope. The trusted third party is timestamp authority (TSA) in this case. When NOT provided, every certificate in the chain should be valid at the time of verification.
 
 Under signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority), the `authentic signing time` is determined and MUST be provided by the *Authentic Signing Time* signed attribute in the signature envelope. The trusted third party is the signing authority (SA) in this case.
 
