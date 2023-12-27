@@ -265,7 +265,7 @@ The client implementation can use the aforementioned `mediaType` to parse the si
 
 A `signing time` denotes the time at which the signature was generated. An X509 certificate has a defined [validity](https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5) during which it can be used to generate signatures. The signing time must be greater than or equal to certificate's `notBefore` attribute, and the signing time must be less than or equal to certificate's `notAfter` attribute. Signatures generated outside the certificate's validity are considered invalid. 
 
-An `authentic signing time` is a signing time authenticated by a trusted third party. It allows a verifier to determine if the signature was generated within the certificate's validity. Notary Project supports two such trusted third parities. They are timestamp authority (TSA) and signing authority (SA).
+An `authentic signing time` is a signing time authenticated by a trusted third party. It allows a verifier to determine if the signature was generated within the certificate's validity. Notary Project supports two such trusted third parties. They are timestamp authority (TSA) and signing authority (SA).
 
 Under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509), the `authentic signing time` is determined by the OPTIONAL *Timestamp Signature* unsigned attribute in the signature envelope. The trusted third party is timestamp authority (TSA) in this case. When NOT provided, every certificate in the chain should be valid at the time of verification.
 

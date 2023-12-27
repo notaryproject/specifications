@@ -40,9 +40,9 @@ Defines a signing scheme that uses the traditional signing workflow in which an 
 
 ### `notary.x509.signingAuthority`
 
-Defines a signing scheme in which a `signing authority` generates signatures on behalf of an end user (the signature requestor) using X.509 certificates. A trusted signing authority is defined as a third party service that is trusted both by the end user (the signature requestor) and verifying entity to generate signatures.
+Defines a signing scheme in which a `signing authority (SA)` generates signatures on behalf of an end user (the signature requestor) using X.509 certificates. A trusted signing authority is defined as a third party service that is trusted both by the end user (the signature requestor) and verifying entity to generate signatures.
 Authorities trusted by users should have mechanisms for validating, logging, monitoring, and auditing access to their systems and publish incidence response plans.
-A trusted signing authority (SA) will need to demonstrate signing keys were only used within their service and only validated entities were allowed to generate signatures using the service.
+A trusted signing authority will need to demonstrate signing keys were only used within their service and only validated entities were allowed to generate signatures using the service.
 
 ## Signature Creation
 
@@ -70,7 +70,7 @@ Each *Signing Scheme* defines the set of trust store types (e.g. CA) that is use
 `notary.x509`
 
 * Uses trusts store types Certificate Authority (CA) and Timestamping Authority (TSA) during signature verification.
-The signature is verified against the trust store of type CA, and the *Timestamp Signature* is verified against the trust store of type TSA (to determine the authentic signing time).
+The signature is verified against the trust store of type CA, and the *Timestamp Signature* unsigned attribute in the signature envelope is verified against the trust store of type TSA (to determine the authentic signing time).
 * For signature verification to be successful
   * The verifying entity’s trust store MUST contain the trusted root certificates under named trust stores of type CA (`{CONFIG}/notation/truststore/x509/ca`) and TSA(`{CONFIG}/notation/truststore/x509/tsa`)
   * The named trust stores MUST be specified in *trustpolicy.json*. E.g. *trustPolicy.trustStores* with value of `ca:acme-rockets,tsa:acme-tsa`.
@@ -79,7 +79,7 @@ The signature is verified against the trust store of type CA, and the *Timestamp
 
 * Uses trusts store type Signing Authority during signature verification.
 The signature is verified against the trust store of type Signing Authority.
-The authentic signing time is determined using the *Authentic Signing Time* attribute in the signature envelope, and does NOT rely on a separate TSA generated Timestamp signature.
+The authentic signing time is determined using the *Authentic Signing Time* signed attribute in the signature envelope, and does NOT rely on a separate TSA generated Timestamp signature.
 * For signature verification to be successful
   * The verifying entity’s trust store MUST contain the trusted root certificates under named trust stores of type signingAuthority (`{CONFIG}/notation/truststore/x509/signingAuthority`).
   * The named trust stores MUST be specified in *trustpolicy.json*. E.g. *trustPolicy.trustStores* with value of `signingAuthority:foobar` .
