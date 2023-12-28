@@ -172,7 +172,7 @@ Trust policy for the scenario where ACME Rockets uses some artifacts signed by W
 - Signature verification is a multi step process performs the following validations
   - integrity (artifact is unaltered, signature is not corrupted)
   - authenticity (the signature is really from the identity that claims to have signed it)
-  - trusted timestamping (the signature was generated within certificate chain validity)
+  - trusted timestamping (the signature was generated when the certificate was unexpired)
   - expiry (an optional check if the artifact specifies an expiry time)
   - revocation check (is the signing identity still trusted at the present time).
 - Based on the signature verification level, each of these validations is *enforced* or *logged*.
@@ -201,7 +201,7 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 **Authenticity** : Guarantees that the artifact was signed by an identity trusted by the verifier. Its definition does not include revocation, which is when a trusted identity is subsequently untrusted because of a compromise.
 
-**Authentic timestamp** : Guarantees that the signature was generated on or before the time point been stamped. In the absence of an Authentic Timestamp, a signature is considered invalid if the time of verification is outside the signing certificate or chain's validity period.
+**Authentic timestamp** : Guarantees that the signature was generated on or before the time point been stamped. In the absence of an Authentic timestamp, a signature is considered invalid if the time of verification is outside the signing certificate or chain's validity period.
 
 **Expiry** : This is an optional feature that guarantees that artifact is within “best by use” date indicated in the signature. Notary Project allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
