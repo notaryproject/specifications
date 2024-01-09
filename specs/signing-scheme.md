@@ -27,7 +27,7 @@ A signature envelope can only specify one Signing Scheme.
 When Notary Project supports an additional Signing Scheme
   * Existing signed artifacts MUST be re-signed if they need to be verified using the new signing scheme defined verification process.
   * Existing clients used by verifying entity MUST be updated to newer versions that support verifying signatures that use the new signing scheme, otherwise the signatures with newer signing schemes which are unknown to existing clients will fail signature verification. Signatures that use older signing schemes which are known to existing clients will continue to verify correctly.
-  * The language of the [Notary Project verification policy](./trust-store-trust-policy.md) in *trustpolicy.json* MAY have breaking changes to support newer concepts/configuration elements introduced by the new signing scheme.
+  * The language of the [Notary Project trust policy](./trust-store-trust-policy.md) in *trustpolicy.json* MAY have breaking changes to support newer concepts/configuration elements introduced by the new signing scheme.
   The breaking changes are addressed by introducing new major version in the versioned *trustpolicy.json*.
 
 ## Supported Signing Scheme
