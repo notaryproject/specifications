@@ -4,7 +4,7 @@ This document provides the following details for Notary Project signature:
 
 - **[Signature Envelope](#signature-envelope)**: Describes the structure of the Notary Project signature.
 - **[OCI Signatures](#storage)**: Describes how signatures for OCI artifacts are stored and retrieved from an OCI registry.
-- **[Blob Signatures](#storage)**: Describes how detached signatures for signed Blobs are stored on file system.
+- **[Blob Signatures](#storage)**: Describes how signatures for signed Blobs are stored on file system.
 
 ## Signature Envelope
 
@@ -223,13 +223,13 @@ The Notary Project signature manifest's `io.cncf.notary.x509chain.thumbprint#S25
 
 The Notary Project facilitates signing arbitrary blobs using detached signatures. These detached signatures can be transported via any preferred medium and verified on the receiving end. A detached signature refers to a signature that is not embedded within (and therefore does not modify) the original blob, instead it consists of a detached signature envelope with a signature over the unique representation of the blob (i.e. blob's digest). The file extension can either be 'jws' or 'cose', indicating the signature envelope format.
 
-![Signature storage inside file system](../media/detached-signature-specification.svg)
+![Signature storage inside file system](../media/blob-signature-specification.svg)
 
-### Differences between OCI and Detached signatures
+### Differences between OCI and blob signatures
 
-1. Apart from the `payload` field, all other fields of a signature envelope are identical between OCI and detached signatures.
-1. While OCI signatures have signature manifest files, there is no such concept for detached signatures.
-1. While the format aka `mediaType` of the signature envelope (`application/jose+json` or `application/cose`) is present in the signature manifest file for OCI signatures, detached signatures carry the format information as part of the detached signature file extension i.e. `jws` or `cose`.
+1. Apart from the `payload` field, all other fields of a signature envelope are identical between OCI and blob signatures.
+1. While OCI signatures have signature manifest files, there is no such concept for blob signatures.
+1. For OCI signatures, the mediaType of the signature envelope (`application/jose+json` or `application/cose`) is present in the signature manifests. For blob signatures, this information is present in signature file extension.
 
 ## Signature Algorithm Requirements
 
@@ -359,8 +359,8 @@ The Notary Project signatures without any critical extended attributes do not im
 Whereas, the Notary Project signatures that contain critical extended attributes will require additional dependencies for signature validation, either on Notation compliant plugins or equivalent tooling which may not be available in all environments.
 Similarly, Notation compliant plugin vendors should be aware that usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature.
 
-### Detached Signature Portability
-Notary Project detached signatures provide the maximum portability as there are no requirements on storage or transport medium. Users can can store and transport their blobs and associated detached signatures as required.
+### Blob Signature Portability
+Notary Project blob signatures provide the maximum portability as there are no requirements on storage or transport medium. Users can store and transport their blobs and associated detached signatures as required.
 
 ### Guidelines for implementations of the Notary Project signature specification
 

@@ -4,7 +4,7 @@ This specification implements the [Notary Project signature specification](signa
 CBOR Object Signing and Encryption (COSE). COSE ([RFC8152](https://datatracker.ietf.org/doc/html/rfc8152)) is a CBOR based envelope format for digital signatures over any type of payload (e.g. CBOR, JSON, binary).
 Notary Project specifically supports [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) as a signature envelope.
 
-## OCI Storage
+## OCI Signature Storage
 
 A COSE signature envelope will be stored in an OCI registry as a blob, and referenced in the signature manifest as a layer blob with `mediaType` of `"application/cose"`.
 
@@ -65,7 +65,7 @@ Example of the Notary Project OCI signature payload:
 }
 ```
 
-Example of the Notary Project detached signature payload:
+Example of the Notary Project blob signature payload:
 
 ```jsonc
 {

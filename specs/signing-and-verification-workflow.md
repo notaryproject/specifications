@@ -71,7 +71,7 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
 1. **Get OCI artifact:** Using the verified digest, download the OCI artifact.
    This step is not in the purview of Notary Project.
 
-## Arbitrary blob signing workflow
+## Blob signing workflow
 
 The user wants to sign an arbitrary blob with a detached signature.
 
@@ -111,5 +111,5 @@ The user wants to consume an arbitrary blob only if it was signed by a trusted p
     1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
     1. If the signature verification fails, exit.
 1. Construct the blob payload as defined in [`signature specification`](./signature-specification.md#payload)
-1. Calculate the digest of the blob using the digest algorithm specified at `targetArtifact.payload.digest` and make sure the blob digest matches the digest present in `targetArtifact.payload.digest`. Fail signature verification if there is a mismatch.
-1. Verify blob's media type and size match the values present in `targetArtifact.payload`. If they match, signature verification is considered successful.
+1. Verify blob's media type and size match the values present in `targetArtifact.payload`. Fail signature verification if there is a mismatch.
+1. Calculate the digest of the blob using the digest algorithm specified at `targetArtifact.payload.digest` and make sure the blob digest matches the digest present in `targetArtifact.payload.digest`. If they match, signature verification is considered successful.
