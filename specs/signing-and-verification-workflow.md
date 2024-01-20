@@ -41,7 +41,7 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
 
 ### Verification Steps
 
-1. **Should implementations of this specification verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#trust-policy) configuration, determine whether implementations of this specification need to verify the signature or not.
+1. **Should implementations of this specification verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#oci-trust-policy) configuration, determine whether implementations of this specification need to verify the signature or not.
    If signature verification should be skipped for the given artifact, skip the below steps and directly jump to step 4.
 1. **Get signature artifact descriptors:** Using the [OCI Distribution Referrers API](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers) download the Notary Project signature manifest descriptors.
    The `artifactType` parameter is set to the Notary Project signature's artifact type `application/vnd.cncf.notary.signature`.
@@ -104,7 +104,7 @@ The user wants to consume an arbitrary blob only if it was signed by a trusted p
 
 ### Verification Steps
 
-1. **Should implementations of this specification verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#trust-policy) configuration, determine whether implementations of this specification need to verify the signature or not.
+1. **Should implementations of this specification verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#blob-trust-policy) configuration, determine whether implementations of this specification need to verify the signature or not.
    If signature verification should be skipped for the given blob, skip the below steps and directly jump to step 4.
 1. **verify the detached signature:**
     1. Parse and validate the signature envelope using the detached signature's file extension as the envelope type.
