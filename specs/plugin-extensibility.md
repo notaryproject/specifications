@@ -22,13 +22,28 @@ Keys and associated certificates used for signing artifacts using Notation could
 
 Notation will invoke plugins as executable, pass parameters using command line arguments, and use standard IO streams to pass request/response payloads. This mechanism is used as Go language (used to develop [Notation Go library](https://github.com/notaryproject/notation-go)) does not have a [in built support](https://github.com/golang/go/issues/19282) to load and execute plugins that works across OS platforms. Other mechanisms like gRPC require every plugin to be implemented as a service/daemon.
 
+### Package and distribute plugin file
+
+To ensure plugin installation is compatible with Notation, plugin publisher SHOULD follow these conventions to package and distribute plugin files:
+
+* `.zip`, `.tar.gz`, and single plugin executable file formats are supported by Notation. Plugin executable file MUST follow the naming convention `notation-{plugin-name}` 
+* Plugin publisher SHOULD distribute the plugin file with an `https` URL to enable install a plugin from a remote source, or provide an archive file to enable install a plugin from filesystem
+* If multiple files are compressed in the `.zip` or `.tar.gz` file, there MUST be only one plugin executable file exists
+* Plugin publisher SHOULD provide SHA256 checksum for each plugin file 
+* If the plugin installation has external dependencies, plugin publisher MUST include them in the plugin package
+* License file is optional but it's recommended to be included in the plugin package
+
 ### Plugin lifecycle management
 
 #### Installation
 
 Plugin publisher will provide instructions to download and install the plugin. Plugins intended for public distribution should also include instructions for users to verify the authenticity of the plugin.
 
-**Open Item** : [Plugin install paths](https://github.com/notaryproject/notation/issues/167)
+##### Plugin installation methods
+
+Notation provides [plugin management](https://github.com/notaryproject/notation/blob/v1.1.0/specs/commandline/plugin.md) commands to install plugins from different sources including `https` URL and filesystem.
+
+##### Plugin installation path
 
 To enumerate all available plugins the `PLUGIN_DIRECTORY` is scanned based on per OS:
 | OS      | PLUGIN_DIRECTORY                                     |
@@ -48,14 +63,6 @@ To be considered a valid plugin a candidate must pass each of these "plugin cand
 * On Windows, executables must have a `.exe` suffix.
 * Must, where relevant, have appropriate OS "execute" permissions (e.g. Unix x bit set) for the current user.
 * Must actually be executed successfully and when executed with the subcommand `get-plugin-metadata` must produce a valid JSON metadata (and nothing else) on its standard output (schema to be discussed later).
-
-#### Commands
-
-* List
-
-`notation plugin list`
-
-List all valid plugins.
 
 ### Using a plugin for signing
 
