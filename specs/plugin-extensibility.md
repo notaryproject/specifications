@@ -51,7 +51,7 @@ Plugin publisher will provide instructions to download and install the plugin. P
 
 ##### Plugin installation methods
 
-Notation provides [plugin management](https://github.com/notaryproject/notation/blob/v1.1.0/specs/commandline/plugin.md) commands to install plugins from different sources including `https` URL and filesystem.
+Notation offers [plugin management](https://github.com/notaryproject/notation/blob/v1.1.0/specs/commandline/plugin.md) commands that allow users to install plugins from various sources, including `https` URL and filesystem.
 
 ##### Plugin installation path
 
