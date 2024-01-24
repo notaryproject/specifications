@@ -5,7 +5,7 @@ Keys and associated certificates used for signing artifacts using Notation could
 ## Terminology
 
 * **Plugin Publisher** - A user, organization, open source project or 3rd party vendor that creates a Notation plugin for internal or public distribution.
-* **Plugin** - A component external to Notation that can integrate as one of the steps in Notation’s workflow for signature generation or verification.
+* **Plugin** - A component external to Notation that can integrate as one of the steps in Notation’s workflow for signature generation or verification. A Notation plugin can be distributed as a single executable file, or an archive file.
 * **Default provider** - Signing and verification mechanisms built into Notation itself to provide default experience without requiring to install/configure additional plugins. ***[We are yet to define what is included in the default experience]***.
 
 ## Plugin mechanism
@@ -20,18 +20,28 @@ Keys and associated certificates used for signing artifacts using Notation could
   * Notation MUST work with a plugin that implements a matching or lower minor version of the plugin contract. Notation SHALL NOT support using a plugin with higher version of plugin contract.
   * A plugin MUST support a single plugin contract version, per major version.
 
-Notation will invoke plugins as executable, pass parameters using command line arguments, and use standard IO streams to pass request/response payloads. This mechanism is used as Go language (used to develop [Notation Go library](https://github.com/notaryproject/notation-go)) does not have a [in built support](https://github.com/golang/go/issues/19282) to load and execute plugins that works across OS platforms. Other mechanisms like gRPC require every plugin to be implemented as a service/daemon.
+Notation will invoke plugins as executable, pass parameters using command line arguments, and use standard IO streams to pass request/response payloads.
 
-### Package and distribute plugin file
+### Package a plugin
 
-To ensure plugin installation is compatible with Notation, plugin publisher SHOULD follow these conventions to package and distribute plugin files:
+Plugin publisher SHOULD follow these conventions to package and distribute plugin files:
 
-* `.zip`, `.tar.gz`, and single plugin executable file formats are supported by Notation. Plugin executable file MUST follow the naming convention `notation-{plugin-name}` 
-* Plugin publisher SHOULD distribute the plugin file with an `https` URL to enable install a plugin from a remote source, or provide an archive file to enable install a plugin from filesystem
-* If multiple files are compressed in the `.zip` or `.tar.gz` file, there MUST be only one plugin executable file exists
-* Plugin publisher SHOULD provide SHA256 checksum for each plugin file 
-* If the plugin installation has external dependencies, plugin publisher MUST include them in the plugin package
-* License file is optional but it's recommended to be included in the plugin package
+* The file formats supported by Notation include `.zip`, `.tar.gz`, and single plugin executable file. It is highly recommended to package the single plugin executable file into an archive for installation security and efficiency consideration
+* Plugin executable file MUST follow the naming convention `notation-{plugin-name}` 
+* Notation supports installing a plugin from an `https` URL or from a file in the filesystem
+* If the archive format is `.zip` or `.tar.gz`, there MUST be one and only one plugin executable file within each archive
+* Plugin publisher SHOULD provide SHA256 checksum for each released archive 
+* If the plugin has external dependencies, plugin publisher MUST include them in the archive
+* License file is optional but it's recommended to be included in the archive
+
+For example, an archive of a Notation plugin `helloworld` for Linux AMD64 machine `notation-helloworld_1.0.1_linux_amd64.zip` includes these files:
+
+```
+notation-helloworld_1.0.1_linux_amd64
+├── notation-helloworld (must)
+├── LICENSE (optional)
+└── Dependency file (optional)
+```
 
 ### Plugin lifecycle management
 
