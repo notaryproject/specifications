@@ -33,6 +33,7 @@ Plugin publisher SHOULD follow these conventions to package and distribute plugi
 * Plugin publisher SHOULD provide SHA256 checksum for each released archive 
 * If the plugin has external dependencies, plugin publisher MUST include them in the archive
 * License file is optional but it's recommended to be included in the archive
+* To avoid [ZIP bombs](https://en.wikipedia.org/wiki/Zip_bomb), plugin archive file size is limited to less than 256 MiB. The sum of the extracted files is also limited to 256 MiB
 
 For example, an archive of a Notation plugin `helloworld` for Linux AMD64 machine `notation-helloworld_1.0.1_linux_amd64.zip` includes these files:
 
@@ -73,6 +74,10 @@ To be considered a valid plugin a candidate must pass each of these "plugin cand
 * On Windows, executables must have a `.exe` suffix.
 * Must, where relevant, have appropriate OS "execute" permissions (e.g. Unix x bit set) for the current user.
 * Must actually be executed successfully and when executed with the subcommand `get-plugin-metadata` must produce a valid JSON metadata (and nothing else) on its standard output (schema to be discussed later).
+
+### Commands
+
+Notation commands to install, list, and uninstall Notation plugins. See [`notation plugin` CLI specification](https://github.com/notaryproject/notation/blob/v1.1.0/specs/commandline/plugin.md) for details.
 
 ### Using a plugin for signing
 
