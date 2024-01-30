@@ -323,7 +323,7 @@ Notary Project allows user to execute custom validations during verification usi
     If under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509):
     1. Check for the timestamp signature in the signature envelope.
         1. If the timestamp exists, continue with the next step.
-        Otherwise, store the local machine's current time(in  UTC) in variables `timeStampLowerLimit` and `timeStampUpperLimit` and continue with step 6.2.
+        Otherwise, store the local machine's current time (in  UTC) in variables `timeStampLowerLimit` and `timeStampUpperLimit` and continue with step 6.2.
         1. Validate that the timestamp hash in `TSTInfo.messageImprint` matches the hash of the signature to which the timestamp was applied.
         1. Validate that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
         1. Validate that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).

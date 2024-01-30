@@ -22,11 +22,10 @@ Generally it covers the following aspects, but can be extended to other aspects 
 1. Mechanism to establish trust in end users and other entities (like CAs).
 1. Set of guarantees available to the verifier apart from integrity and authenticity.
 
-A signature envelope can only specify one Signing Scheme.
+A signing envelope is restricted to one signing scheme.
 
-When Notary Project supports an additional Signing Scheme
-  * Existing signed artifacts MUST be re-signed if they need to be verified using the new signing scheme defined verification process.
-  * Existing clients used by verifying entity MUST be updated to newer versions that support verifying signatures that use the new signing scheme, otherwise the signatures with newer signing schemes which are unknown to existing clients will fail signature verification. Signatures that use older signing schemes which are known to existing clients will continue to verify correctly.
+When the Notary Project incorporates support for a new Signing Scheme
+  * For signatures generated using the new signing scheme, it is imperative to update existing signature verification software to newer versions. Failed to so will result in these signatures verification failure. However, signatures generated using older signing schemes will continue to be verified correctly.
   * The language of the [Notary Project trust policy](./trust-store-trust-policy.md) in *trustpolicy.json* MAY have breaking changes to support newer concepts/configuration elements introduced by the new signing scheme.
   The breaking changes are addressed by introducing new major version in the versioned *trustpolicy.json*.
 
