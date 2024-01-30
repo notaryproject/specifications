@@ -5,7 +5,7 @@ Keys and associated certificates used for signing artifacts using Notation could
 ## Terminology
 
 * **Plugin Publisher** - A user, organization, open source project or 3rd party vendor that creates a Notation plugin for internal or public distribution.
-* **Plugin** - A component external to Notation that can integrate as one of the steps in Notation’s workflow for signature generation or verification. A Notation plugin can be distributed as a single executable file, or an archive file.
+* **Plugin** - A component external to Notation that can integrate as one of the steps in Notation’s workflow for signature generation or verification. A Notation plugin can be distributed as a single executable file, or an archive file (`zip` or `tar.gz`).
 * **Default provider** - Signing and verification mechanisms built into Notation itself to provide default experience without requiring to install/configure additional plugins. ***[We are yet to define what is included in the default experience]***.
 
 ## Plugin mechanism
@@ -22,26 +22,23 @@ Keys and associated certificates used for signing artifacts using Notation could
 
 Notation will invoke plugins as executable, pass parameters using command line arguments, and use standard IO streams to pass request/response payloads.
 
-### Package a plugin
+### Package and release a plugin
 
-Plugin publisher SHOULD follow these conventions to package and distribute plugin files:
+Notation supports the installation of a plugin from an `https` URL or from a file in the filesystem. To support  the plugin installation and management using `notation plugin` commands, the plugin publisher must adhere to the following conventions:
 
-* The file formats supported by Notation include `.zip`, `.tar.gz`, and single plugin executable file. It is highly recommended to package the single plugin executable file into an archive for installation security and efficiency consideration
-* Plugin executable file MUST follow the naming convention `notation-{plugin-name}` 
-* Notation supports installing a plugin from an `https` URL or from a file in the filesystem
-* If the archive format is `.zip` or `.tar.gz`, there MUST be one and only one plugin executable file within each archive
-* Plugin publisher SHOULD provide SHA256 checksum for each released archive 
-* If the plugin has external dependencies, plugin publisher MUST include them in the archive
-* License file is optional but it's recommended to be included in the archive
-* To avoid [ZIP bombs](https://en.wikipedia.org/wiki/Zip_bomb), plugin archive file size is limited to less than 256 MiB. The sum of the extracted files is also limited to 256 MiB
+* Plugin executable file MUST follow the naming convention `notation-{plugin-name}`. On `windows` OS, the file extension `.exe` is REQUIRED.
+* The plugin distribution format MUST be either .zip, .tar.gz, or a single plugin executable file. If the release format is _single plugin executable file_, it is highly recommended to compress it into an archive for installation efficiency consideration.
+* If the archive format is `.zip` or `.tar.gz`, there MUST be one and only one plugin executable file within each archive.
+* Plugin publisher SHOULD provide SHA256 checksum for each released archive and executable file if they want to enable users to install a plugin from an `https` URL.
+* The plugin archive MAY contain License files. Also, it's recommended to include licenses in the archive.
 
 For example, an archive of a Notation plugin `helloworld` for Linux AMD64 machine `notation-helloworld_1.0.1_linux_amd64.zip` includes these files:
 
 ```
-notation-helloworld_1.0.1_linux_amd64
-├── notation-helloworld (must)
+notation-helloworld_1.0.1_linux_amd64.tar.gz
+├── notation-helloworld (required)
 ├── LICENSE (optional)
-└── Dependency file (optional)
+└── Dependencies (optional)
 ```
 
 ### Plugin lifecycle management
@@ -77,7 +74,7 @@ To be considered a valid plugin a candidate must pass each of these "plugin cand
 
 ### Commands
 
-Notation commands to install, list, and uninstall Notation plugins. See [`notation plugin` CLI specification](https://github.com/notaryproject/notation/blob/v1.1.0/specs/commandline/plugin.md) for details.
+Notation provides various commands, including `install`, `list`, and `uninstall`, to manage plugin lifecycle. For more information, please refer to the [`notation plugin` CLI specification](https://github.com/notaryproject/notation/blob/v1.1.0/specs/commandline/plugin.md).
 
 ### Using a plugin for signing
 
