@@ -268,7 +268,7 @@ A `signing time` denotes the time at which the signature was generated. An X509 
 An `authentic signing time` is a signing time authenticated by a `Signing Authority (SA)`. It allows a verifier to determine if the signature was generated within the certificate's validity. `Authentic signing time` is only used with signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority). It is REQUIRED and MUST be present under the *Authentic Signing Time* signed attribute of the signature envelope.
 
 > [!NOTE]
-> The *Timestamp Signature* unsigned attribute MUST NOT be used as an `authentic signing time` under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509) as successful verification of the timestamp signature only implies that the `primitive signature` in the signature envelope was generated before the time point been stamped. The phrase `time point been stamped` refers to the specific time point at which the `Timestamp Authority (TSA)` receives the timestamping request.
+> The *Timestamp Signature* unsigned attribute MUST NOT be used as an `authentic signing time` under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509). Successful verification of the timestamp signature only implies that the `primitive signature` in the signature envelope was generated before the time point been stamped. The phrase `time point been stamped` refers to the specific time point at which the `Timestamp Authority (TSA)` receives the timestamping request.
 
 ### Expiry
 
