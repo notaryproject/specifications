@@ -201,7 +201,7 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
             "signatureVerification": {
               "level" : "strict"
             },
-            "trustStores": ["wabbit-networks"],
+            "trustStores": ["ca:wabbit-networks"],
             "trustedIdentities": [
               "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
             ]
