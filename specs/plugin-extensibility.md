@@ -33,7 +33,7 @@ Notation supports the installation of a plugin from an `https` URL or from a fil
 * The plugin archive MAY contain License files. Also, it's recommended to include licenses in the archive.
 * Currently, Notation facilitates the installation of plugin executable files and archives, with a size limit of less than 256 MiB. Consequently, the plugin executable file and archive size MUST be less than 256 MiB. Note: Although users have the option to install plugins larger than 256 MiB, they will be unable to utilize the `notation plugin install` command in such cases.
 
-For example, an archive of a Notation plugin `helloworld` for Linux AMD64 machine `notation-helloworld_1.0.1_linux_amd64.zip` includes these files:
+For example, an archive of a Notation plugin `helloworld` for Linux AMD64 machine `notation-helloworld_1.0.1_linux_amd64.tar.gz` includes these files:
 
 ```
 notation-helloworld_1.0.1_linux_amd64.tar.gz
