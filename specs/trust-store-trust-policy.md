@@ -337,7 +337,7 @@ Signature verification levels provide defined behavior for each validation e.g. 
 - For a given policy name selected by the verifier, if there is no matching trust policy with that name, then implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md) MUST consider the blob as untrusted and fail signature verification.
 - Evaluation order of trust policies:
   1. *Exact match*: If there exists a trust policy whose name exactly matches the one provided by the signature verifier then the aforementioned policy MUST be used for signature evaluation.
-     Otherwise, continue to the next step.
+     Otherwise, fail the signature verification.
   1. *Global*: If verifier does not select a policy by its name and if there exists a trust policy with a wildcard flag (`wildcardPolicy:true`) then use that policy for signature evaluation.
      Otherwise, fail the signature verification.
 
