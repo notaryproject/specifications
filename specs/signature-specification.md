@@ -37,7 +37,7 @@ The Notary Project signature payload is a JSON document with media type `applica
 - For Blob artifacts, the descriptor MUST describe the blob that is being signed
   - Descriptor MUST contain `mediaType`, `digest`, and `size` fields.
   - `digest` MUST be in the format of `<digest algorithm>:<digest value>`. Example: `sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345`
-  - SHA-256, SHA-384, SHA-512 are the only allowed digest algorithms.
+  - `digest algorithm` MUST be deduced from signing certificate's public key. See [Algorithm Selection](#algorithm-selection)
   - `mediaType` can be any arbitrary media type that the user provides to describe the blob. An example can be `application/octet-stream`
   - `size` MUST be the raw size of the blob in bytes.
   - Blob descriptors MAY optionally contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. 
