@@ -228,8 +228,7 @@ The Notary Project facilitates signing arbitrary blobs using detached signatures
 ### Differences between OCI and blob signatures
 
 1. Apart from the `payload` field, all other fields of a signature envelope are identical between OCI and blob signatures.
-1. While OCI signatures have signature manifest files, there is no such concept for blob signatures.
-1. For OCI signatures, the mediaType of the signature envelope (`application/jose+json` or `application/cose`) is present in the signature manifests. For blob signatures, this information is present in signature file extension.
+1. OCI signatures have signature manifest files, containing the mediaType of the signature envelope (application/jose+json or application/cose). However, blob signatures lack such manifest file and this mediaType information is instead found in the signature file extension.
 
 ## Signature Algorithm Requirements
 
