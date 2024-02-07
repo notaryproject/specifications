@@ -383,8 +383,8 @@ Notary Project allows user to execute custom validations during verification usi
 
 1. **Identify applicable trust policy**
    1. For OCI artifacts, refer to `{NOTATION_CONFIG}/trustpolicy.oci.json` or `{NOTATION_CONFIG}/trustpolicy.json` file and use [the artifact URI as the policy selector](#selecting-a-trust-policy-to-verify-a-signed-oci-artifact) and select the policy with matching scope from `registryScopes`.
-   2. For Blob artifacts, refer to `{NOTATION_CONFIG}/trustpolicy.blob.json` and use [the policy name provided by the verifier](#selecting-a-trust-policy-to-verify-a-signed-blob) as the policy selector and select a policy.
-   3. If an applicable trust policy cannot be found, fail signature verification.
+   1. For Blob artifacts, refer to `{NOTATION_CONFIG}/trustpolicy.blob.json` and use [the policy name provided by the verifier](#selecting-a-trust-policy-to-verify-a-signed-blob) as the policy selector and select a policy.
+   1. If an applicable trust policy cannot be found, fail signature verification.
 1. **Proceed based on signature verification level**
    1. If `signatureVerification` level is set to `skip` in the trust policy, return success.
    1. For all other `signatureVerification` levels, `strict`, `permissive` and `audit`, perform each of the validation defined in the next sections - `integrity`, `authenticity`, `trusted timestamp`, `expiry` and `revocation`.
