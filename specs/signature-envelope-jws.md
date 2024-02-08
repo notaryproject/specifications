@@ -39,12 +39,6 @@ Signature Manifest Example
 
 For detached signatures associated with blobs, a JWS signature envelope will be stored on the file system with `jws` as the file extension.
 
-JWS blob signature file contains
-1. Blob's payload descriptor
-1. Signed Attributes
-1. Unsigned Attributes
-1. Signature
-
 ## JWS Payload
 
 The JWS envelope contains the [Notary Project signature payload](./signature-specification.md#payload).

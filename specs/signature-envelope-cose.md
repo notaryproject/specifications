@@ -40,12 +40,6 @@ Signature Manifest Example
 
 For detached signatures associated with arbitrary blobs, a COSE signature envelope will be stored on the file system as a binary file with `cose` as the file extension.
 
-COSE detached signature file contains
-1. Blob's payload descriptor
-1. Signed Attributes
-1. Unsigned Attributes
-1. Signature
-
 ## COSE Payload
 
 The COSE envelope contains the [Notary Project signature Payload](./signature-specification.md#payload).

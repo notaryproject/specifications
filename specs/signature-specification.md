@@ -3,8 +3,8 @@
 This document provides the following details for Notary Project signature:
 
 - **[Signature Envelope](#signature-envelope)**: Describes the structure of the Notary Project signature.
-- **[OCI Signatures](#storage)**: Describes how signatures for OCI artifacts are stored and retrieved from an OCI registry.
-- **[Blob Signatures](#storage)**: Describes how signatures for signed Blobs are stored on file system.
+- **[OCI Signatures](#oci-signatures)**: Describes how signatures for OCI artifacts are stored and retrieved from an OCI registry.
+- **[Blob Signatures](#blob-signatures)**: Describes how signatures for signed Blobs are stored on file system.
 
 ## Signature Envelope
 

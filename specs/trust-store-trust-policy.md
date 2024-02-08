@@ -94,7 +94,7 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
   An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
     - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
     - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
-  - **`wildcardPolicy`**(*boolean*): This OPTIONAL property flags the policy as the wildcard trust policy if set to `true`. This policy will be used for verification if the user does not select any policy by its name during verification.
+  - **`globalPolicy`**(*boolean*): This OPTIONAL property flags the policy as the global trust policy if set to `true`. This policy will be used for verification if the user does not select any policy by its name during verification.
   - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For publicly trusted TSA, `tsa:publicly-trusted-tsa` is the default value, and implied without explicitly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
   - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
 
@@ -221,12 +221,12 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
             "trustedIdentities": ["*"]
         },
         {
-            // Wildcard policy for all arbitrarily blobs
+            // Global policy for all arbitrarily blobs
             "name": "global-policy-for-all-blobs",
             "signatureVerification": {
               "level" : "audit"
             },
-            "wildcardPolicy": true,
+            "globalPolicy": true,
             "trustStores": ["ca:acme-rockets", "ca:acme-rockets-ca2"],
             "trustedIdentities": [
               "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
@@ -254,7 +254,7 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
 - `strict` : Signature verification is performed at `strict` level, which enforces all validations. If any of these validations fail, the signature verification fails. This is the recommended level in environments where a signature verification failure does not have high impact to other concerns (like application availability). It is recommended that build and development environments where images are initially created, or for high assurance at deploy time use `strict` level.
 - `permissive` : The `permissive` level enforces most validations, but will only logs failures for revocation and expiry. The `permissive` level is recommended to be used if signature verification is done at deploy time or runtime, and the user only needs integrity and authenticity guarantees.
 - `audit` : The `audit` level only enforces signature integrity if a signature is present. Failure of all other validations are only logged.
-- `skip` : The `skip` level does not perform any signature verification. This is useful when an application uses multiple artifacts, and has a mix of signed and unsigned artifacts. Note that `skip` cannot be used with a global a.k.a wildcard policy .
+- `skip` : The `skip` level does not perform any signature verification. This is useful when an application uses multiple artifacts, and has a mix of signed and unsigned artifacts. Note that `skip` cannot be used with a global scope (`*`).
 
 The following table shows the resultant validation action, either *enforced* (verification fails), or *logged* for each of the checks, based on signature verification level.
 
@@ -314,8 +314,8 @@ Signature verification levels provide defined behavior for each validation e.g. 
     There can only be one trust policy that uses a global scope.
 
 ##### Blob Trust Policy Constraints
-- There MUST be only one trust policy with `wildcardPolicy` set to `true`
-- `signatureVerification` MUST not be set to `skip` if the policy is marked as a wildcard policy
+- There MUST be only one trust policy with `globalPolicy` set to `true`
+- `signatureVerification` MUST not be set to `skip` if the policy is marked as a global policy
 
 #### Selecting a trust policy to verify a signed OCI artifact
 
@@ -327,7 +327,7 @@ Signature verification levels provide defined behavior for each validation e.g. 
 - Evaluation order of trust policies:
   1. *Exact match*: If there exists a trust policy whose scope contains the artifact's repository URI then the aforementioned policy MUST be used for signature evaluation.
      Otherwise, continue to the next step.
-  1. *Global*: If there exists a trust policy with global/wildcard scope (`*`) then use that policy for signature evaluation.
+  1. *Global*: If there exists a trust policy with global scope (`*`) then use that policy for signature evaluation.
      Otherwise, fail the signature verification.
 
 #### Selecting a trust policy to verify a signed blob
@@ -335,10 +335,10 @@ Signature verification levels provide defined behavior for each validation e.g. 
 - The signature verifier must select the appropriate trust policy for blob signature verification using policy names.
 - For a given policy name selected by the verifier, there MUST be only one trust policy with that exact name.
 - For a given policy name selected by the verifier, if there is no matching trust policy with that name, then implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md) MUST consider the blob as untrusted and fail signature verification.
-- Evaluation order of trust policies:
+- Selecting a trust policy:
   1. *Exact match*: If there exists a trust policy whose name exactly matches the one provided by the signature verifier then the aforementioned policy MUST be used for signature evaluation.
      Otherwise, fail the signature verification.
-  1. *Global*: If verifier does not select a policy by its name and if there exists a trust policy with a wildcard flag (`wildcardPolicy:true`) then use that policy for signature evaluation.
+  1. *Global*: If verifier does not select a policy by its name and if there exists a trust policy marked as a global policy (`globalPolicy:true`) then use that policy for signature evaluation.
      Otherwise, fail the signature verification.
 
 ### Trusted Identities Constraints
