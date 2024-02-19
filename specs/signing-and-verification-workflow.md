@@ -64,8 +64,8 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
         1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
         1. If the signature verification fails, skip the below steps and move to the next signature artifact descriptor(step 3.1).
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
-        1. If signature verification succeeds, compare the digest derived from the given OCI artifact reference with the signed digest present in the signature envelope's payload.
-           If digests are equal, signature verification is considered successful.
+        1. If signature verification succeeds, compare the digest derived from the given OCI artifact reference with the signed digest present in the signature envelope's payload. Also, if there are any user-defined/supplied custom annotations, match them as well.
+           If digests and custom annotations are equal, signature verification is considered successful.
            Otherwise, move to the next signature artifact descriptor(step 3.1).
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
 1. **Get OCI artifact:** Using the verified digest, download the OCI artifact.
@@ -110,6 +110,7 @@ The user wants to consume an arbitrary blob only if it was signed by a trusted p
     1. Parse and validate the signature envelope using the detached signature's file extension as the envelope type.
     1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
     1. If the signature verification fails, exit.
-1. Construct the blob payload as defined in [`signature specification`](./signature-specification.md#payload)
-1. Verify blob's media type and size match the values present in `targetArtifact.payload`. Fail signature verification if there is a mismatch.
-1. Calculate the digest of the blob using the digest algorithm specified at `targetArtifact.payload.digest` and make sure the blob digest matches the digest present in `targetArtifact.payload.digest`. If they match, signature verification is considered successful.
+1. Calculate the blob's size and verify that it matches the size present in `targetArtifact.payload`. Fail signature verification if there is a mismatch.
+1. If provided by the user, verify blob's media type to the one present in `targetArtifact.payload`. Fail signature verification if there is a mismatch.
+1. Calculate the digest of the blob using the digest algorithm deduced from signing certificate's public key (see [Algorithm Selection](./signature-specification.md#algorithm-selection)) and match it with the digest specified at `targetArtifact.payload.digest`.  Fail signature verification if there is a mismatch.
+1. If there any user-defined/supplied custom annotations, match them against the ones present in `targetArtifact.payload`. If they match, signature verification is considered successful.
