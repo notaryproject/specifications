@@ -62,7 +62,8 @@ Any additional sub directories under a named store and certificates in it are ig
 
 Users who consume signed artifacts from OCI registries, or signed arbitrary blobs stored on file system, use trust policies to specify trusted identities that signed the artifacts, and level of signature verification to enforce. Trust policy files are JSON documents.
 
-**NOTE**: Users are required to setup separate trust policy files for verifying different types of signed artifacts. Notation expects OCI trust policy file to be placed at `{NOTATION_CONFIG}/trustpolicy.oci.json`. For backward compatibility reasons, Notation accepts `{NOTATION_CONFIG}/trustpolicy.json` as OCI trust policy file as well. For arbitrary blobs, Notation expects trust policy file to be placed at `{NOTATION_CONFIG}/trustpolicy.blob.json`.
+[!NOTE]
+Users are required to setup separate trust policy files for verifying different types of signed artifacts. Notation expects OCI trust policy file to be placed at `{NOTATION_CONFIG}/trustpolicy.oci.json`. For backward compatibility reasons, Notation accepts `{NOTATION_CONFIG}/trustpolicy.json` as OCI trust policy file as well. For arbitrary blobs, Notation expects trust policy file to be placed at `{NOTATION_CONFIG}/trustpolicy.blob.json`.
 
 ### Trust Policy Properties
 
