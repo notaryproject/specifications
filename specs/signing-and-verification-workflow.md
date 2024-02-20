@@ -105,7 +105,7 @@ The user wants to consume an arbitrary blob only if it was signed by a trusted p
 ### Verification Steps
 
 1. **Should implementations of this specification verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#blob-trust-policy) configuration, determine whether implementations of this specification need to verify the signature or not.
-   If signature verification should be skipped for the given blob, skip the below steps and directly jump to step 4.
+   If signature verification should be skipped for the given blob, skip the below steps.
 1. **Verify the detached signature:**
     1. Parse and validate the signature envelope using the detached signature's file extension as the envelope type.
     1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
