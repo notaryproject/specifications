@@ -110,7 +110,7 @@ The user wants to consume an arbitrary blob only if it was signed by a trusted p
     1. Parse and validate the signature envelope using the detached signature's file extension as the envelope type.
     1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
     1. If the signature verification fails, exit.
-1. Calculate the blob's size and verify that it matches the size present in `targetArtifact.payload`. Fail signature verification if there is a mismatch.
-1. If provided by the user, verify blob's media type to the one present in `targetArtifact.payload`. Fail signature verification if there is a mismatch.
-1. Calculate the digest of the blob using the digest algorithm deduced from signing certificate's public key (see [Algorithm Selection](./signature-specification.md#algorithm-selection)) and match it with the digest specified at `targetArtifact.payload.digest`.  Fail signature verification if there is a mismatch.
-1. If there any user-defined/supplied custom annotations, match them against the ones present in `targetArtifact.payload`. If they match, signature verification is considered successful.
+1. Calculate the blob's size and verify that it matches the size present in `targetArtifact.size`. Fail signature verification if there is a mismatch.
+1. If provided by the user, verify blob's media type to the one present in `targetArtifact.mediaType`. Fail signature verification if there is a mismatch.
+1. Calculate the digest of the blob using the digest algorithm deduced from signing certificate's public key (see [Algorithm Selection](./signature-specification.md#algorithm-selection)) and match it with the digest specified at `targetArtifact.digest`.  Fail signature verification if there is a mismatch.
+1. If there any user-defined/supplied custom annotations, match them against the ones present in `targetArtifact.annotations`. If they match, signature verification is considered successful.
