@@ -29,11 +29,11 @@ Notation supports the installation of a plugin from an `https` URL or from a fil
 * Plugin executable file MUST follow the naming convention `notation-{plugin-name}`. On `windows` OS, the file extension `.exe` is REQUIRED.
 * The plugin distribution format MUST be either .zip, .tar.gz, or a single plugin executable file. If the release format is _single plugin executable file_, it is highly recommended to compress it into an archive for installation efficiency consideration.
 * If the archive format is `.zip` or `.tar.gz`, there MUST be one and only one plugin executable file within each archive.
-* Plugin publisher SHOULD provide SHA256 checksum for each released archive and executable file if they want to enable users to install a plugin from an `https` URL.
+* Plugin publisher MUST provide SHA256 checksum for each released archive or _single plugin executable file_ if they want to enable users to install a plugin from an `https` URL.
 * The plugin archive MAY contain License files. Also, it's recommended to include licenses in the archive.
 * Currently, Notation facilitates the installation of plugin executable files and archives, with a size limit of less than 256 MiB. Consequently, the plugin executable file and archive size MUST be less than 256 MiB. Note: Although users have the option to install plugins larger than 256 MiB, they will be unable to utilize the `notation plugin install` command in such cases.
 
-For example, an archive of a Notation plugin `helloworld` for Linux AMD64 machine `notation-helloworld_1.0.1_linux_amd64.zip` includes these files:
+For example, an archive of a Notation plugin `helloworld` for Linux AMD64 machine `notation-helloworld_1.0.1_linux_amd64.tar.gz` includes these files:
 
 ```
 notation-helloworld_1.0.1_linux_amd64.tar.gz
