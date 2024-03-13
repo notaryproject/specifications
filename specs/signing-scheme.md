@@ -68,10 +68,10 @@ Each *Signing Scheme* defines the set of trust store types (e.g. CA) that is use
 
 `notary.x509`
 
-* Uses trusts store types Certificate Authority (CA) and Timestamping Authority (TSA) during signature verification.
+* Uses trust store types Certificate Authority (CA) and Timestamping Authority (TSA) during signature verification.
 The signature is verified against the trust store of type CA, and the *Timestamp Signature* unsigned attribute in the signature envelope is verified against the trust store of type TSA.
 * For signature verification to be successful
-  * The verifying entity’s trust store MUST contain the trusted root certificates under named trust stores of type CA (`{CONFIG}/notation/truststore/x509/ca`) and TSA(`{CONFIG}/notation/truststore/x509/tsa`)
+  * The verifying entity’s trust store MUST contain the trusted root certificates under named trust stores of type CA (`{CONFIG}/notation/truststore/x509/ca`) and TSA (`{CONFIG}/notation/truststore/x509/tsa`)
   * The named trust stores MUST be specified in *trustpolicy.json*. E.g. *trustPolicy.trustStores* with value of `ca:acme-rockets,tsa:acme-tsa`.
 
 `notary.x509.signingAuthority`
