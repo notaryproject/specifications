@@ -2,75 +2,9 @@
 
 This document provides the following details for Notary Project signature:
 
-- **[Storage](#storage)**: Describes how signatures are stored and retrieved from an OCI registry.
 - **[Signature Envelope](#signature-envelope)**: Describes the structure of the Notary Project signature.
-
-## Storage
-
-This section describes how a Notary Project signature is stored in an OCI Distribution conformant registry.
-OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.1.0-rc3][oci-image-manifest] for details.
-The signature manifest has a configuration media type that specifies it's a Notary Project signature, a subject referencing the manifest of the artifact being signed, a layer referencing the signature, and a collection of annotations.
-
-![Signature storage inside registry](../media/signature-specification.svg)
-
-Signature manifest example per OCI image manifest:
-
-```jsonc
-{
-    "schemaVersion": 2,
-    "mediaType": "application/vnd.oci.image.manifest.v1+json",
-    "config": {
-        "mediaType": "application/vnd.cncf.notary.signature",
-        "size": 2,
-        "digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
-    },
-    "layers": [
-        {
-            "mediaType": "application/jose+json",
-            "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
-            "size": 32654
-        }
-    ],
-    "subject": {
-        "mediaType": "application/vnd.oci.image.manifest.v1+json",
-        "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-        "size": 16724
-    },
-    "annotations": {
-        "io.cncf.notary.x509chain.thumbprint#S256": 
-        "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\",\"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
-    }
-}
-```
-
-Besides the [image manifest property requirements][image-manifest-property-descriptions], the properties have the following additional restrictions:
-
-- **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.oci.image.manifest.v1+json`.
-- **`config`** (*descriptor*): This property is REQUIRED to be compatible with [OCI image specification][oci-image-manifest]. The Notary Project signature specification doesn't require any configuration for a signature, and the configuration content is not consumed by implementations of the Notary Project signature specification.
-  - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.cncf.notary.signature`.
-  - **`digest`** (*string*): This REQUIRED property is the digest of the config content.
-  - **`size`** (*int64*): This REQUIRED property specifies the size, in bytes, of the raw config content.
-- **`layers`** (*array of objects*): This REQUIRED property contains collection of only one [OCI descriptor][oci-descriptor] referencing the signature envelope.
-  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
-    - `application/jose+json`
-    - `application/cose`
-- **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest.
-- **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the image manifest.
-  It is being used to store information about the signature.
-  Keys using the `io.cncf.notary` namespace are reserved for use in the Notary Project signature specification and MUST NOT be used by other specifications.
-  - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprints of signing certificate and certificate chain (including root) used for signature generation. The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
-
-### Signature Discovery
-
-The client should be able to discover all the signatures belonging to an artifact (such as image manifest) by using [OCI Distribution Referrers API][oci-distribution-referrers].
-OCI Distribution Referrers API returns a paginated list of all artifacts belonging to a target artifact (such as container images, SBoMs).
-The implementation can filter Notary Project signatures by either using OCI Distribution Referrers API or using custom logic on the client.
-Each Notary Project signature refers to a signature envelope blob.
-
-### Signature Filtering
-
-An OCI artifact can have multiple signatures, implementations of the Notary Project signature specification uses annotations of the signature manifest to filter relevant signatures based on the applicable trust policy.
-The Notary Project signature manifest's `io.cncf.notary.x509chain.thumbprint#S256` annotation key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
+- **[OCI Signatures](#oci-signatures)**: Describes how signatures for OCI artifacts are stored and retrieved from an OCI registry.
+- **[Blob Signatures](#blob-signatures)**: Describes how signatures for signed Blobs are stored on file system.
 
 ## Signature Envelope
 
@@ -86,7 +20,7 @@ A signature envelope is `e = {m, v, u, s}` where `s` is signature.
 
 This specification defines the set of signed and unsigned attributes that make up a valid Notary Project signature. This specification aims to be agnostic of signature envelope format (e.g. COSE, JWS), details of encoding the envelope in a specific signature envelope format are covered in separate specs.
 
-The Notary Project signature supports the following envelope formats:
+The Notary Project signature supports following envelope formats:
 
 - [JWS](./signature-envelope-jws.md)
 - [COSE](./signature-envelope-cose.md)
@@ -95,12 +29,25 @@ The Notary Project signature supports the following envelope formats:
 
 The Notary Project signature payload is a JSON document with media type `application/vnd.cncf.notary.payload.v1+json` and has following properties.
 
-- `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed. Only [OCI descriptor][oci-descriptor] is supported.
+- `targetArtifact` : Required property whose value is the descriptor of the target artifact manifest that is being signed.
+- For OCI artifacts, this MUST be a valid [OCI descriptor][oci-descriptor].
   - Descriptor MUST contain `mediaType`, `digest`, and `size` fields.
-  - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. The Notary Project signature uses annotations for storing both Notary Project specific and user defined metadata. The prefix `io.cncf.notary` in annotation keys is reserved for use in Notary Project signature and MUST NOT be used outside this specification.
+  - Descriptor MAY contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules].
   - Descriptor MAY contain `artifactType` field for the `config.mediaType` of OCI image manifests.
+- For Blob artifacts, the descriptor MUST describe the blob that is being signed
+  - Descriptor MUST contain `mediaType`, `digest`, and `size` fields.
+  - `digest` MUST be in the format of `<digest algorithm>:<digest value>`. Example: `sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345`
+  - `digest algorithm` MUST be deduced from signing certificate's public key. See [Algorithm Selection](#algorithm-selection)
+  - `mediaType` can be any arbitrary media type that the user provides to describe the blob. An example can be `application/octet-stream`
+  - `size` MUST be the raw size of the blob in bytes.
+  - Blob descriptors MAY optionally contain `annotations` and if present it MUST follow the [annotation rules][annotation-rules]. 
+
+NOTE: The Notary Project signature uses annotations for storing both Notary Project specific and user defined metadata. The prefix `io.cncf.notary` in `annotations` key is reserved for use in Notary Project signature and MUST NOT be used outside this specification.
+
 
 #### Examples
+
+##### OCI Payload
 
 ```jsonc
 {
@@ -111,6 +58,7 @@ The Notary Project signature payload is a JSON document with media type `applica
   }
 }
 ```
+##### OCI Payload with artifactType and annotations
 
 ```jsonc
 {
@@ -119,6 +67,31 @@ The Notary Project signature payload is a JSON document with media type `applica
     "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
     "size": 16724,
     "artifactType": "application/vnd.oci.image.config.v1+json",
+    "annotations": {
+        "io.wabbit-networks.buildId": "123"  // user defined metadata
+    }
+  }
+}
+```
+##### Blob Payload
+
+```jsonc
+{
+  "targetArtifact": {
+    "mediaType": "application/octet-stream",
+    "digest": "sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345",
+    "size": 1024
+  }
+}
+```
+##### Blob Payload with annotations
+
+```jsonc
+{
+  "targetArtifact": {
+    "mediaType": "application/octet-stream",
+    "digest": "sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345",
+    "size": 1024,
     "annotations": {
         "io.wabbit-networks.buildId": "123"  // user defined metadata
     }
@@ -179,6 +152,84 @@ These attributes are considered unsigned with respect to the signing key that ge
 - **Timestamp Signature**: An OPTIONAL countersignature generated by a trusted third party, such as a Timestamp Authority (TSA). Its purpose is to demonstrate that the primitive signature, computed on payload and signed attributes, predates the stamped time point. Only [RFC3161][ietf-rfc3161] compliant timestamp signatures are supported. If present, this claim is validated and used solely under the [`notary.x509`](./signing-scheme.md/#notaryx509) signing scheme.
 - **Signing Agent**: An OPTIONAL claim that provides the identifier of the software (e.g. Notation) that produced the signature on behalf of the user. It is an opaque string set by the software that produces the signature. It's intended primarily for diagnostic and troubleshooting purposes, this attribute is unsigned, the verifier MUST NOT validate formatting, or fail validation based on the content of this claim. The suggested format is one or more tokens of the form `{id}/{version}` containing identifier and version of the software, separated by spaces. E.g. "notation/1.0.0", "notation/1.0.0 myplugin/0.8".
 
+## OCI Signatures
+
+This section describes how a Notary Project signature is stored in an OCI Distribution conformant registry.
+OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.1.0-rc3][oci-image-manifest] for details.
+The signature manifest has a configuration media type that specifies it's a Notary Project signature, a subject referencing the manifest of the artifact being signed, a layer referencing the signature, and a collection of annotations.
+
+![Signature storage inside registry](../media/oci-signature-specification.svg)
+
+Signature manifest example per OCI image manifest:
+
+```jsonc
+{
+    "schemaVersion": 2,
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "config": {
+        "mediaType": "application/vnd.cncf.notary.signature",
+        "size": 2,
+        "digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "layers": [
+        {
+            "mediaType": "application/jose+json",
+            "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+            "size": 32654
+        }
+    ],
+    "subject": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+        "size": 16724
+    },
+    "annotations": {
+        "io.cncf.notary.x509chain.thumbprint#S256": 
+        "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\",\"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+    }
+}
+```
+
+Besides the [image manifest property requirements][image-manifest-property-descriptions], the properties have the following additional restrictions:
+
+- **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.oci.image.manifest.v1+json`.
+- **`config`** (*descriptor*): This property is REQUIRED to be compatible with [OCI image specification][oci-image-manifest]. The Notary Project signature specification doesn't require any configuration for a signature, and the configuration content is not consumed by implementations of the Notary Project signature specification.
+  - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.cncf.notary.signature`.
+  - **`digest`** (*string*): This REQUIRED property is the digest of the config content.
+  - **`size`** (*int64*): This REQUIRED property specifies the size, in bytes, of the raw config content.
+- **`layers`** (*array of objects*): This REQUIRED property contains collection of only one [OCI descriptor][oci-descriptor] referencing the signature envelope.
+  - **`mediaType`** (*string*): This REQUIRED property contains media type of signature envelope blob. Following values are supported
+    - `application/jose+json`
+    - `application/cose`
+- **`subject`** (*descriptor*): A REQUIRED artifact descriptor referencing the signed manifest.
+- **`annotations`** (*string-string map*): This REQUIRED property contains metadata for the image manifest.
+  It is being used to store information about the signature.
+  Keys using the `io.cncf.notary` namespace are reserved for use in the Notary Project signature specification and MUST NOT be used by other specifications.
+  - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprints of signing certificate and certificate chain (including root) used for signature generation. The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
+
+### OCI Signature Discovery
+
+The client should be able to discover all the signatures belonging to an artifact (such as image manifest) by using [OCI Distribution Referrers API][oci-distribution-referrers].
+OCI Distribution Referrers API returns a paginated list of all artifacts belonging to a target artifact (such as container images, SBoMs).
+The implementation can filter Notary Project signatures by either using OCI Distribution Referrers API or using custom logic on the client.
+Each Notary Project signature refers to a signature envelope blob.
+
+### OCI Signature Filtering
+
+An OCI artifact can have multiple signatures, implementations of the Notary Project signature specification uses annotations of the signature manifest to filter relevant signatures based on the applicable trust policy.
+The Notary Project signature manifest's `io.cncf.notary.x509chain.thumbprint#S256` annotation key MUST contain the list of SHA-256 fingerprints of certificate and certificate chain used for signing.
+
+## Blob Signatures
+
+The Notary Project facilitates signing arbitrary blobs using detached signatures. These detached signatures can be transported via any preferred medium and verified on the receiving end. A detached signature refers to a signature that is not embedded within (and therefore does not modify) the original blob, instead it consists of a detached signature envelope with a signature over the unique representation of the blob (i.e. blob's digest). The file extension can either be 'jws' or 'cose', indicating the signature envelope format.
+
+![Signature storage inside file system](../media/blob-signature-specification.svg)
+
+### Differences between OCI and blob signatures
+
+1. Apart from the `payload` field, all other fields of a signature envelope are identical between OCI and blob signatures.
+1. OCI signatures have signature manifest files, containing the mediaType of the signature envelope (application/jose+json or application/cose). However, blob signatures lack such manifest file and this mediaType information is instead found in the signature file extension.
+
 ## Signature Algorithm Requirements
 
 The implementation MUST support the following set of algorithms:
@@ -194,7 +245,7 @@ For ECDSA equivalent NIST curves and ANSI curves can be found at [RFC4492 Append
 
 ### Algorithm Selection
 
-The signing certificate's public key algorithm and size MUST be used to determine the signature algorithm.
+The signing certificate's public key algorithm and size MUST be used to determine the signature algorithm. Notary Project supports the following Signature Algorithms.
 
 | Public Key Algorithm | Key Size (bits) | Signature Algorithm             |
 | -------------------- | --------------- | ------------------------------- |
@@ -274,10 +325,10 @@ An `authentic signing time` is a signing time authenticated by a `Signing Author
 
 This is an optional feature that provides a "best by use" time for the artifact, as defined by the signer. The Notary Project signature specification allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
-### Signature Portability
+### OCI Signature Portability
 
 Portability of signatures is associated with the portability of associated artifacts which are being signed.
-OCI artifacts are inherently location agnostic, artifacts can be pulled from and pushed to any OCI compliant registry to which a user has access.
+OCI artifacts are inherently registry agnostic, artifacts can be pulled from and pushed to any OCI compliant registry to which a user has access.
 The artifacts themselves can be classified as follow.
 
 1. *Public Artifacts* -  Artifacts that are distributed publicly for broad consumption.
@@ -288,13 +339,13 @@ Signatures associated with these artifacts require broad portability.
 E.g. Images for containerized applications and services used within an organization, or shared with limited authorized parties.
 Based on user requirements a private artifact can have different levels of portability, the signature’s portability should at least match the the artifact’s portability.
 
-*The Notary Project signature portability* is based on the following
+*The Notary Project OCI signature portability* is based on the following
 
 #### Signature discovery
 
-The Notary Project signature specification addressed signature discovery by storing signatures in the same registry (location) where an artifact is present.
+The Notary Project OCI signature specification addressed signature discovery by storing signatures in the same registry (location) where an artifact is present.
 This is supported through [OCI Distribution Referrers API][oci-distribution-referrers] which allows reference artifacts such as signatures, SBOMs to be associated with existing artifacts like Images.
-The Notary Project signature specification allows multiple signatures to be associated with an artifact, and clients may automatically push signatures for an artifact to a destination registry when a signed artifact moves from one registry to other.
+The Notary Project OCI signature specification allows multiple signatures to be associated with an artifact, and clients may automatically push signatures for an artifact to a destination registry when a signed artifact moves from one registry to other.
 
 #### Verification requirements
 
@@ -311,6 +362,9 @@ Based on user’s requirements, a user can select appropriate signing mechanism 
 The Notary Project signatures without any critical extended attributes do not impose any additional dependency requirements for verifiers as these can be validated with just Notation.
 Whereas, the Notary Project signatures that contain critical extended attributes will require additional dependencies for signature validation, either on Notation compliant plugins or equivalent tooling which may not be available in all environments.
 Similarly, Notation compliant plugin vendors should be aware that usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature.
+
+### Blob Signature Portability
+Notary Project blob signatures provide the maximum portability as there are no requirements on storage or transport medium. Users can store and transport their blobs and associated detached signatures as required.
 
 ### Guidelines for implementations of the Notary Project signature specification
 
