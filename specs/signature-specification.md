@@ -258,9 +258,9 @@ The signing certificate's public key algorithm and size MUST be used to determin
 
 ### Certificate Requirements
 
-The codesigning certificates MUST meet the following requirements. These requirements are validated both at signature generation time and signature verification time, and are applied to the certificate chain in the signature envelope. These validations are independent of certificate chain validation against a trust store.
+The **codesigning** certificates MUST meet the following requirements. These requirements are validated both at signature generation time and signature verification time, and are applied to the certificate chain in the signature envelope. These validations are independent of certificate chain validation against a trust store.
 
-The timestamping certificates MUST meet the following requirements as well. Requirements for leaf certificate are validated both at timestamp token generation and verification time. Requirements for root and intermediate CA certificates are only validated at timestamp token verification time. This is because at generation time, the signer MAY not have access to the full certificate chain of the Timestamp Authority (TSA).
+The **timestamping** certificates MUST meet the following requirements as well. Requirements for leaf certificate are validated both at timestamp token generation and verification time. Requirements for root and intermediate CA certificates are only validated at timestamp token verification time. This is because at generation time, the signer MAY not have access to the full certificate chain of the Timestamp Authority (TSA). These validations are independent of certificate chain validation against a trust store.
 
 #### Root and Intermediate CA Certificates
 
