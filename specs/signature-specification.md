@@ -258,7 +258,8 @@ The signing certificate's public key algorithm and size MUST be used to determin
 
 ### Certificate Requirements
 
-The codesigning and timestamping certificates MUST meet the following requirements. These requirements are validated both at signature generation time and signature verification time, and are applied to the certificate chain in the signature envelope. These validations are independent of certificate chain validation against a trust store.
+The codesigning certificates MUST meet the following requirements. These requirements are validated both at signature generation time and signature verification time, and are applied to the certificate chain in the signature envelope. These validations are independent of certificate chain validation against a trust store.
+
 The timestamping certificates MUST meet the following requirements as well. Requirements for leaf certificate are validated both at timestamp token generation and verification time. Requirements for root and intermediate CA certificates are only validated at timestamp token verification time. This is because at generation time, the signer MAY not have access to the full certificate chain of the Timestamp Authority (TSA).
 
 #### Root and Intermediate CA Certificates
@@ -282,7 +283,7 @@ The `keyUsage` extension MUST be present and MUST be marked critical. Bit positi
 1. **[Extended Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)**  The `extendedKeyUsage` extension is OPTIONAL and can OPTIONALLY be marked as critical.
     - **For signing certificate:** If present, the value MAY contain `id-kp-codeSigning` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `clientAuth`, `emailProtection` and `timeStamping`.
     - **For timestamping certificate:** If present, the value MUST contain `id-kp-timeStamping` only.
-1. **Signature Algorithm** The signature algorithm MUST follow Notary Project's requirements at [algorithm requirements](./signature-specification.md#signature-algorithm-requirements)
+1. **Signature Algorithm** The signature algorithm MUST follow Notary Project's requirements at [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
 
 #### Other requirements
 
