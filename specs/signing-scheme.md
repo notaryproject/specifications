@@ -22,7 +22,7 @@ Generally it covers the following aspects, but can be extended to other aspects 
 1. Mechanism to establish trust in end users and other entities (like CAs).
 1. Set of guarantees available to the verifier apart from integrity and authenticity.
 
-A signing envelope is restricted to one signing scheme.
+A signature envelope is restricted to one signing scheme.
 
 When the Notary Project incorporates support for a new Signing Scheme
   * For signatures generated using the new signing scheme, it is imperative to update existing signature verification software to newer versions. Failed to so will result in these signatures verification failure. However, signatures generated using older signing schemes will continue to be verified correctly.
