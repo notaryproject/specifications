@@ -434,8 +434,7 @@ Notary Project allows user to execute custom validations during verification usi
 
     If under signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority):
     1. Check for the `Authentic Signing Time` signed attribute. If it does not exist, fail this step.
-    1. Store the `Authentic Signing Time` in variables `timeStampLowerLimit` and `timeStampUpperLimit`.
-    1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` is entirely within the signing certificate and certificate chain's validity period. If the validation passes, continue to step 7. Else fail this step.
+    1. Validate that the `Authentic Signing Time` is within the signing certificate and certificate chain's validity period. If the validation passes, continue to step 7. Else fail this step.
 
 1. **Validate Revocation Status:**
     1. Validate signing identity(certificate and certificate chain) revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section as per `signingIdentityRevocation` setting in trust-policy.
