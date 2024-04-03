@@ -421,7 +421,7 @@ Notary Project allows user to execute custom validations during verification usi
         1. Validate that the timestamp hash in `TSTInfo.messageImprint` matches the hash of the signature to which the timestamp was applied.
         1. Validate that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
         1. Validate that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
-        1. Validate the `signing-certificate`([RFC-2634](https://tools.ietf.org/html/rfc2634)) or `signing-certificate-v2`([RFC-5126](https://tools.ietf.org/html/rfc5126#section-5.7.3.2)) attribute of timestamp CMS.
+        1. Validate the `signing-certificate-v2`([RFC-5126](https://tools.ietf.org/html/rfc5126#section-5.7.3.2)) attribute of timestamp CMS.
         1. Validate that timestamp certificate and certificate chain leads to a trusted TSA certificate as per value configured in `trustStore`.
         1. Validate timestamp certificate and certificate chain revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section.
         1. Retrieve the timestamp's time from `TSTInfo.genTime`.

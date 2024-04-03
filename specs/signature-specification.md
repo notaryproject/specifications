@@ -270,7 +270,10 @@ The CA certificates MUST meet the following requirements
 The `basicConstraints` extension MUST be present and MUST be marked as critical. The `cA` field MUST be set to `true`.
 The [`pathLenConstraint`](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9) field is OPTIONAL. If present, it MUST be verified against the depth of the chain below that CA certificate. (If value is null consider it as not present)
 1. **[Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)**
-The `keyUsage` extension MUST be present and MUST be marked critical. Bit positions for `keyCertSign` MUST be set.
+    - **For codesigning certificate:** the `keyUsage` extension MUST be present and MUST be marked critical.
+    - **For timestamping certificate:** the `keyUsage` extension MUST be present and SHOULD be marked critical.
+
+    Bit positions for `keyCertSign` MUST be set.
 
 #### Leaf Certificates
 
@@ -279,10 +282,15 @@ The leaf or end certificates MUST meet the following requirements
 1. **[Basic Constraints:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)**
 The `basicConstraints` extension is OPTIONAL and can OPTIONALLY be marked as critical. If present, the `cA` field MUST be set to `false`.
 1. **[Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)**
-The `keyUsage` extension MUST be present and MUST be marked critical. Bit positions for `digitalSignature` MUST be set. The Bit positions for `keyEncipherment`, `dataEncipherment`, `keyAgreement`, `keyCertSign`, `encipherOnly`, `decipherOnly` and `cRLSign` MUST NOT be set.
-1. **[Extended Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)**  The `extendedKeyUsage` extension is OPTIONAL and can OPTIONALLY be marked as critical.
-    - **For signing certificate:** If present, the value MAY contain `id-kp-codeSigning` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `clientAuth`, `emailProtection` and `timeStamping`.
-    - **For timestamping certificate:** If present, the value MUST contain `id-kp-timeStamping` only.
+    - **For codesigning certificate:** The `keyUsage` extension MUST be present and MUST be marked critical.
+    - **For timestamping certificate:** The `keyUsage` extension MUST be present and SHOULD be marked critical.
+
+    Bit positions for `digitalSignature` MUST be set. 
+    
+    The Bit positions for `keyEncipherment`, `dataEncipherment`, `keyAgreement`, `keyCertSign`, `encipherOnly`, `decipherOnly` and `cRLSign` MUST NOT be set.
+1. **[Extended Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)**
+    - **For codesigning certificate:** The `extendedKeyUsage` extension is OPTIONAL and can OPTIONALLY be marked as critical. If present, the value MAY contain `id-kp-codeSigning` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `clientAuth`, `emailProtection` and `timeStamping`.
+    - **For timestamping certificate:** According to [RFC 3161 2.3](https://datatracker.ietf.org/doc/html/rfc3161#section-2.3), the `extendedKeyUsage` extension MUST be present and MUST be marked as critical. The value MUST contain `id-kp-timeStamping` only.
 1. **Signature Algorithm** The signature algorithm MUST follow Notary Project's requirements at [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
 
 #### Other requirements
@@ -294,7 +302,9 @@ The `keyUsage` extension MUST be present and MUST be marked critical. Bit positi
 1. Any certificate in the certificate chain MUST NOT use SHA1WithRSA and ECDSAWithSHA1 signatures.
 2. Only Basic Constraints, Key Usage, and Extended Key Usage extensions of X.509 certificates are honored. For rest of the extensions, implementations of the Notary Project signature specification MUST fail open i.e. rest of the extensions MUST NOT be evaluated or honored.
 3. The certificates in the certificate chain MUST be valid at signing time. Implementations of the Notary Project signature specification MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
-4. In the absence of an Authentic Timestamp, each and every certificate in the certificate chain i.e. signing certificate, intermediate certificates, and the root certificate must be valid i.e. not expired at the time of signature verification.
+4. **For codesigning certificate:** In the absence of an Authentic Timestamp, each and every certificate in the certificate chain i.e. signing certificate, intermediate certificates, and the root certificate must be valid i.e. not expired at the time of signature verification.
+
+   **For timestamping certificate:** Certificates in the TSA certificate chain MAY expire at the time of verification due to existence of short-lived TSA certificates. Implementaions SHOULD provide an option for users to choose whether to enforce TSA certificate expiration check during timestamp token verification.
 
 ## FAQ
 
