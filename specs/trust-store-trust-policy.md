@@ -418,6 +418,7 @@ Notary Project allows user to execute custom validations during verification usi
     1. Validate that the local machine's current time (in  UTC) is within the signing certificate and certificate chain's validity period. If the validation passes, continue to step 7. Otherwise, continue to step 6.2.
     1. Check for the timestamp signature in the signature envelope.
         1. If the timestamp does not exist, fail this step.
+        1. Verify the timestamp countersignature and validate the TSTInfo.
         1. Validate that the timestamp hash in `TSTInfo.messageImprint` matches the hash of the signature to which the timestamp was applied.
         1. Validate that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
         1. Validate that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
