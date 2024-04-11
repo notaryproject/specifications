@@ -282,7 +282,10 @@ The leaf or end certificates MUST meet the following requirements
 1. **[Basic Constraints:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.9)**
 The `basicConstraints` extension is OPTIONAL and can OPTIONALLY be marked as critical. If present, the `cA` field MUST be set to `false`.
 1. **[Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3)**
-    The `keyUsage` extension MUST be present and MUST be marked critical. Bit positions for `digitalSignature` MUST be set. The Bit positions for `keyEncipherment`, `dataEncipherment`, `keyAgreement`, `keyCertSign`, `encipherOnly`, `decipherOnly` and `cRLSign` MUST NOT be set.
+    - **For codesigning certificate:** the `keyUsage` extension MUST be present and MUST be marked critical.
+    - **For timestamping certificate:** the `keyUsage` extension MUST be present and SHOULD be marked critical.
+    
+    Bit positions for `digitalSignature` MUST be set. The Bit positions for `keyEncipherment`, `dataEncipherment`, `keyAgreement`, `keyCertSign`, `encipherOnly`, `decipherOnly` and `cRLSign` MUST NOT be set.
 1. **[Extended Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)**
     - **For codesigning certificate:** The `extendedKeyUsage` extension is OPTIONAL and can OPTIONALLY be marked as critical. If present, the value MAY contain `id-kp-codeSigning` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `clientAuth`, `emailProtection` and `timeStamping`.
     - **For timestamping certificate:** According to [RFC 3161 2.3](https://datatracker.ietf.org/doc/html/rfc3161#section-2.3), the `extendedKeyUsage` extension MUST be present and MUST be marked as critical. The value MUST contain `id-kp-timeStamping` only.
