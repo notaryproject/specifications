@@ -302,7 +302,7 @@ The `basicConstraints` extension is OPTIONAL and can OPTIONALLY be marked as cri
 3. The certificates in the certificate chain MUST be valid at signing time. Implementations of the Notary Project signature specification MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
 4. **For codesigning certificate:** In the absence of an Authentic Timestamp, each and every certificate in the certificate chain i.e. signing certificate, intermediate certificates, and the root certificate must be valid i.e. not expired at the time of signature verification.
 
-   **For timestamping certificate:** Certificates in the TSA certificate chain MAY expire at the time of verification due to existence of short-lived TSA certificates. Implementaions SHOULD provide an option for users to choose whether to enforce TSA certificate expiration check during timestamp token verification.
+   **For timestamping certificate:** Certificates in the TSA certificate chain MAY expire at the time of verification due to existence of short-lived TSA certificates. Implementaions SHOULD provide an option for users to choose between: 1. Use time point `now` to verify the timestamp countersignature. 2. Use the time point been stamped to verify the timestamp countersignature.
 
 ## FAQ
 
