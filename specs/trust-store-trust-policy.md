@@ -312,7 +312,7 @@ Version 1.1 adds support of timestamp countersignature verification in addition 
         }
     ]
 }
-
+```
 
 #### Signature Verification details
 
@@ -354,7 +354,7 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 **Revocation check** : Guarantees that the signing identity is still trusted at signature verification time. Events such as key or system compromise can make a signing identity that was previously trusted, to be subsequently untrusted. This guarantee typically requires a verification-time call to an external system, which may not be consistently reliable. The `permissive` verification level only logs failures of revocation check and does not enforce it. If a particular revocation mechanism is reliable, use `strict` verification level instead.
 
-#### Custom Verification Level
+##### Custom Verification Level
 
 Signature verification levels provide defined behavior for each validation e.g. `strict` will always *enforce* authenticity validation. For fine grained control over validations that occur during signature verification, users can define a custom level which overrides the behavior of an existing verification level.
 
@@ -395,7 +395,7 @@ Signature verification levels provide defined behavior for each validation e.g. 
 
  **Authenticity** : Guarantees that the timestamp was issued by a trusted TSA. Its definition does not include revocation, which is when a trusted TSA is subsequently untrusted because of a compromise. It is always enforced if timestamp countersignature verification is performed.
 
- **Expiry** : Guarantees that the timestamp certificate chain is unexpired at the time of verification. It can be relaxed through the `expiryRelaxed` option under `timestampVerification` of the trust policy. When `expiryRelaxed` is set to `true`, the timestamp certificate chain expiry is checked against the time point been stamped.
+ **Expiry** : Guarantees that the timestamp certificate chain is unexpired at the time of verification. It can be relaxed through the `expiryRelaxed` option under `timestampVerification` of the trust policy. When `expiryRelaxed` is set to `true`, the timestamp certificate chain expiry is checked against the time point been stamped. Otherwise, the timestamp certificate chain expiry is checked against the time at verification.
 
  **Revocation check** : Guarantees that the TSA identity is still trusted at verification time. Events such as key or system compromise can make a TSA identity that was previously trusted, to be subsequently untrusted. It is always enforced if timestamp countersignature verification is performed.
 
@@ -629,7 +629,7 @@ To check the revocation status of a certificate using OCSP, the following steps 
    Response is considered expired if the current date is after the `NextUpdate` field in the response.
 1. Verify that the OCSP response indicates that the certificate is not revoked i.e `CertStatus` is `good`.
     1. If the certificate is revoked i.e `CertStatus` is `revoked`, look for `InvalidityDate`.
-        1. If the invalidity date is present and timestamp signature is also present then if the invalidity date is before the timestamping date, the certificate is considered revoked.
+        1. If the invalidity date is present and the authentic signing time is also present then if the invalidity date is before the authentic signing time, the certificate is considered revoked.
         1. If the invalidity date is not present in OCSP response, the certificate is considered revoked.
     1. If the certificate status is `unknown`, the revocation status is considered `revocation unavailable`.
 1. If `id-pkix-ocsp-nocheck`(1.3.6.1.5.5.7.48.1.5) extension is not present on the OCSP signing certificate then revocation checking must be performed using CRLs for the OCSP signing certificate.
