@@ -53,7 +53,7 @@ $XDG_CONFIG_HOME/notation/trust-store
 The Trust store currently supports three kinds of identities, additional identities may be supported in future:
 
 - **Certificates**: The `x509/ca` trust store contains named stores that contain Certificate Authority (CA) root certificates.
-- **SigningAuthority Certificate**: The `x509/signingAuthority` trust store contains named stores that contain Siging Authority's root certificates.
+- **SigningAuthority Certificate**: The `x509/signingAuthority` trust store contains named stores that contain Signing Authority's root certificates.
 - **Timestamping Certificates**: The `x509/tsa` trust store contains named stores that contain Timestamping Authority (TSA) root certificates.
 
 Any additional sub directories under a named store and certificates in it are ignored. **NOTE**: Implementation SHOULD warn if it finds sub directories with certificates under a named store, to help diagnose misconfigured store.
@@ -85,7 +85,7 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
   - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
 
 ##### Version 2.0
-Version 2.0 adds support of timestamp countersignature verification in addition to version 1.0.
+Version 2.0 adds support of timestamp countersignature verification in addition to version 1.0. Version 2.0 also provides trust source support for `trustedIdentities` and optimizes the format of `trustStores` to match the upgraded `trustedIdentities` field.
 
 - **`version`**(*string*): This REQUIRED property is the version of the trust policy. This value MUST be `2.0` for version 2.0 trust policy.
 - **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
