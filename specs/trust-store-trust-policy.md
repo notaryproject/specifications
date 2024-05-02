@@ -407,7 +407,7 @@ Signature verification levels provide defined behavior for each validation e.g. 
 
  **Authenticity** : Guarantees that the timestamp was issued by a trusted TSA identity. Its definition does not include revocation, which is when a trusted TSA is subsequently untrusted because of a compromise. It is always enforced if timestamp countersignature verification is performed.
 
- **Expiry** : Guarantees that the timestamp certificate chain is unexpired at the time of verification. It can be relaxed through the `expiryRelaxed` option under `timestampVerification` of the trust policy. When `expiryRelaxed` is set to `true`, the timestamp certificate chain expiry is checked against the time point been stamped. Otherwise, the timestamp certificate chain expiry is checked against the time at verification.
+ **Expiry** : Guarantees that the timestamp certificate chain is unexpired at the time of verification. It can be relaxed through the `expiryRelaxed` option under `timestampVerification` of the trust policy. When `expiryRelaxed` is set to true, the time point in the timestamp signature is trusted as the current time to verify the timestamp signature itself.
 
  **Revocation check** : Guarantees that the TSA identity is still trusted at verification time. Events such as key or system compromise can make a TSA identity that was previously trusted, to be subsequently untrusted. It is always enforced if timestamp countersignature verification is performed.
 
@@ -527,29 +527,29 @@ Notary Project allows user to execute custom validations during verification usi
     1. If an `expiry time` signed attribute is present in the signature envelope, check if the local machine’s current time(in UTC) is greater than `expiry time`. If yes, fail this step.
 1. **Validate Authentic Timestamp:**
 
-    If under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509):
-    1. Validate that the local machine's current time (in  UTC) is within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Otherwise, continue to step 6.2.
-    1. Check for the timestamp countersignature in the signature envelope.
-        1. If the timestamp countersignature does not exist, fail this step.
-        1. Verify the timestamp countersignature and validate the `TSTInfo` based on [RFC-3161](https://datatracker.ietf.org/doc/html/rfc3161) and [RFC-5816](https://datatracker.ietf.org/doc/html/rfc5816).
-        1. Validate that the timestamp hash in `TSTInfo.messageImprint` matches the hash of the signature to which the timestamp was applied.
-        1. Validate that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
-        1. Validate that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
-        1. Validate the `signing-certificate` ([RFC-2634](https://datatracker.ietf.org/doc/html/rfc2634#section-5.4)) or `signing-certificate-v2` ([RFC-5126](https://tools.ietf.org/html/rfc5126#section-5.7.3.2)) attribute of timestamp CMS. When both are present, `signing-certificate-v2` takes precedence over `signing-certificate`. When both are missing, fail this step.
-        1. Validate that the timestamp certificate chain leads to a trusted root certificate as per setting in `trustStore` with `trust-store-type tsa` in trust policy.
-        1. Validate that the timestamp signing certificate holds a trusted identity as per setting in `trustedIdentities` with `trust-store-type tsa` in trust policy.
-        1. Validate timestamp certificate chain revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section.
-        1. Retrieve the timestamp's time from `TSTInfo.genTime`.
-        1. Retrieve the timestamp's accuracy.
-        If the accuracy is explicitly specified in `TSTInfo.accuracy`, use that value.
-        If the accuracy is not explicitly specified and `TSTInfo.policy` is the baseline time-stamp policy([RFC-3628](https://tools.ietf.org/html/rfc3628#section-5.2)), use accuracy of 1 second.
-        Otherwise, use an accuracy of 0.
-        1. Calculate the timestamp range using the lower and upper limits per [RFC-3161 section 2.4.2](https://tools.ietf.org/html/rfc3161#section-2.4.2) and store the limits as `timeStampLowerLimit` and `timeStampUpperLimit` variables respectively.
-        1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` is entirely within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Else fail this step.
+    1. If under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509):
+        1. Validate that the local machine's current time (in  UTC) is within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Otherwise, continue to step 6.1.2.
+        1. Check for the timestamp countersignature in the signature envelope.
+            1. If the timestamp countersignature does not exist, fail this step.
+            1. Verify the timestamp countersignature and validate the `TSTInfo` based on [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161) and [RFC-5816](https://datatracker.ietf.org/doc/html/rfc5816).
+            1. Validate that the timestamp hash in `TSTInfo.messageImprint` matches the hash of the signature to which the timestamp was applied.
+            1. Validate that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
+            1. Validate that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
+            1. Validate the `signing-certificate` ([RFC-2634](https://datatracker.ietf.org/doc/html/rfc2634#section-5.4)) or `signing-certificate-v2` ([RFC-5126](https://tools.ietf.org/html/rfc5126#section-5.7.3.2)) attribute of timestamp CMS. When both are present, `signing-certificate-v2` takes precedence over `signing-certificate`. When both are missing, fail this step.
+            1. Validate that the timestamp certificate chain leads to a trusted root certificate as per setting in `trustStore` with `trust-store-type tsa` in trust policy.
+            1. Validate that the timestamp signing certificate holds a trusted identity as per setting in `trustedIdentities` with `trust-store-type tsa` in trust policy.
+            1. Validate timestamp certificate chain revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section.
+            1. Retrieve the timestamp's time from `TSTInfo.genTime`.
+            1. Retrieve the timestamp's accuracy.
+            If the accuracy is explicitly specified in `TSTInfo.accuracy`, use that value.
+            If the accuracy is not explicitly specified and `TSTInfo.policy` is the baseline time-stamp policy([RFC-3628](https://tools.ietf.org/html/rfc3628#section-5.2)), use accuracy of 1 second.
+            Otherwise, use an accuracy of 0.
+            1. Calculate the timestamp range using the lower and upper limits per [RFC 3161 section 2.4.2](https://tools.ietf.org/html/rfc3161#section-2.4.2) and store the limits as `timeStampLowerLimit` and `timeStampUpperLimit` variables respectively.
+            1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` is entirely within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Else fail this step.
 
-    If under signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority):
-    1. Check for the `Authentic Signing Time` signed attribute. If it does not exist, fail this step.
-    1. Validate that the `Authentic Signing Time` is within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Else fail this step.
+    1. If under signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority):
+        1. Check for the `Authentic Signing Time` signed attribute. If it does not exist, fail this step.
+        1. Validate that the `Authentic Signing Time` is within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Else fail this step.
 
 1. **Validate Revocation Status:**
     1. Validate signing identity(certificate and certificate chain) revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section as per `revocation` setting in trust policy.

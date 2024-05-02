@@ -302,7 +302,7 @@ The `basicConstraints` extension is OPTIONAL and can OPTIONALLY be marked as cri
 3. The certificates in the certificate chain MUST be valid at signing time. Implementations of the Notary Project signature specification MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
 4. **For codesigning certificate:** In the absence of an Authentic Timestamp, each and every certificate in the certificate chain i.e. signing certificate, intermediate certificates, and the root certificate must be valid i.e. not expired at the time of signature verification.
 
-   **For timestamping certificate:** Certificates in the timestamp certificate chain MAY expire at the time of verification due to existence of short-lived TSA certificates. Implementaions SHOULD provide an option for users to choose between: 1. Use the time at verification to verify the timestamp countersignature. 2. Use the time point been stamped to verify the timestamp countersignature.
+   **For timestamping certificate:** Certificates in the timestamp certificate chain MAY expire at the time of verification due to existence of short-lived TSA certificates. Implementations should allow users to choose whether to verify the timestamp countersignature based on the verification time or the original timestamped time.
 
 ## FAQ
 
@@ -327,7 +327,7 @@ A `signing time` denotes the time at which the signature was generated. An X509 
 An `authentic signing time` is a signing time authenticated by a `Signing Authority (SA)`. It allows a verifier to determine if the signature was generated within the certificate's validity. `Authentic signing time` is only used with signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority). It is REQUIRED and MUST be present under the *Authentic Signing Time* signed attribute of the signature envelope.
 
 > [!NOTE]
-> The *Timestamp Signature* unsigned attribute MUST NOT be used as an `authentic signing time`. Successful verification of the timestamp countersignature only implies that the `primitive signature` in the signature envelope was generated before the time point been stamped. The phrase `time point been stamped` refers to the specific time point at which the `Timestamp Authority (TSA)` receives the timestamping request.
+> The *Timestamp Signature* unsigned attribute MUST NOT be used as an `authentic signing time`. Successful verification of the timestamp countersignature only implies that the `primitive signature` in the signature envelope was generated before the time point been stamped. The phrase `time point been stamped` refers to the specific time point at which the *Timestamp Authority (TSA)* receives the timestamping request.
 
 ### Expiry
 
