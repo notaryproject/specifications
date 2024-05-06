@@ -97,9 +97,7 @@ Version 2.0 adds support of timestamp countersignature verification in addition 
   An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
     - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
     - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
-  - **`timestampVerification`**(*object*): This OPTIONAL property dictates how timestamp countersignature verification is performed. If present, it is used solely under the [`notary.x509`](./signing-scheme.md/#notaryx509) signing scheme. If not present, default timestamp countersignature verification will be performed. Current supported fields are:
-    - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict` and `skip`. `strict` is the default value meaning timestamp countersignature verification is performed. `skip` means no timestamp countersignature verification is performed.
-    - **`expiryRelaxed`**(*boolean*): OPTIONAL. When set to `true`, validate the timestamp certificate chain expiration against the time point been stamped. When not set or set to `false`, validate the timestamp certificate chain expiration against the time at verification.
+    - **`timestampingDisabled`**(*boolean*): An OPTIONAL property that specifies whether or not to perform the timestamp countersignature verification. When set to `true`, no timestamp countersignature verification is performed. When not set or set to `false`, timestamp countersignature verification is performed.
   - **`trustStores`**(*map of trust-store-type -> array-of-named-stores*): REQUIRED map with `trust-store-type` as keys and corresponding `array of named trust stores` as values. Each named trust store contains the trusted root certificates against which signatures are verified. Currently supported `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For example, when TSAs are specified, the format is `"tsa":[acme-tsa, wabbit-tsa]`.
   - **`trustedIdentities`**(*map of trust-store-type -> array-of-trusted-identities*): REQUIRED map with `trust-store-type` as keys and corresponding `array of trusted identities` as values. Currently supported `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For example, when a CA trusted identity is specified, the format is `"ca": ["x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"]`. A value `*` is supported if user trusts any identity under a certain `trust-store-type`. For example, `"tsa": ["*"]`. A missing `trust-store-type` or empty array in the map means NO identity is trusted under the particular trust store type.
 
@@ -117,9 +115,7 @@ Version 2.0 adds support of timestamp countersignature verification in addition 
   An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
     - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
     - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
-  - **`timestampVerification`**(*object*): This OPTIONAL property dictates how timestamp countersignature verification is performed. If present, it is used solely under the [`notary.x509`](./signing-scheme.md/#notaryx509) signing scheme. If not present, default timestamp countersignature verification will be performed. Current supported fields are:
-    - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict` and `skip`. `strict` is the default value meaning timestamp countersignature verification is performed. `skip` means no timestamp countersignature verification is performed.
-    - **`expiryRelaxed`**(*boolean*): OPTIONAL. When set to `true`, validate the timestamp certificate chain expiration against the time point been stamped. When not set or set to `false`, validate the timestamp certificate chain expiration against the time at verification.
+    - **`timestampingDisabled`**(*boolean*): An OPTIONAL property that specifies whether or not to perform the [timestamp countersignature verification](#timestamp-countersignature-verification-details). When set to `true`, no timestamp countersignature verification is performed. When not set or set to `false`, timestamp countersignature verification is performed.
   - **`trustStores`**(*map of trust-store-type -> array-of-named-stores*): REQUIRED map with `trust-store-type` as keys and corresponding `array of named trust stores` as values. Each named trust store contains the trusted root certificates against which signatures are verified. Currently supported `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For example, when TSAs are specified, the format is `"tsa":[acme-tsa, wabbit-tsa]`.
   - **`trustedIdentities`**(*map of trust-store-type -> array-of-trusted-identities*): REQUIRED map with `trust-store-type` as keys and corresponding `array of trusted identities` as values. Currently supported `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For example, when a CA trusted identity is specified, the format is `"ca": ["x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"]`. A value `*` is supported if user trusts any identity under a certain `trust-store-type`. For example, `"tsa": ["*"]`. A missing `trust-store-type` or empty array in the map means NO identity is trusted under the particular trust store type.
 
@@ -229,11 +225,8 @@ Version 2.0 adds support of timestamp countersignature verification in addition 
               "registry.acme-rockets.io/software/net-logger"
             ],
             "signatureVerification": {
-              "level" : "strict" 
-            },
-            "timestampVerification": {
-              "level": "strict", // perform timestamp countersignature verification if applicable
-              "expiryRelaxed": true // validate timestamp certificate chain expiration against the time point been stamped
+              "level" : "strict",
+              "timestampingDisabled": false, // perform timestamp countersignature verification if applicable
             },
             "trustStores": {
               "ca": ["wabbit-networks"],
@@ -307,11 +300,8 @@ Version 2.0 adds support of timestamp countersignature verification in addition 
             // Policy for set of blobs signed by Wabbit Networks
             "name": "wabbit-networks-blobs",
             "signatureVerification": {
-              "level" : "strict"
-            },
-            "timestampVerification": {
-              "level": "strict", // perform timestamp countersignature verification if applicable
-              "expiryRelaxed": true // validate timestamp certificate chain expiration against the time point been stamped
+              "level" : "strict",
+              "timestampingDisabled": false, // perform timestamp countersignature verification if applicable
             },
             "trustStores": {
               "ca": ["wabbit-networks"],
@@ -395,19 +385,16 @@ Signature verification levels provide defined behavior for each validation e.g. 
   - The signing scheme is [`notary.x509`](./signing-scheme.md/#notaryx509).
   - The unsigned attribute `Timestamp Signature` is present in the signature envelope.
   - The `authenticTimestamp` under `signatureVerification` of trust policy is NOT marked as `skip`.
-  - `level` under `timestampVerification` of trust policy is set to `strict` or `timestampVerification` is not present, default values are used in this case.
+  - `timestampingDisabled` under `signatureVerification` is not set or set to `false`.
    
  Timestamp countersignature verification is a multi step process performs the following validations
   - integrity (timestamp token is unaltered, countersignature is not corrupted)
   - authenticity (the timestamp token is really from the TSA that claims to have signed it)
-  - expiry (the timestamp certificate chain is unexpired at the time of verification)
   - revocation check (is the TSA still trusted at the time of verification)
 
  **Integrity** : Guarantees that the timestamp token wasn't altered after it was signed, or the countersignature isn't corrupted. It is always enforced if timestamp countersignature verification is performed.
 
  **Authenticity** : Guarantees that the timestamp was issued by a trusted TSA identity. Its definition does not include revocation, which is when a trusted TSA is subsequently untrusted because of a compromise. It is always enforced if timestamp countersignature verification is performed.
-
- **Expiry** : Guarantees that the timestamp certificate chain is unexpired at the time of verification. It can be relaxed through the `expiryRelaxed` option under `timestampVerification` of the trust policy. When `expiryRelaxed` is set to true, the time point in the timestamp signature is trusted as the current time to verify the timestamp signature itself.
 
  **Revocation check** : Guarantees that the TSA identity is still trusted at verification time. Events such as key or system compromise can make a TSA identity that was previously trusted, to be subsequently untrusted. It is always enforced if timestamp countersignature verification is performed.
 
