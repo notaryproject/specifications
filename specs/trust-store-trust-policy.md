@@ -81,29 +81,9 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
   An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
     - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
     - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
-  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. When a TSA is used, the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
-  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
-
-##### Version 2.0
-Version 2.0 adds support of timestamp countersignature verification in addition to version 1.0. Version 2.0 also provides trust source support for `trustedIdentities` and optimizes the format of `trustStores` to match the upgraded `trustedIdentities` field.
-
-- **`version`**(*string*): This REQUIRED property is the version of the trust policy. This value MUST be `2.0` for version 2.0 trust policy.
-- **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
-  - **`name`**(*string*): This REQUIRED property represents the name of the trust policy.
-  - **`registryScopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
-    The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
-    For more information, see [trust policy constraints](#oci-trust-policy-constraints) section.
-  - **`signatureVerification`**(*object*): This REQUIRED property dictates how signature verification is performed.
-  An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
-    - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
-    - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
-    - **`timestampingDisabled`**(*boolean*): An OPTIONAL property that specifies whether or not to perform the timestamp countersignature verification. When set to `true`, no timestamp verification is performed. When not set or set to `false`, timestamp verification is performed if applicable. See [timestamp countersignature verification](#timestamp-countersignature-verification-details) for details.
-  - **`trustStores`**(*map of trust-store-type -> array-of-named-stores*): REQUIRED map with `trust-store-type` as keys and corresponding `array of named trust stores` as values. Each named trust store contains the trusted root certificates against which signatures are verified. Currently supported `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For example, when TSAs are specified, the format is `"tsa":[acme-tsa, wabbit-tsa]`.
-  - **`trustedIdentities`**(*map of trust-store-type -> array-of-trusted-identities*): REQUIRED map with `trust-store-type` as keys and corresponding `array of trusted identities` as values. Currently supported `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For example, when a CA trusted identity is specified, the format is `"ca": ["x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"]`. A value `*` is supported if user trusts any identity under a certain `trust-store-type`. For example, `"tsa": ["*"]`. A missing `trust-store-type` or empty array in the map means NO identity is trusted under the particular trust store type.
-
-    For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. 
+  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. To enable timestamp verification, type `tsa` MUST be configured.
+  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`. This field only contains trusted identities issued by CA(s) or Signing Authorities. 
   
-
 #### Blob Trust Policy
 
 ##### Version 1.0
@@ -115,11 +95,8 @@ Version 2.0 adds support of timestamp countersignature verification in addition 
   An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
     - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
     - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
-    - **`timestampingDisabled`**(*boolean*): An OPTIONAL property that specifies whether or not to perform the timestamp countersignature verification. When set to `true`, no timestamp verification is performed. When not set or set to `false`, timestamp verification is performed if applicable. See [timestamp countersignature verification](#timestamp-countersignature-verification-details) for details.
-  - **`trustStores`**(*map of trust-store-type -> array-of-named-stores*): REQUIRED map with `trust-store-type` as keys and corresponding `array of named trust stores` as values. Each named trust store contains the trusted root certificates against which signatures are verified. Currently supported `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For example, when TSAs are specified, the format is `"tsa":[acme-tsa, wabbit-tsa]`.
-  - **`trustedIdentities`**(*map of trust-store-type -> array-of-trusted-identities*): REQUIRED map with `trust-store-type` as keys and corresponding `array of trusted identities` as values. Currently supported `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For example, when a CA trusted identity is specified, the format is `"ca": ["x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"]`. A value `*` is supported if user trusts any identity under a certain `trust-store-type`. For example, `"tsa": ["*"]`. A missing `trust-store-type` or empty array in the map means NO identity is trusted under the particular trust store type.
-
-    For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. 
+  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. To enable timestamp verification, type `tsa` MUST be configured.
+  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`. This field only contains trusted identities issued by CA(s) or Signing Authorities. 
 
 ### Trust Policy Examples
 
@@ -210,32 +187,22 @@ Version 2.0 adds support of timestamp countersignature verification in addition 
 }
 ```
 
-3. Version 2.0 trust policy example, for a scenario where ACME Rockets consumes some OCI artifacts signed by Wabbit Networks with timestamp countersignature.
+3. Trust policy for a scenario where ACME Rockets consumes some OCI artifacts signed by Wabbit Networks with timestamp countersignature.
 
 ```jsonc
 {
-    "version": "2.0",
+    "version": "1.0",
     "trustPolicies": [
         {
-            // Policy for set of artifacts signed by Wabbit Networks
-            // that are pulled from ACME Rockets repository
             "name": "wabbit-networks-images",
-            "registryScopes": [
-              "registry.acme-rockets.io/software/net-monitor",
-              "registry.acme-rockets.io/software/net-logger"
-            ],
+            "registryScopes": [ "*" ],
             "signatureVerification": {
-              "level" : "strict",
-              "timestampingDisabled": false, // perform timestamp countersignature verification if applicable
+              "level" : "strict"
             },
-            "trustStores": {
-              "ca": ["wabbit-networks"],
-              "tsa": ["trusted-tsa"]
-            },
-            "trustedIdentities": {
-              "ca": ["x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"],
-              "tsa": ["*"] // trust any identity under `tsa` type
-            }
+            "trustStores": ["ca:acme-rockets", "tsa:trusted-tsa"], // The trust store type `tsa` MUST be configured to enable timestamp verification.
+            "trustedIdentities": [
+              "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
+            ]
         }
     ]
 }
@@ -297,20 +264,14 @@ Version 2.0 adds support of timestamp countersignature verification in addition 
     "version": "1.0",
     "trustPolicies": [
         {
-            // Policy for set of blobs signed by Wabbit Networks
             "name": "wabbit-networks-blobs",
             "signatureVerification": {
               "level" : "strict",
-              "timestampingDisabled": false, // perform timestamp countersignature verification if applicable
             },
-            "trustStores": {
-              "ca": ["wabbit-networks"],
-              "tsa": ["trusted-tsa"]
-            },
-            "trustedIdentities": {
-              "ca": ["x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"],
-              "tsa": ["*"] // trust any identity under `tsa` type
-            }
+            "trustStores": ["ca:acme-rockets", "tsa:trusted-tsa"], // The trust store type `tsa` MUST be configured to enable timestamp verification.
+            "trustedIdentities": [
+              "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
+            ]
         }
     ]
 }
@@ -385,7 +346,7 @@ Signature verification levels provide defined behavior for each validation e.g. 
   - The signing scheme is [`notary.x509`](./signing-scheme.md/#notaryx509).
   - The unsigned attribute `Timestamp Signature` is present in the signature envelope.
   - As the overall switch, `authenticTimestamp` under `signatureVerification` of trust policy is NOT marked as `skip`.
-  - `timestampingDisabled` under `signatureVerification` is not set or set to `false`.
+  - `tsa` trust store type is configured under `trustStores` field of the corresponding trust policy statement.
    
  Timestamp countersignature verification is a multi step process performs the following validations
   - integrity (timestamp token is unaltered, countersignature is not corrupted)
@@ -446,20 +407,20 @@ The DN is comprised of zero or more comma-separated components called relative d
 For example, the DN `C=US, ST=WA, O=wabbit-network.io, OU=org1` has four RDNs.
 The RDN consists of an attribute type name followed by an equal sign and the string representation of the corresponding attribute value.
 
-- Trusted identities listed under `trustedIdentities` MUST support a full and partial list of all the attribute types present in [subject DN](https://www.rfc-editor.org/rfc/rfc5280.html#section-4.1.2.6) of x509 certificate. Alternatively, it supports a single item with value `*`, to indicate that under its `trust-store-type`, any certificate that chains to the associated trust store (`trustStore`) is allowed.
+- The `trustedIdentities` list items MUST support a full and partial list of all the attribute types present in [subject DN](https://www.rfc-editor.org/rfc/rfc5280.html#section-4.1.2.6) of x509 certificate. Alternatively, it supports a single item with value `*`, to indicate that any certificate that chains to the associated trust store (`trustStore`) is allowed.
 - If the subject DN of the signing certificate is used in the trust anchor, then it MUST meet the following requirements:
-  - For each identity listed in `trustedIdentities`, if begins with `x509.subject:`, it MUST be followed by comma-separated one or more RDNs.
+  - The value of each `trustedIdentities` list item, if it begins with `x509.subject:`, MUST be followed by comma-separated one or more RDNs.
     Other types of trusted identities may be supported, by using an alternate prefix, or a different format.
     For example, `x509.subject: C=${country}, ST=${state}, L=${locallity}, O={organization}, OU=${organization-unit}, CN=${common-name}`.
-  - For each identity listed in `trustedIdentities`, it MUST contain country (C), state or province (ST), and organization (O) RDNs.
+  - Each identity in `identities` list MUST contain country (C), state or province (ST), and organization (O) RDNs.
     All other RDNs are optional.
     The minimal possible value is `x509.subject: C=${country}, ST=${state}, O={organization}`,
-  - Trust identities listed under the same `trust-store-type` MUST NOT have overlapping values,
+  - `trustedIdentities` list items MUST NOT have overlapping values,
     they are considered overlapping if there exists a certificate for which multiple DNs evaluate true. In such case the policy is considered invalid, and will fail at signature verification time when the policy is validated.
     For example, the following two identity values are overlapping:
     - `x509.subject: C=US, ST=WA, O=wabbit-network.io, OU=org1`
     - `x509.subject:  C=US, ST=WA, O=wabbit-network.io`
-  - In some special cases, identities listed in `trustedIdentities` MUST escape one or more characters in an RDN.
+  - In some special cases values in `trustedIdentities` list MUST escape one or more characters in an RDN.
     Those cases are:
     - If a value starts or ends with a space, then that space character MUST be escaped as `\`.
     - All occurrences of the comma character (`,`) MUST be escaped as `\,`.
