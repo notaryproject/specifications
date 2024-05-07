@@ -232,7 +232,7 @@ This interface targets plugins that integrate with providers of basic cryptograp
            1. Check if `response.signingAlgorithm` is one of [supported signing algorithms](./signature-specification.md#algorithm-selection).
            2. Check that the plugin did not modify `request.payload` before generating the signature, and the signature is valid for the given payload. Verify the hash of the `request.payload` against `response.signature`, using the public key of signing certificate (leaf certificate) in `response.certificateChain` along with the `response.signingAlgorithm`. This step does not include certificate chain validation (certificate chain leads to a trusted root configured in Notation's Trust Store), or revocation check.
            3. Check that the `response.certificateChain` conforms to [Certificate Requirements](./signature-specification.md#certificate-requirements).
-        5. Assemble the signature envelope using `response.signature`, `response.signingAlgorithm` and `response.certificateChain`. Notation may also request and include TSA timestamp countersignature in this step.
+        5. Assemble the signature envelope using `response.signature`, `response.signingAlgorithm` and `response.certificateChain`. If the signing scheme is [`notary.x509`](./signing-scheme.md/#notaryx509), implementations MAY also request and include TSA timestamp countersignature in this step.
         6. Generate a signature manifest for the given signature envelope.
     2. Else if, plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE` *(covered in next section)*
     3. Return an error
