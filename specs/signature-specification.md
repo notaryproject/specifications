@@ -302,9 +302,7 @@ The `basicConstraints` extension is OPTIONAL and can OPTIONALLY be marked as cri
 1. Any certificate in the certificate chain MUST NOT use SHA1WithRSA and ECDSAWithSHA1 signatures.
 2. Only Basic Constraints, Key Usage, and Extended Key Usage extensions of X.509 certificates are honored. For rest of the extensions, implementations of the Notary Project signature specification MUST fail open i.e. rest of the extensions MUST NOT be evaluated or honored.
 3. The certificates in the certificate chain MUST be valid at signing time. Implementations of the Notary Project signature specification MUST NOT enforce validity period nesting, i.e the validity period for a given certificate may not fall entirely within the validity period of that certificate's issuer certificate.
-4. **For codesigning certificate:** In the absence of an Authentic Timestamp, each and every certificate in the certificate chain i.e. signing certificate, intermediate certificates, and the root certificate must be valid i.e. not expired at the time of signature verification.
-
-   **For timestamping certificate:** Certificates in the timestamp certificate chain MAY expire at the time of verification due to existence of short-lived TSA certificates. Implementations should allow users to choose whether to verify the timestamp countersignature based on the verification time or the original timestamped time.
+4. For codesigning certificates, in the absence of an Authentic Timestamp, each and every certificate in the certificate chain i.e. signing certificate, intermediate certificates, and the root certificate must be valid i.e. not expired at the time of verification.
 
 ## FAQ
 

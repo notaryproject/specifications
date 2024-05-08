@@ -71,7 +71,7 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
 
 ##### Version 1.0
 
-- **`version`**(*string*): This REQUIRED property is the version of the trust policy. This value MUST be `1.0` for version 1.0 trust policy.
+- **`version`**(*string*): This REQUIRED property is the version of the trust policy. This MUST be `1.0` at the moment.
 - **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
   - **`name`**(*string*): This REQUIRED property represents the name of the trust policy.
   - **`registryScopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
@@ -463,14 +463,12 @@ Notary Project allows user to execute custom validations during verification usi
         1. Verify the signature envelope's `payload` matches the source [`payload`](./signature-specification.md#payload) that is getting verified. Make sure the artifact's digest, media type and size match the ones present in the signature envelope.
         1. Additionally for Blob artifacts, calculate the digest of the blob using the hashing algorithm deduced from signing certificate's public key (see [Algorithm Selection](./signature-specification.md#algorithm-selection)) and make sure the digests match.
 1. **Validate Authenticity:**
-    1. For the applicable trust policy, **validate trust store and identities:**
-        1. Validate that the signature envelope contains a complete certificate chain that starts from a code signing certificate and terminates with a root certificate. Also, validate that certificates in the chain satisfy [certificate requirements](./signature-specification.md#certificate-requirements).
-        1. For the `trustStore` configured in applicable trust policy perform the following steps.
-            1. Determine the `trust-store-type` based on the [`signing scheme`](./signing-scheme.md/#Supported-Signing-Scheme). For this step, it MUST be `ca` or `signingAuthority`. If none of them is present, fail this step.
-            1. Validate that certificate and certificate-chain lead to a trusted certificate present in the named stores listed under the same `trust-store-type`.
-            1. If all the certificates in the named stores under the same `trust-store-type` have been evaluated without a match, then fail this step.
-        1. If `array-of-trusted-identities` listed under the same `trust-store-type` in `trustedIdentities` is `["*"]`, then skip to the next validation (Validate Expiry).
-        1. Else validate if X.509 subjects (`x509.subject`) listed under the same `trust-store-type` in `trustedIdentities` matches with the value of corresponding attributes in the signing certificate’s subject, refer [this section](#trusted-identities-constraints) for details. If a match is not found, fail this step.
+    1. Validate that the signature envelope contains a complete certificate chain that starts from a code signing certificate and terminates with a root certificate. Also, validate that code signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
+          1. For the `trustStore` configured in applicable trust-policy perform the following steps.
+              1. Validate that certificate and certificate-chain lead to a trusted certificate present in the named store.
+              1. If all the certificates in the named store have been evaluated without a match, then fail this step.
+          1. If `trustedIdentities` is `*`, any signing certificate issued by a CA in `trustStore` is allowed, skip to the next validation (Validate Expiry).
+          1. Else validate if the X.509 subject (`x509.subject`) in the `trustedIdentities` list matches with the value of corresponding attributes in the signing certificate’s subject, refer [this section](#trusted-identities-constraints) for details. If a match is not found, fail this step.
 1. **Validate Expiry:**
     1. If an `expiry time` signed attribute is present in the signature envelope, check if the local machine’s current time(in UTC) is greater than `expiry time`. If yes, fail this step.
 1. **Validate Authentic Timestamp:**
