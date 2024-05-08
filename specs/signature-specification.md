@@ -289,7 +289,9 @@ The `basicConstraints` extension is OPTIONAL and can OPTIONALLY be marked as cri
 1. **[Extended Key Usage:](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.12)**
     - **For codesigning certificate:** The `extendedKeyUsage` extension is OPTIONAL and can OPTIONALLY be marked as critical. If present, the value MAY contain `id-kp-codeSigning` and MUST NOT contain `anyExtendedKeyUsage`, `serverAuth`, `clientAuth`, `emailProtection` and `timeStamping`.
     - **For timestamping certificate:** According to [RFC 3161 2.3](https://datatracker.ietf.org/doc/html/rfc3161#section-2.3), the `extendedKeyUsage` extension MUST be present and MUST be marked as critical. The value MUST contain `id-kp-timeStamping` only.
-1. **Signature Algorithm** The signature algorithm MUST follow Notary Project's requirements at [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
+1. **Key Length** The certificate MUST abide by the following key length restrictions:
+    - For RSA public key, the key length MUST be 2048 bits or higher.
+    - For ECDSA public key, the key length MUST be 256 bits or higher.
 
 #### Other requirements
 
