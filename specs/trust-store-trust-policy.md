@@ -478,17 +478,14 @@ Notary Project allows user to execute custom validations during verification usi
 1. **Validate Expiry:**
     1. If an `expiry time` signed attribute is present in the signature envelope, check if the local machine’s current time(in UTC) is greater than `expiry time`. If yes, fail this step.
 1. **Validate Authentic Timestamp:**
-
     1. If under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509):
-        1. Validate that the local machine's current time (in  UTC) is within the signing certificate chain's validity period. Its result is evaluated in step 6.1.3.
-        1. If [`sufficient and necessary conditions to trigger timestamp countersignature verification`](./trust-store-trust-policy.md/#timestamp-countersignature-verification-details) is satisfied:
+        1. If [`sufficient and necessary conditions to trigger timestamp countersignature verification`](./trust-store-trust-policy.md/#timestamp-countersignature-verification-details) is satisfied, perform timestamp countersignature verification:
             1. Verify the timestamp countersignature and validate the `TSTInfo` based on [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161) and [RFC-5816](https://datatracker.ietf.org/doc/html/rfc5816).
             1. Validate that the timestamp hash in `TSTInfo.messageImprint` matches the hash of the signature to which the timestamp was applied.
             1. Validate that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
             1. Validate that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
             1. Validate the `signing-certificate` ([RFC-2634](https://datatracker.ietf.org/doc/html/rfc2634#section-5.4)) or `signing-certificate-v2` ([RFC-5126](https://tools.ietf.org/html/rfc5126#section-5.7.3.2)) attribute of timestamp CMS. When both are present, `signing-certificate-v2` takes precedence over `signing-certificate`. When both are missing, fail this step.
-            1. Validate that the timestamp certificate chain leads to a trusted root certificate as per setting in `trustStore` with `trust-store-type tsa` in trust policy.
-            1. Validate that the timestamp signing certificate holds a trusted identity as per setting in `trustedIdentities` with `trust-store-type tsa` in trust policy.
+            1. Validate that the timestamp certificate chain leads to a trusted root certificate as per setting in `trustStore` with trust store type `tsa` in trust policy.
             1. Validate timestamp certificate chain revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section.
             1. Retrieve the timestamp's time from `TSTInfo.genTime`.
             1. Retrieve the timestamp's accuracy.
@@ -497,9 +494,7 @@ Notary Project allows user to execute custom validations during verification usi
             Otherwise, use an accuracy of 0.
             1. Calculate the timestamp range using the lower and upper limits per [RFC 3161 section 2.4.2](https://tools.ietf.org/html/rfc3161#section-2.4.2) and store the limits as `timeStampLowerLimit` and `timeStampUpperLimit` variables respectively.
             1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` is entirely within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Else fail this step.
-        1. Fail this step, if and only if, one of the following conditions is satisfied:
-            1. Step 6.1.1 is failed, and step 6.1.2 is not performed.
-            1. Step 6.1.2 is failed.
+        1. If step 6.1.1 is not performed. Validate that the local machine's current time (in  UTC) is within the signing certificate chain's validity period.
 
     1. If under signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority):
         1. Check for the `Authentic Signing Time` signed attribute. If it does not exist, fail this step.
