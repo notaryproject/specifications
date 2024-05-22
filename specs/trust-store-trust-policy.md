@@ -348,7 +348,6 @@ Signature verification levels provide defined behavior for each validation e.g. 
 
  Sufficient and necessary conditions to trigger timestamp countersignature verification:
   - The signing scheme is [`notary.x509`](./signing-scheme.md/#notaryx509).
-  - The unsigned attribute `Timestamp Signature` is present in the signature envelope.
   - As the overall switch, `authenticTimestamp` under `signatureVerification` of trust policy is NOT marked as `skip`.
   - `tsa` trust store type is configured under `trustStores` field of the corresponding trust policy statement.
   - `verifyTimestamp` under `signatureVerification` of trust policy is not set or set to `always`; OR it's set to `afterCertExpiry` and at least one certificate in the signing certificate chain has expired at the time of verification.
