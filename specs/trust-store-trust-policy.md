@@ -347,23 +347,32 @@ Signature verification levels provide defined behavior for each validation e.g. 
 #### Timestamp Countersignature Verification details
 
 Sufficient and necessary conditions to trigger timestamp countersignature verification:
-  - The signing scheme is [`notary.x509`](./signing-scheme.md/#notaryx509).
   - As the overall switch, `authenticTimestamp` under `signatureVerification` of trust policy is NOT marked as `skip`.
+  - The signing scheme is [`notary.x509`](./signing-scheme.md/#notaryx509).
   - `tsa` trust store type is configured under `trustStores` field of the corresponding trust policy statement.
   - `verifyTimestamp` under `signatureVerification` of trust policy is not set or set to `always`; OR it's set to `afterCertExpiry` and at least one certificate in the signing certificate chain has expired at the time of verification.
 
-See the diagram below for easier understanding:
+See the diagram below for better understanding:
 ```mermaid
-flowchart TB;
-  A[notary.x509]; 
-  B[Authentic Timestamp not skipped];
-  C[`tsa` trust store configured in trust policy];
-  D1[`verifyTimestamp` not set or set to `always`];
-  D2[`verifyTimestamp` set to `afterCertExpiry`];
-  E[Signing cert chain has expired at the time of verification];
-  R[Trigger timestamp verification];
+flowchart TD;
+  A{Authentic Timestamp};
+  B{Signing scheme}; 
+  C{`tsa` trust store configured};
+  D{`verifyTimestamp`};
+  E{Signing cert chain expired};
+  R1[Trigger timestamp verification];
+  R2[No timestamp verification];
 
-  A-->B-->C-->D1 & D2; D1-->R; D2-->E-->R
+  A --> |Not skip| B
+  A --> |Skip| R2
+  B --> |notary.x509| C
+  B --> |notary.x509.signingAuthority| R2
+  C --> |Yes| D
+  C --> |No| R2
+  D --> |Not set or `always`| R1
+  D --> |`afterCertExpiry`| E
+  E --> |Yes| R1
+  E --> |No| R2
 ```   
 
 Timestamp countersignature verification is a multi step process performs the following validations
