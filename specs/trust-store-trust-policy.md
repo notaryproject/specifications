@@ -352,10 +352,10 @@ Sufficient and necessary conditions to trigger timestamp countersignature verifi
   - `tsa` trust store type is configured under `trustStores` field of the corresponding trust policy statement.
   - `verifyTimestamp` under `signatureVerification` of trust policy is not set or set to `always`; OR it's set to `afterCertExpiry` and at least one certificate in the signing certificate chain has expired at the time of verification.
 
-See the diagram below for better understanding:
+See the flow chart below for a better understanding:
 ```mermaid
 flowchart TD;
-  A{Authentic Timestamp};
+  A{Authentic timestamp};
   B{Signing scheme}; 
   C{`tsa` trust store configured};
   D{`verifyTimestamp`};
