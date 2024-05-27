@@ -520,7 +520,7 @@ Notary Project allows user to execute custom validations during verification usi
             Otherwise, use an accuracy of 0.
             1. Calculate the timestamp range using the lower and upper limits per [RFC 3161 section 2.4.2](https://tools.ietf.org/html/rfc3161#section-2.4.2) and store the limits as `timeStampLowerLimit` and `timeStampUpperLimit` variables respectively.
             1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` is entirely within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Else fail this step.
-        1. If step 6.1.1 is not performed. Validate that the local machine's current time (in  UTC) is within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Else fail this step.
+        1. If step 6.i.a is not performed. Validate that the local machine's current time (in  UTC) is within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Else fail this step.
 
     1. If under signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority):
         1. Check for the `Authentic Signing Time` signed attribute. If it does not exist, fail this step.
