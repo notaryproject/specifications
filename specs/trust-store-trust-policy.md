@@ -381,13 +381,13 @@ Timestamp countersignature verification is a multi step process performs the fol
   - authenticity (the timestamp token is really from the TSA that claims to have signed it)
   - revocation check (is the TSA still trusted at the time of verification)
 
- **Existence** : Guarantees that the timestamp token exists in the signature envelope. It is always enforced if timestamp countersignature verification is triggered.
+ **Existence** : Guarantees that the timestamp token exists in the signature envelope. It is always enforced when timestamp countersignature verification is triggered.
 
- **Integrity** : Guarantees that the timestamp token wasn't altered after it was signed, or the countersignature isn't corrupted. It is always enforced if timestamp countersignature verification is triggered.
+ **Integrity** : Guarantees that the timestamp token wasn't altered after it was signed, or the countersignature isn't corrupted. It is always enforced when timestamp countersignature verification is triggered.
 
- **Authenticity** : Guarantees that the timestamp was issued by a trusted TSA identity. Its definition does not include revocation, which is when a trusted TSA is subsequently untrusted because of a compromise. It is always enforced if timestamp countersignature verification is triggered.
+ **Authenticity** : Guarantees that the timestamp was issued by a trusted TSA identity. Its definition does not include revocation, which is when a trusted TSA is subsequently untrusted because of a compromise. It is always enforced when timestamp countersignature verification is triggered.
 
- **Revocation check** : Guarantees that the TSA identity is still trusted at verification time. Events such as key or system compromise can make a TSA identity that was previously trusted, to be subsequently untrusted. It is always enforced if timestamp countersignature verification is triggered.
+ **Revocation check** : Guarantees that the TSA identity is still trusted at verification time. Events such as key or system compromise can cause a previously trusted TSA identity to become untrusted. It is always enforced when timestamp countersignature verification is triggered.
 
 #### Trust Policy Constraints
 
@@ -504,7 +504,7 @@ Notary Project allows user to execute custom validations during verification usi
     1. If an `expiry time` signed attribute is present in the signature envelope, check if the local machine’s current time(in UTC) is greater than `expiry time`. If yes, fail this step.
 1. **Validate Authentic Timestamp:**
     1. If under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509):
-        1. If [`sufficient and necessary conditions to trigger timestamp countersignature verification`](./trust-store-trust-policy.md/#timestamp-countersignature-verification-details) is satisfied, perform timestamp countersignature verification:
+        1. If [`sufficient and necessary conditions to trigger timestamp countersignature verification`](./trust-store-trust-policy.md/#timestamp-countersignature-verification-details) are satisfied, perform timestamp countersignature verification:
             1. Check the unsigned attribute `Timestamp Signature`, if not present or empty, fail this step.
             1. Verify the timestamp countersignature and validate the `TSTInfo` based on [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161) and [RFC-5816](https://datatracker.ietf.org/doc/html/rfc5816).
             1. Validate that the timestamp hash in `TSTInfo.messageImprint` matches the hash of the signature to which the timestamp was applied.
