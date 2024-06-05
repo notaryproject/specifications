@@ -373,7 +373,7 @@ flowchart TD;
   D --> |`afterCertExpiry`| E
   E --> |Yes| R1
   E --> |No| R2
-```   
+```
 
 Timestamp countersignature verification is a multi step process performs the following validations
   - existence (timestamp token is present in the signature envelope)
