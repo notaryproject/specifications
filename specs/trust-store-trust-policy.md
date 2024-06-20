@@ -25,7 +25,7 @@ Contains a set of trusted identities through which trust is derived for the rest
 - Following certificate formats are supported - Files with extension .pem, .crt and .cer, the files are expected to contain certificate(s) in DER (binary) format or PEM format (base-64 encoded DER).
 - The trust store is a directory location, under which each sub directory is considered a named store, that contains zero or more certificates. The name of this sub directory is used to reference the specific store in trust policy.
 - Symlinks are not supported for the named store directories or certificate files. Implementation MUST validate that the named store directory or certificate files are not symlinks, and fail if it does not meet this condition.
-- Certificates in a trust store are root certificates. Placing intermediate certificates in the trust store is not recommended this is a form of certificate pinning that can break signature verification unexpectedly anytime the intermediate certificate is rotated.
+- Certificates in a trust store are root certificates. Placing intermediate certificates in the trust store is not recommended as this is a form of certificate pinning that can break signature verification unexpectedly anytime the intermediate certificate is rotated.
 
 The Notary Project uses following directory structure to represent the trust store. The example shows named stores `acme-rockets` and `wabbit-networks`, which are subsequently references in the trust policy. Without this reference, presence of a named store and certificates in it does not confer trust automatically to the named store. The trust store is configured ahead of verification time, by an out of band mechanism that is beyond the scope of this document. Different entities and organizations have their own processes and policies to configure and distribute trust stores.
 
@@ -47,14 +47,14 @@ $XDG_CONFIG_HOME/notation/trust-store
                 cert10.pem
         /tsa
             /publicly-trusted-tsa
-                tsa-cert1.pem
+                tsa-root.pem
 ```
 
-The Trust store currently supports three kinds of identities, additional identities may be supported in future :
+The Trust store currently supports three kinds of identities, additional identities may be supported in future:
 
 - **Certificates**: The `x509/ca` trust store contains named stores that contain Certificate Authority (CA) root certificates.
 - **SigningAuthority Certificate**: The `x509/signingAuthority` trust store contains named stores that contain Signing Authority's root certificates.
-- **Timestamping Certificates**: The `x509/tsa` trust store contains named stores with Time Stamping Authority (TSA) root certificates.
+- **Timestamping Certificates**: The `x509/tsa` trust store contains named stores that contain Timestamping Authority (TSA) root certificates.
 
 Any additional sub directories under a named store and certificates in it are ignored. **NOTE**: Implementation SHOULD warn if it finds sub directories with certificates under a named store, to help diagnose misconfigured store.
 
@@ -81,9 +81,10 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
   An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
     - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
     - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
-  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For publicly trusted TSA, `tsa:publicly-trusted-tsa` is the default value, and implied without explicitly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
-  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
-
+    - **`verifyTimestamp`**(*string*): An OPTIONAL property that specifies timestamp verification configuration. Supported values are `always` and `afterCertExpiry`. The default value is `always`, which means always verify timestamp countersignature. `afterCertExpiry` means only verify timestamp countersignature if at least one certificate in the signing certificate chain has expired at the time of verification.
+  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. To enable timestamp verification, type `tsa` MUST be configured.
+  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`. This field only contains trusted identities issued by CA(s) or Signing Authorities. 
+  
 #### Blob Trust Policy
 
 ##### Version 1.0
@@ -95,9 +96,10 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
   An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
     - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
     - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
+    - **`verifyTimestamp`**(*string*): An OPTIONAL property that specifies timestamp verification configuration. Supported values are `always` and `afterCertExpiry`. The default value is `always`, which means always verify timestamp countersignature. `afterCertExpiry` means only verify timestamp countersignature if at least one certificate in the signing certificate chain has expired at the time of verification.
   - **`globalPolicy`**(*boolean*): This OPTIONAL property flags the policy as the global trust policy if set to `true`. This policy will be used for verification if the user does not select any policy by its name during verification.
-  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. For publicly trusted TSA, `tsa:publicly-trusted-tsa` is the default value, and implied without explicitly specifying it. If a custom TSA is used the format `ca:acme-rockets,tsa:acme-tsa` is supported to specify it.
-  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`.
+  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. To enable timestamp verification, type `tsa` MUST be configured.
+  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`. This field only contains trusted identities issued by CA(s) or Signing Authorities. 
 
 ### Trust Policy Examples
 
@@ -142,7 +144,7 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
             "signatureVerification": {
               "level" : "strict" 
             },
-            "trustStores": ["wabbit-networks"],
+            "trustStores": ["ca:wabbit-networks"],
             "trustedIdentities": [ 
               "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
             ]
@@ -180,6 +182,28 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
               "level" : "audit"
             },
             "trustStores": ["ca:acme-rockets", "ca:acme-rockets-ca2"],
+            "trustedIdentities": [
+              "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
+            ]
+        }
+    ]
+}
+```
+
+3. Trust policy for a scenario where ACME Rockets consumes some OCI artifacts signed by Wabbit Networks with timestamp countersignature.
+
+```jsonc
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "wabbit-networks-images",
+            "registryScopes": [ "*" ],
+            "signatureVerification": {
+              "level" : "strict",
+              "verifyTimestamp": "afterCertExpiry"  // Only verify any timestamp countersignature when codesigning certificate chain has expired
+            },
+            "trustStores": ["ca:acme-rockets", "tsa:trusted-tsa"], // The trust store type `tsa` MUST be configured to enable timestamp verification.
             "trustedIdentities": [
               "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
             ]
@@ -237,12 +261,33 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
 }
 ```
 
+2. Trust policy for the scenario where ACME Rockets consumes arbitrary blobs signed by Wabbit Networks with timestamp countersignature.
+
+```jsonc
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "wabbit-networks-blobs",
+            "signatureVerification": {
+              "level" : "strict",
+              "verifyTimestamp": "afterCertExpiry"  // Only verify any timestamp countersignature when codesigning certificate chain has expired
+            },
+            "trustStores": ["ca:acme-rockets", "tsa:trusted-tsa"], // The trust store type `tsa` MUST be configured to enable timestamp verification.
+            "trustedIdentities": [
+              "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
+            ]
+        }
+    ]
+}
+```
+
 #### Signature Verification details
 
 - Signature verification is a multi step process performs the following validations
   - integrity (artifact is unaltered, signature is not corrupted)
   - authenticity (the signature is really from the identity that claims to have signed it)
-  - trusted timestamping (the signature was generated when the key/certificate were unexpired)
+  - authentic timestamp (the signature was generated when the certificate was unexpired)
   - expiry (an optional check if the artifact specifies an expiry time)
   - revocation check (is the signing identity still trusted at the present time).
 - Based on the signature verification level, each of these validations is *enforced* or *logged*.
@@ -273,19 +318,17 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 **Authentic timestamp** : Guarantees that the signature was generated when the certificate was valid. It also allows a verifier to determine if a signature must be treated as valid or invalid based on whether the signature was generated before or after the certificate revocation. In the absence of an Authentic Timestamp, a signature is considered invalid if the signing certificate or chain is either expired or revoked.
 
-- **NOTE**: `notation` RC1 will generate trusted timestamp using a TSA when the signature is generated, but will not support verification of TSA countersignatures. Related issue - [#59](https://github.com/notaryproject/roadmap/issues/59).
-
 **Expiry** : This is an optional feature that guarantees that artifact is within “best by use” date indicated in the signature. Notary Project allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
 **Revocation check** : Guarantees that the signing identity is still trusted at signature verification time. Events such as key or system compromise can make a signing identity that was previously trusted, to be subsequently untrusted. This guarantee typically requires a verification-time call to an external system, which may not be consistently reliable. The `permissive` verification level only logs failures of revocation check and does not enforce it. If a particular revocation mechanism is reliable, use `strict` verification level instead.
 
-#### Custom Verification Level
+##### Custom Verification Level
 
 Signature verification levels provide defined behavior for each validation e.g. `strict` will always *enforce* authenticity validation. For fine grained control over validations that occur during signature verification, users can define a custom level which overrides the behavior of an existing verification level.
 
 - To use this feature, the `level` property MUST be specified along with an OPTIONAL `override` map.
 - Supported values for `level` are - `strict`, `permissive` and `audit`. A `skip` level cannot be customized.
-- Supported keys for `override` map and their supported values are as follows.
+- Supported keys for `override` map and their supported values are as follows:
   - `integrity` validation cannot be overriden, and therefore cannot be specified as a key.
   - `authenticity` - Supported values are `enforce` and `log`.
   - `authenticTimestamp` - Supported values are `enforce` and `log`.
@@ -300,6 +343,51 @@ Signature verification levels provide defined behavior for each validation e.g. 
       }
     }
 ```
+
+#### Timestamp Countersignature Verification details
+
+Sufficient and necessary conditions to trigger timestamp countersignature verification:
+  - As the overall switch, `authenticTimestamp` under `signatureVerification` of trust policy is NOT marked as `skip`.
+  - The signing scheme is [`notary.x509`](./signing-scheme.md/#notaryx509).
+  - `tsa` trust store type is configured under `trustStores` field of the corresponding trust policy statement.
+  - `verifyTimestamp` under `signatureVerification` of trust policy is not set or set to `always`; OR it's set to `afterCertExpiry` and at least one certificate in the signing certificate chain has expired at the time of verification.
+
+See the flow chart below for a better understanding:
+```mermaid
+flowchart TD;
+  A{Authentic timestamp};
+  B{Signing scheme}; 
+  C{`tsa` trust store configured};
+  D{`verifyTimestamp`};
+  E{Signing cert chain expired};
+  R1[Trigger timestamp verification];
+  R2[No timestamp verification];
+
+  A --> |Not skip| B
+  A --> |Skip| R2
+  B --> |notary.x509| C
+  B --> |notary.x509.signingAuthority| R2
+  C --> |Yes| D
+  C --> |No| R2
+  D --> |Not set or `always`| R1
+  D --> |`afterCertExpiry`| E
+  E --> |Yes| R1
+  E --> |No| R2
+```
+
+Timestamp countersignature verification is a multi step process performs the following validations
+  - existence (timestamp token is present in the signature envelope)
+  - integrity (timestamp token is unaltered, countersignature is not corrupted)
+  - authenticity (the timestamp token is really from the TSA that claims to have signed it)
+  - revocation check (is the TSA still trusted at the time of verification)
+
+ **Existence** : Guarantees that the timestamp token exists in the signature envelope. It is always enforced when timestamp countersignature verification is triggered.
+
+ **Integrity** : Guarantees that the timestamp token wasn't altered after it was signed, or the countersignature isn't corrupted. It is always enforced when timestamp countersignature verification is triggered.
+
+ **Authenticity** : Guarantees that the timestamp was issued by a trusted TSA identity. Its definition does not include revocation, which is when a trusted TSA is subsequently untrusted because of a compromise. It is always enforced when timestamp countersignature verification is triggered.
+
+ **Revocation check** : Guarantees that the TSA identity is still trusted at verification time. Events such as key or system compromise can cause a previously trusted TSA identity to become untrusted. It is always enforced when timestamp countersignature verification is triggered.
 
 #### Trust Policy Constraints
 
@@ -393,7 +481,7 @@ Notary Project allows user to execute custom validations during verification usi
         1. `enforced` - validation failures are treated as critical, causes the overall signature verification to fail and exit. Subsequent validations are not processed.
         1. `logged` - validation failure is logged and the next validation step is processed.
    1. A signature verification is considered successful when all validation steps are completed without critical failure.
-1. **Validate Integrity.**
+1. **Validate Integrity:**
     1. Validate signature envelope
         1. For OCI artifacts, validate that signature envelope can be parsed successfully based on the signature envelope type specified in the `blobs[0].mediaType` attribute of the signature artifact manifest.
         1. For Blob artifacts, validate that signature envelope can be parsed successfully based on the signature envelope type specified in the detached signature file extension. If no file extension is available, parse the envelope type by trying each of the [supported signature envelopes](./signature-specification.md#supported-signature-envelopes). Fail integrity check if unsuccessful.
@@ -414,25 +502,32 @@ Notary Project allows user to execute custom validations during verification usi
         1. Else validate if the X.509 subject (`x509.subject`) in the `trustedIdentities` list matches with the value of corresponding attributes in the signing certificate’s subject, refer [this section](#trusted-identities-constraints) for details. If a match is not found, fail this step.
 1. **Validate Expiry:**
     1. If an `expiry time` signed attribute is present in the signature envelope, check if the local machine’s current time(in UTC) is greater than `expiry time`. If yes, fail this step.
-1. **Validate Trusted Timestamp:**
-    1. Check for the timestamp signature in the signature envelope.
-        1. If the timestamp exists, continue with the next step.
-        Otherwise, store the local machine's current time(in  UTC) in variables `timeStampLowerLimit` and `timeStampUpperLimit` and continue with step 6.2.
-        1. Validate that the timestamp hash in `TSTInfo.messageImprint` matches the hash of the signature to which the timestamp was applied.
-        1. Validate that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
-        1. Validate that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
-        1. Validate the `signing-certificate`([RFC-2634](https://tools.ietf.org/html/rfc2634)) or `signing-certificate-v2`([RFC-5126](https://tools.ietf.org/html/rfc5126#section-5.7.3.2)) attribute of timestamp CMS.
-        1. Validate that timestamp certificate and certificate chain leads to a trusted TSA certificate as per value configured in `trustStore`.
-        1. Validate timestamp certificate and certificate chain revocation status  using [certificate revocation evaluation](#certificate-revocation-evaluation) section.
-        1. Retrieve the timestamp's time from `TSTInfo.genTime`.
-        1. Retrieve the timestamp's accuracy.
-        If the accuracy is explicitly specified in `TSTInfo.accuracy`, use that value.
-        If the accuracy is not explicitly specified and `TSTInfo.policy` is the baseline time-stamp policy([RFC-3628](https://tools.ietf.org/html/rfc3628#section-5.2)), use accuracy of 1 second.
-        Otherwise, use an accuracy of 0.
-        1. Calculate the timestamp range using the lower and upper limits per [RFC-3161 section 2.4.2](https://tools.ietf.org/html/rfc3161#section-2.4.2) and store the limits as `timeStampLowerLimit` and `timeStampUpperLimit` variables respectively.
-    1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` timestamp is entirely within the signing certificate and certificate chain's validity period. If the validation passes, continue to the next step. Else fail this step.
+1. **Validate Authentic Timestamp:**
+    1. If under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509):
+        1. If [`sufficient and necessary conditions to trigger timestamp countersignature verification`](./trust-store-trust-policy.md/#timestamp-countersignature-verification-details) are satisfied, perform timestamp countersignature verification:
+            1. Check the unsigned attribute `Timestamp Signature`, if not present or empty, fail this step.
+            1. Verify the timestamp countersignature and validate the `TSTInfo` based on [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161) and [RFC-5816](https://datatracker.ietf.org/doc/html/rfc5816).
+            1. Validate that the timestamp hash in `TSTInfo.messageImprint` matches the hash of the signature to which the timestamp was applied.
+            1. Validate that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
+            1. Validate that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
+            1. Validate the `signing-certificate-v2` ([RFC-5126](https://tools.ietf.org/html/rfc5126#section-5.7.3.2)) attribute of timestamp CMS. When missing, fail this step.
+            1. Validate that the timestamp certificate chain leads to a trusted root certificate as per setting in `trustStore` with trust store type `tsa` in trust policy.
+            1. Validate timestamp certificate chain revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section.
+            1. Retrieve the timestamp's time from `TSTInfo.genTime`.
+            1. Retrieve the timestamp's accuracy.
+            If the accuracy is explicitly specified in `TSTInfo.accuracy`, use that value.
+            If the accuracy is not explicitly specified and `TSTInfo.policy` is the baseline time-stamp policy([RFC-3628](https://tools.ietf.org/html/rfc3628#section-5.2)), use accuracy of 1 second.
+            Otherwise, use an accuracy of 0.
+            1. Calculate the timestamp range using the lower and upper limits per [RFC 3161 section 2.4.2](https://tools.ietf.org/html/rfc3161#section-2.4.2) and store the limits as `timeStampLowerLimit` and `timeStampUpperLimit` variables respectively.
+            1. Validate that the time range from `timeStampLowerLimit` to `timeStampUpperLimit` is entirely within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Else fail this step.
+        1. If step 6.i.a is not performed. Validate that the local machine's current time (in  UTC) is within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Else fail this step.
+
+    1. If under signing scheme [`notary.x509.signingAuthority`](./signing-scheme.md/#notaryx509signingauthority):
+        1. Check for the `Authentic Signing Time` signed attribute. If it does not exist, fail this step.
+        1. Validate that the `Authentic Signing Time` is within the signing certificate chain's validity period. If the validation passes, continue to the next validation (Validate Revocation Status). Else fail this step.
+
 1. **Validate Revocation Status:**
-    1. Validate signing identity(certificate and certificate chain) revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section as per `signingIdentityRevocation` setting in trust-policy.
+    1. Validate signing identity(certificate and certificate chain) revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section as per `revocation` setting in trust policy.
 1. Perform extended validation using the applicable (if any) plugin.
 1. If present, verify the user provided metadata/custom annotations match the signed attributes present in the signature envelope.
 1. If all the steps are completed without critical failures then the signatures is successfully verified.
@@ -523,7 +618,7 @@ To check the revocation status of a certificate using OCSP, the following steps 
    Response is considered expired if the current date is after the `NextUpdate` field in the response.
 1. Verify that the OCSP response indicates that the certificate is not revoked i.e `CertStatus` is `good`.
     1. If the certificate is revoked i.e `CertStatus` is `revoked`, look for `InvalidityDate`.
-        1. If the invalidity date is present and timestamp signature is also present then if the invalidity date is before the timestamping date, the certificate is considered revoked.
+        1. If the invalidity date is present and the authentic signing time is also present then if the invalidity date is before the authentic signing time, the certificate is considered revoked.
         1. If the invalidity date is not present in OCSP response, the certificate is considered revoked.
     1. If the certificate status is `unknown`, the revocation status is considered `revocation unavailable`.
 1. If `id-pkix-ocsp-nocheck`(1.3.6.1.5.5.7.48.1.5) extension is not present on the OCSP signing certificate then revocation checking must be performed using CRLs for the OCSP signing certificate.
