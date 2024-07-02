@@ -306,11 +306,11 @@ The following table shows the resultant validation action, either *enforced* (ve
 
 |Signature Verification Level|Recommended Usage|||Validations|||
 |----------------------------|-----------------|---------|------------|-----------------|------|----------------|
-|||*Integrity*|*Authenticity*|*Authentic timestamp*|*Expiry*|*Revocation check*|
-|*strict*    |Use at development, build and deploy time|enforced|enforced|enforced|enforced|enforced|
-|*permissive*|Use at deploy time or runtime|enforced|enforced|logged|logged|logged|
-|*audit*     |Use when adopting signed images, without breaking existing workflows|enforced|logged|logged|logged|logged|
-|*skip*      |Use to exclude verification for unsigned images|skipped|skipped|skipped|skipped|skipped|
+|||*Integrity*|*Authenticity*|*Authentic timestamp*|*Expiry*|*Revocation check*|*Timestamp revocation check*|
+|*strict*    |Use at development, build and deploy time|enforced|enforced|enforced|enforced|enforced|enforced|
+|*permissive*|Use at deploy time or runtime|enforced|enforced|logged|logged|logged|logged|
+|*audit*     |Use when adopting signed images, without breaking existing workflows|enforced|logged|logged|logged|logged|logged|
+|*skip*      |Use to exclude verification for unsigned images|skipped|skipped|skipped|skipped|skipped|skipped|
 
 **Integrity** : Guarantees that the artifact wasn't altered after it was signed, or the signature isn't corrupted. All signature verification levels always enforce integrity.
 
@@ -321,6 +321,8 @@ The following table shows the resultant validation action, either *enforced* (ve
 **Expiry** : This is an optional feature that guarantees that artifact is within “best by use” date indicated in the signature. Notary Project allows users to include an optional expiry time when they generate a signature. The expiry time is not set by default and requires explicit configuration by users at the time of signature generation. The artifact is considered expired when the current time is greater than or equal to expiry time, users performing verification can either configure their trust policies to fail the verification or even accept the artifact with expiry date in the past using policy. This is an advanced feature that allows implementing controls for user defined semantics like deprecation for older artifacts, or block older artifacts in a production environment. Users should only include an expiry time in the signed artifact after considering the behavior they expect for consumers of the artifact after it expires. Users can choose to consume an artifact even after the expiry time based on their specific needs.
 
 **Revocation check** : Guarantees that the signing identity is still trusted at signature verification time. Events such as key or system compromise can make a signing identity that was previously trusted, to be subsequently untrusted. This guarantee typically requires a verification-time call to an external system, which may not be consistently reliable. The `permissive` verification level only logs failures of revocation check and does not enforce it. If a particular revocation mechanism is reliable, use `strict` verification level instead.
+
+**Timestamp revocation check** : Guarantees that the TSA is still trusted at verification time. Events such as key or system compromise can cause a previously trusted TSA to become untrusted. This guarantee typically requires a verification-time call to an external system, which may not be consistently reliable. The `permissive` verification level only logs failures of timestamp revocation check and does not enforce it. If a particular revocation mechanism is reliable, use `strict` verification level instead. This validation is only used when performing timestamp verification. See [Timestamp Countersignature Verification details](./trust-store-trust-policy.md/#timestamp-countersignature-verification-details).
 
 ##### Custom Verification Level
 
@@ -334,6 +336,7 @@ Signature verification levels provide defined behavior for each validation e.g. 
   - `authenticTimestamp` - Supported values are `enforce` and `log`.
   - `expiry` - Supported values are `enforce` and `log`.
   - `revocation` - Supported values are `enforce`, `log`, and `skip`.
+  - `timestamp revocation` - Supported values are `enforce`, `log`, and `skip`.
 
 ```jsonc
     "signatureVerification": {
@@ -387,7 +390,13 @@ Timestamp countersignature verification is a multi step process performs the fol
 
  **Authenticity** : Guarantees that the timestamp was issued by a trusted TSA identity. Its definition does not include revocation, which is when a trusted TSA is subsequently untrusted because of a compromise. It is always enforced when timestamp countersignature verification is triggered.
 
- **Revocation check** : Guarantees that the TSA identity is still trusted at verification time. Events such as key or system compromise can cause a previously trusted TSA identity to become untrusted. It is always enforced when timestamp countersignature verification is triggered.
+ **Revocation check** : Configured by `Timestamp revocation check`. Since timestamp verification is overall configured by `Authentic Timestamp`, the following table regulates valid trust policy combinations of these two fields:
+
+|*Authentic timestamp*|*Timestamp revocation check*|
+|----------------------------|-----------------|
+|enforced    |enforced/logged/skipped|
+|logged      |logged/skipped|
+|skipped     |skipped|
 
 #### Trust Policy Constraints
 
@@ -506,13 +515,12 @@ Notary Project allows user to execute custom validations during verification usi
     1. If under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509):
         1. If [`sufficient and necessary conditions to trigger timestamp countersignature verification`](./trust-store-trust-policy.md/#timestamp-countersignature-verification-details) are satisfied, perform timestamp countersignature verification:
             1. Check the unsigned attribute `Timestamp Signature`, if not present or empty, fail this step.
-            1. Verify the timestamp countersignature and validate the `TSTInfo` based on [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161) and [RFC-5816](https://datatracker.ietf.org/doc/html/rfc5816).
+            1. Validate the `signing-certificate-v2` ([RFC-5126](https://tools.ietf.org/html/rfc5126#section-5.7.3.2)) attribute of timestamp CMS. When missing, fail this step.
+            1. Verify the timestamp countersignature and validate the `TSTInfo` based on [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161) and [RFC-5816](https://datatracker.ietf.org/doc/html/rfc5816). In this process, a timestamp certificate chain MUST be built and chained up to a trusted root certificate as per setting in `trustStore` with trust store type `tsa` in trust policy.
             1. Validate that the timestamp hash in `TSTInfo.messageImprint` matches the hash of the signature to which the timestamp was applied.
             1. Validate that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
             1. Validate that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
-            1. Validate the `signing-certificate-v2` ([RFC-5126](https://tools.ietf.org/html/rfc5126#section-5.7.3.2)) attribute of timestamp CMS. When missing, fail this step.
-            1. Validate that the timestamp certificate chain leads to a trusted root certificate as per setting in `trustStore` with trust store type `tsa` in trust policy.
-            1. Validate timestamp certificate chain revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section.
+            1. Validate timestamp certificate chain revocation status using [certificate revocation evaluation](#certificate-revocation-evaluation) section based on `Timestamp revocation check` of trust policy.
             1. Retrieve the timestamp's time from `TSTInfo.genTime`.
             1. Retrieve the timestamp's accuracy.
             If the accuracy is explicitly specified in `TSTInfo.accuracy`, use that value.
