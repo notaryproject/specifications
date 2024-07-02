@@ -201,6 +201,9 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
             "registryScopes": [ "*" ],
             "signatureVerification": {
               "level" : "strict",
+              "override": {
+                "timestampRevocationCheck": "skip"  // Skip timestamp revocation check during timestamp verification
+              },
               "verifyTimestamp": "afterCertExpiry"  // Only verify any timestamp countersignature when codesigning certificate chain has expired
             },
             "trustStores": ["ca:acme-rockets", "tsa:trusted-tsa"], // The trust store type `tsa` MUST be configured to enable timestamp verification.
@@ -271,6 +274,9 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
             "name": "wabbit-networks-blobs",
             "signatureVerification": {
               "level" : "strict",
+              "override": {
+                "timestampRevocationCheck": "skip"  // Skip timestamp revocation check during timestamp verification
+              },
               "verifyTimestamp": "afterCertExpiry"  // Only verify any timestamp countersignature when codesigning certificate chain has expired
             },
             "trustStores": ["ca:acme-rockets", "tsa:trusted-tsa"], // The trust store type `tsa` MUST be configured to enable timestamp verification.
@@ -305,7 +311,7 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
 The following table shows the resultant validation action, either *enforced* (verification fails), or *logged* for each of the checks, based on signature verification level.
 
 |Signature Verification Level|Recommended Usage|||Validations|||
-|----------------------------|-----------------|---------|------------|-----------------|------|----------------|
+|----------------------------|-----------------|---------|------------|-----------------|------|----------------|----------------------------|
 |||*Integrity*|*Authenticity*|*Authentic timestamp*|*Expiry*|*Revocation check*|*Timestamp revocation check*|
 |*strict*    |Use at development, build and deploy time|enforced|enforced|enforced|enforced|enforced|enforced|
 |*permissive*|Use at deploy time or runtime|enforced|enforced|logged|logged|logged|logged|
