@@ -310,7 +310,7 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
 
 The following table shows the resultant validation action, either *enforced* (verification fails), or *logged* for each of the checks, based on signature verification level.
 
-|Signature Verification Level|Recommended Usage|||Validations|||
+|Signature Verification Level|Recommended Usage|||Validations||||
 |----------------------------|-----------------|---------|------------|-----------------|------|----------------|----------------------------|
 |||*Integrity*|*Authenticity*|*Authentic timestamp*|*Expiry*|*Revocation check*|*Timestamp revocation check*|
 |*strict*    |Use at development, build and deploy time|enforced|enforced|enforced|enforced|enforced|enforced|
