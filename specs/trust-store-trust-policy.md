@@ -442,9 +442,9 @@ The RDN consists of an attribute type name followed by an equal sign and the str
   - The value of each `trustedIdentities` list item, if it begins with `x509.subject:`, MUST be followed by comma-separated one or more RDNs.
     Other types of trusted identities may be supported, by using an alternate prefix, or a different format.
     For example, `x509.subject: C=${country}, ST=${state}, L=${locallity}, O={organization}, OU=${organization-unit}, CN=${common-name}`.
-  - Each identity in `identities` list MUST contain country (C), state or province (ST), and organization (O) RDNs.
+  - Each identity in `identities` list MUST contain country (C), state or province (ST or S), and organization (O) RDNs.
     All other RDNs are optional.
-    The minimal possible value is `x509.subject: C=${country}, ST=${state}, O={organization}`,
+    The minimal possible value is `x509.subject: C=${country}, ST=${state}, O={organization}` or `x509.subject: C=${country}, S=${state}, O={organization}`.
   - `trustedIdentities` list items MUST NOT have overlapping values,
     they are considered overlapping if there exists a certificate for which multiple DNs evaluate true. In such case the policy is considered invalid, and will fail at signature verification time when the policy is validated.
     For example, the following two identity values are overlapping:
