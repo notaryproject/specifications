@@ -1,8 +1,8 @@
 # Signing and Verification Workflow
 
-This document describes workflows for signing and verifying OCI artifacts and arbitrary blobs.
+This document describes workflows for signing and verifying OCI artifacts.
 
-## OCI artifact signing workflow
+## Signing workflow
 
 The user wants to sign an OCI artifact and push the signature to a repository.
 
@@ -27,7 +27,7 @@ The user wants to sign an OCI artifact and push the signature to a repository.
 
 The user pushes the OCI artifact to the repository before the signature generation process as the signature reference must exist for the signature push to succeed.
 
-## OCI artifact verification workflow
+## Verification workflow
 
 The user wants to pull an OCI artifact only if they are signed by a trusted publisher and the signature is valid.
 
@@ -50,7 +50,7 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
     1. **Filter signature artifact manifest:**
         1. Filter out the unsupported signature formats by comparing the signature envelope format type (`[descriptors].descriptor.mediaType`) in the signature manifest, with the supported formats defined in [signature specification](./signature-specification.md#storage).
         1. Depending upon the trust-store and trust-policy configuration, further filter out signature manifests.
-            1. Using the `scopes` configured in trust policies, get the applicable trust policy.
+            1. Using the `registryScopes` configured in trust policies, get the applicable trust policy.
             1. Get the list of trusted certificates from the trust stores specified in the applicable trust policy.
                If the trust policy contains multiple trust stores, create a list of trusted certificates by merging the trusted certificate list of each trust store.
                 1. Calculate the SHA-256 fingerprint of all the trusted certificates and compare them against the list of SHA-256 certificate fingerprints present in  `io.cncf.notary.x509certs.fingerprint.sha256` annotation of artifact manifest.
@@ -70,47 +70,3 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
            If all signature artifact descriptors have already been processed, fail the signature verification and exit.
 1. **Get OCI artifact:** Using the verified digest, download the OCI artifact.
    This step is not in the purview of Notary Project.
-
-## Blob signing workflow
-
-The user wants to sign an arbitrary blob with a detached signature.
-
-### Signing Prerequisites
-
-- User has access to the signing certificate and private key or a remote signing service through a notation plugin.
-
-### Signing Steps
-
-1. **Generate signature:** Using notation CLI or any other compliant signing tool, sign the blob. The signing tool should follow the following guideline.
-    1. Construct the blob payload as defined in [`signature specification`](./signature-specification.md#payload)
-    1. Verify that the signing certificate is valid and satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
-    1. Verify that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
-    1. Generate signature.
-        1. Generate signature using a signature format specified in [supported signature envelopes](./signature-specification.md#supported-signature-envelopes). Also, as part of this step, the user-defined/supplied custom attributes should be added to the annotations of the signature payload.
-        1. If signing scheme is [`notary.x509`](./signing-scheme.md/#notaryx509) and timestamp countersignature is demanded, extract the [primitive signature](./signature-specification.md#signature-envelope) (the digital signature computed on payload and signed attributes) from the signature envelope generated in the previous step. Compute hash of the signature (the hash algorithm SHOULD be deduced from signing certificate's public key) and send it to a [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161.html) compliant *Timestamp Authority (TSA)* for timestamping. Otherwise, continue to the next step. 
-            1. Verify that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
-            1. Verify that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
-            1. On success, embed the timestamp countersignature into the *Timestamp Signature* unsigned attribute of the signature envelope. If any of the above timestamping step failed, implementations MUST fail the signing process.
-1. **Save the signature envelope:** Save the signature envelope generated in the previous step to a file. File extension should be the original blob file name plus `.sig.jws` for JWS signatures and `.sig.cose` for COSE signatures.
-
-## Arbitrary blob verification workflow
-
-The user wants to consume an arbitrary blob only if it was signed by a trusted publisher and the signature associated with the blob is valid.
-
-### Verification Prerequisites
-
-- User has the blob that they want to consume, along with its detached signature.
-- User has configured [trust store and trust policy](./trust-store-trust-policy.md) required for signature verification.
-
-### Verification Steps
-
-1. **Should implementations of this specification verify the signature? :** Depending upon [trust-policy](./trust-store-trust-policy.md#blob-trust-policy) configuration, determine whether implementations of this specification need to verify the signature or not.
-   If signature verification should be skipped for the given blob, skip the below steps.
-1. **Verify the detached signature:**
-    1. Parse and validate the signature envelope using the detached signature's file extension as the envelope type.
-    1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
-    1. If the signature verification fails, exit.
-1. Calculate the blob's size and verify that it matches the size present in `targetArtifact.size`. Fail signature verification if there is a mismatch.
-1. If provided by the user, verify blob's media type to the one present in `targetArtifact.mediaType`. Fail signature verification if there is a mismatch.
-1. Calculate the digest of the blob using the digest algorithm deduced from signing certificate's public key (see [Algorithm Selection](./signature-specification.md#algorithm-selection)) and match it with the digest specified at `targetArtifact.digest`.  Fail signature verification if there is a mismatch.
-1. If there any user-defined/supplied custom annotations, match them against the ones present in `targetArtifact.annotations`. If they match, signature verification is considered successful.

@@ -5,7 +5,7 @@ Notary Project currently supports X.509 based PKI and identities, and uses a tru
 This document consists of the following sections:
 
 - **[Trust Store](#trust-store)**: Contains a set of trusted identities through which trust is derived for the rest of the system. For X.509 PKI, the trust store typically contains a set of root certificates.
-- **[Trust Policy](#trust-policy)**: A policy language which indicates which identities are trusted to produce artifacts. Both trust store and trust policy need to be configured by users/administrators before artifact signature can be evaluated. Notation supports different trust policies for verifying different types of artifacts like signed OCI images and arbitrary blobs, etc.
+- **[Trust Policy](#trust-policy)**: A policy language which indicates which identities are trusted to produce artifacts. Both trust store and trust policy need to be configured by users/administrators before artifact signature can be evaluated.
 - **[Signature Verification](#signature-verification)**: Describes how signatures are evaluated using the policy, to determine if a signed artifact is authentic. This section is meant for implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md).
 
 Other types of identities and trust models may be supported in future, which may introduce other constructs/policy elements to support signature evaluation.
@@ -60,23 +60,21 @@ Any additional sub directories under a named store and certificates in it are ig
 
 ## Trust Policy
 
-Users who consume signed artifacts from OCI registries, or signed arbitrary blobs stored on file system, use trust policies to specify trusted identities that signed the artifacts, and level of signature verification to enforce. Trust policy files are JSON documents.
+Users who consume signed artifacts from OCI registries use trust policies to specify trusted identities that signed the artifacts, and level of signature verification to enforce. Trust policy files are JSON documents.
 
 > [!NOTE]
-> Users are required to setup separate trust policy files for verifying different types of signed artifacts. Notation expects OCI trust policy file to be placed at `{NOTATION_CONFIG}/trustpolicy.oci.json`. For backward compatibility reasons, Notation accepts `{NOTATION_CONFIG}/trustpolicy.json` as OCI trust policy file as well. For arbitrary blobs, Notation expects trust policy file to be placed at `{NOTATION_CONFIG}/trustpolicy.blob.json`.
+> Notation expects trust policy file to be placed at `{NOTATION_CONFIG}/trustpolicy.json`.
 
 ### Trust Policy Properties
 
-#### OCI Trust Policy
-
-##### Version 1.0
+#### Version 1.0
 
 - **`version`**(*string*): This REQUIRED property is the version of the trust policy. This MUST be `1.0` at the moment.
 - **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
   - **`name`**(*string*): This REQUIRED property represents the name of the trust policy.
   - **`registryScopes`**(*array of strings*): This REQUIRED property determines which trust policy is applicable for the given artifact.
     The scope field supports filtering based on fully qualified repository URI `${registry-name}/${namespace}/${repository-name}`.
-    For more information, see [trust policy constraints](#oci-trust-policy-constraints) section.
+    For more information, see [trust policy constraints](#trust-policy-constraints) section.
   - **`signatureVerification`**(*object*): This REQUIRED property dictates how signature verification is performed.
   An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
     - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
@@ -84,6 +82,7 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
     - **`verifyTimestamp`**(*string*): An OPTIONAL property that specifies timestamp verification configuration. Supported values are `always` and `afterCertExpiry`. The default value is `always`, which means always verify timestamp countersignature. `afterCertExpiry` means only verify timestamp countersignature if at least one certificate in the signing certificate chain has expired at the time of verification.
   - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. To enable timestamp verification, type `tsa` MUST be configured.
   - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`. This field only contains trusted identities issued by CA(s) or Signing Authorities. 
+  
   
 #### Blob Trust Policy
 
@@ -101,9 +100,23 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
   - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. To enable timestamp verification, type `tsa` MUST be configured.
   - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`. This field only contains trusted identities issued by CA(s) or Signing Authorities. 
 
-### Trust Policy Examples
+#### Blob Trust Policy
 
-#### Trust Policy for OCI artifacts
+##### Version 1.0
+
+- **`version`**(*string*): This REQUIRED property is the version of the trust policy. This MUST be `1.0` at the moment.
+- **`trustPolicies`**(*string-array of objects map*): This REQUIRED property represents a collection of trust policies.
+  - **`name`**(*string*): This REQUIRED property represents the name of the trust policy. This will be used to select the policy to verify a signed blob.
+  - **`signatureVerification`**(*object*): This REQUIRED property dictates how signature verification is performed.
+  An *object* that specifies a predefined verification level, with an option to override the Notary Project trust policy defined verification level if user wants to specify a [custom verification level](#custom-verification-level).
+    - **`level`**(*string*): A REQUIRED property that specifies the verification level, supported values are `strict`, `permissive`, `audit` and `skip`. Detailed explanation of each level is present [here](#signatureverification-details).
+    - **`override`**(*map of string-string*): This OPTIONAL map is used to specify a [custom verification level](#custom-verification-level).
+    - **`verifyTimestamp`**(*string*): An OPTIONAL property that specifies timestamp verification configuration. Supported values are `always` and `afterCertExpiry`. The default value is `always`, which means always verify timestamp countersignature. `afterCertExpiry` means only verify timestamp countersignature if at least one certificate in the signing certificate chain has expired at the time of verification.
+  - **`globalPolicy`**(*boolean*): This OPTIONAL property flags the policy as the global trust policy if set to `true`. This policy will be used for verification if the user does not select any policy by its name during verification.
+  - **`trustStores`**(*array of string*): This REQUIRED property specifies a set of one or more named trust stores, each of which contain the trusted roots against which signatures are verified. Each named trust store uses the format `{trust-store-type}:{named-store}`. Currently supported values for `trust-store-type` are `ca`, `signingAuthority` and `tsa`. To enable timestamp verification, type `tsa` MUST be configured.
+  - **`trustedIdentities`**(*array of strings*): This REQUIRED property specifies a set of identities that the user trusts. For X.509 PKI, it supports list of elements/attributes of the signing certificate's subject. For more information, see [identities constraints](#trusted-identities-constraints) section. A value `*` is supported if user trusts any identity (signing certificate) issued by the CA(s) in `trustStore`. This field only contains trusted identities issued by CA(s) or Signing Authorities. 
+
+### Trust Policy Examples
 
 1. Trust policy for a simple scenario where ACME Rockets consumes only the OCI artifacts signed by their own CI/CD. Any third party artifacts consumed by ACME Rockets are also signed and vetted by their CI/CD.
 
@@ -199,76 +212,6 @@ Users who consume signed artifacts from OCI registries, or signed arbitrary blob
         {
             "name": "wabbit-networks-images",
             "registryScopes": [ "*" ],
-            "signatureVerification": {
-              "level" : "strict",
-              "verifyTimestamp": "afterCertExpiry"  // Only verify any timestamp countersignature when codesigning certificate chain has expired
-            },
-            "trustStores": ["ca:acme-rockets", "tsa:trusted-tsa"], // The trust store type `tsa` MUST be configured to enable timestamp verification.
-            "trustedIdentities": [
-              "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
-            ]
-        }
-    ]
-}
-```
-
-#### Trust Policy for Blobs
-
-1. Trust policy for the scenario where ACME Rockets consumes arbitrary blobs signed by Wabbit Networks and some signed by ACME Rockets.
-
-```jsonc
-{
-    "version": "1.0",
-    "trustPolicies": [
-        {
-            // Policy for set of blobs signed by Wabbit Networks
-            "name": "wabbit-networks-blobs",
-            "signatureVerification": {
-              "level" : "strict"
-            },
-            "trustStores": ["ca:wabbit-networks"],
-            "trustedIdentities": [
-              "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
-            ]
-        },
-        {
-            // Policy that uses custom verification level to relax the strict verification.
-            // It logs expiry and skips the revocation check.
-            "name": "use-expired-blobs",
-            "signatureVerification": {
-              "level" : "strict",
-              "override" : {
-                "expiry" : "log",
-                "revocation" : "skip"
-              }
-            },
-            "trustStores": ["ca:acme-rockets"],
-            "trustedIdentities": ["*"]
-        },
-        {
-            // Global policy for all arbitrarily blobs
-            "name": "global-policy-for-all-blobs",
-            "signatureVerification": {
-              "level" : "audit"
-            },
-            "globalPolicy": true,
-            "trustStores": ["ca:acme-rockets", "ca:acme-rockets-ca2"],
-            "trustedIdentities": [
-              "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
-            ]
-        }
-    ]
-}
-```
-
-2. Trust policy for the scenario where ACME Rockets consumes arbitrary blobs signed by Wabbit Networks with timestamp countersignature.
-
-```jsonc
-{
-    "version": "1.0",
-    "trustPolicies": [
-        {
-            "name": "wabbit-networks-blobs",
             "signatureVerification": {
               "level" : "strict",
               "verifyTimestamp": "afterCertExpiry"  // Only verify any timestamp countersignature when codesigning certificate chain has expired
@@ -391,8 +334,6 @@ Timestamp countersignature verification is a multi step process performs the fol
 
 #### Trust Policy Constraints
 
-##### OCI Trust Policy Constraints
-
 - Each trust policy MUST contain scope property `registryScopes` and the scope collection MUST contain at least one value.
 - The scope MUST contain one of the following:
   - List of one or more fully qualified repository URIs.
@@ -401,10 +342,6 @@ Timestamp countersignature verification is a multi step process performs the fol
     The scope with `*` value is called global scope.
     The trust policy with global scope applies to all the artifacts.
     There can only be one trust policy that uses a global scope.
-
-##### Blob Trust Policy Constraints
-- There MUST be only one trust policy with `globalPolicy` set to `true`
-- `signatureVerification` MUST not be set to `skip` if the policy is marked as a global policy
 
 #### Selecting a trust policy to verify a signed OCI artifact
 
@@ -417,17 +354,6 @@ Timestamp countersignature verification is a multi step process performs the fol
   1. *Exact match*: If there exists a trust policy whose scope contains the artifact's repository URI then the aforementioned policy MUST be used for signature evaluation.
      Otherwise, continue to the next step.
   1. *Global*: If there exists a trust policy with global scope (`*`) then use that policy for signature evaluation.
-     Otherwise, fail the signature verification.
-
-#### Selecting a trust policy to verify a signed blob
-
-- The signature verifier must select the appropriate trust policy for blob signature verification using policy names.
-- For a given policy name selected by the verifier, there MUST be only one trust policy with that exact name.
-- For a given policy name selected by the verifier, if there is no matching trust policy with that name, then implementations of the [Notary Project verification specification](./signing-and-verification-workflow.md) MUST consider the blob as untrusted and fail signature verification.
-- Selecting a trust policy:
-  1. *Exact match*: If there exists a trust policy whose name exactly matches the one provided by the signature verifier then the aforementioned policy MUST be used for signature evaluation.
-     Otherwise, fail the signature verification.
-  1. *Global*: If verifier does not select a policy by its name and if there exists a trust policy marked as a global policy (`globalPolicy:true`) then use that policy for signature evaluation.
      Otherwise, fail the signature verification.
 
 ### Trusted Identities Constraints
@@ -471,8 +397,7 @@ Notary Project allows user to execute custom validations during verification usi
 ### Steps
 
 1. **Identify applicable trust policy**
-   1. For OCI artifacts, refer to `{NOTATION_CONFIG}/trustpolicy.oci.json` or `{NOTATION_CONFIG}/trustpolicy.json` file and use [the artifact URI as the policy selector](#selecting-a-trust-policy-to-verify-a-signed-oci-artifact) and select the policy with matching scope from `registryScopes`.
-   1. For Blob artifacts, refer to `{NOTATION_CONFIG}/trustpolicy.blob.json` and use [the policy name provided by the verifier](#selecting-a-trust-policy-to-verify-a-signed-blob) as the policy selector and select a policy.
+   1. Refer to `{NOTATION_CONFIG}/trustpolicy.json` file and use [the artifact URI as the policy selector](#selecting-a-trust-policy-to-verify-a-signed-oci-artifact) and select the policy with matching scope from `registryScopes`.
    1. If an applicable trust policy cannot be found, fail signature verification.
 1. **Proceed based on signature verification level**
    1. If `signatureVerification` level is set to `skip` in the trust policy, return success.
@@ -483,15 +408,13 @@ Notary Project allows user to execute custom validations during verification usi
    1. A signature verification is considered successful when all validation steps are completed without critical failure.
 1. **Validate Integrity:**
     1. Validate signature envelope
-        1. For OCI artifacts, validate that signature envelope can be parsed successfully based on the signature envelope type specified in the `blobs[0].mediaType` attribute of the signature artifact manifest.
-        1. For Blob artifacts, validate that signature envelope can be parsed successfully based on the signature envelope type specified in the detached signature file extension. If no file extension is available, parse the envelope type by trying each of the [supported signature envelopes](./signature-specification.md#supported-signature-envelopes). Fail integrity check if unsuccessful.
+        1. Validate that signature envelope can be parsed successfully based on the signature envelope type specified in the `blobs[0].mediaType` attribute of the signature artifact manifest.
     1. Validate that the content type indicated by the `content type` signed attribute in the signature envelope is supported.
-    1. Get the signing certificate from the parsed [signature envelope](https://github.com/notaryproject/notaryproject/blob/7b7d283038/signature-specification.md#signature-envelope).
+    1. Get the signing certificate from the parsed [signature envelope](./signature-specification.md#signature-envelope).
     1. Determine the signing algorithm(hash+encryption) from the signing certificate and validate that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements)
     1. Using the public key of the signing certificate and signing algorithm identified in the previous step, validate the integrity of the signature envelope.
     1. Verify signature `payload`
         1. Verify the signature envelope's `payload` matches the source [`payload`](./signature-specification.md#payload) that is getting verified. Make sure the artifact's digest, media type and size match the ones present in the signature envelope.
-        1. Additionally for Blob artifacts, calculate the digest of the blob using the hashing algorithm deduced from signing certificate's public key (see [Algorithm Selection](./signature-specification.md#algorithm-selection)) and make sure the digests match.
 1. **Validate Authenticity.**
     1. For the applicable trust policy, **validate trust store and identities:**
         1. Validate that the signature envelope contains a complete certificate chain that starts from a code signing certificate and terminates with a root certificate. Also, validate that code signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
