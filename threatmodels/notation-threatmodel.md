@@ -9,7 +9,7 @@ The following diagram illustrates the architecture and components.
 ![Notation system overview](../media/notation-system.svg)
 
 - **User**: The actor could be a signer or a verifier. A signer interacts with Notation CLI to sign artifacts. A verifier interacts with Notation CLI to verify artifacts against signatures.
-- **Artifact Builder**: The actor who is responsible for producing software artifacts using build systems. Notation supports signing and verification of software artifacts including but are not limited to container images, helm charts, Software Bill of Materials (SBOMs). These artifacts can be stored either in remote registries or locally on disk using [OCI image layout](https://github.com/opencontainers/image-spec/blob/v1.0.0/image-layout.md).
+- **Artifact Builder**: The actor who is responsible for producing software artifacts using build systems. Notation supports signing and verification of software artifacts including but are not limited to container images, helm charts, Software Bill of Materials (SBOMs). These artifacts can be stored either in remote registries or locally on disk using [OCI image layout](https://github.com/opencontainers/image-spec/blob/v1.1.0/image-layout.md).
 - **Execution Environment**: The execution environment includes the host and **File System** where notation CLI will be installed and executed. Notation works with a shared responsibility model which means users/organizations are responsible for securing the notation execution environment. Following are the various directories and files used by the Notation:
   - `config.json` file is used to store various configurations such as credential store information, etc.
   - `trustpolicy.json` file is used to store trust policy related data.
@@ -37,7 +37,7 @@ The following diagram illustrates Notation signing artifacts as OCI image layout
 
 ![Notation signs artifacts as OCI image layout in the filesystem](../media/notation-sign-local.svg)
 
-As per the [Notary signature specification](../specs/signature-specification.md), the signature payload is a JSON document which requires the [OCI descriptor](https://github.com/opencontainers/image-spec/blob/v1.0.0/descriptor.md) of the target artifact. For artifacts stored in a registry, the descriptor info can be retrieved from [image manifest](https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/manifest.md) stored in the registry. For artifacts stored as an [OCI Image layout](https://github.com/opencontainers/image-spec/blob/v1.0.0/image-layout.md), the descriptor info can be retrieved by inspecting the `index.json` file of OCI Image layout.
+As per the [Notary signature specification](../specs/signature-specification.md), the signature payload is a JSON document which requires the [OCI descriptor](https://github.com/opencontainers/image-spec/blob/v1.1.0/descriptor.md) of the target artifact. For artifacts stored in a registry, the descriptor info can be retrieved from [image manifest](https://github.com/opencontainers/image-spec/blob/v1.1.0/manifest.md) stored in the registry. For artifacts stored as an [OCI Image layout](https://github.com/opencontainers/image-spec/blob/v1.1.0/image-layout.md), the descriptor info can be retrieved by inspecting the `index.json` file of OCI Image layout.
 
 ### Threats and Mitigation
 

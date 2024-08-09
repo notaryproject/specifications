@@ -4,7 +4,7 @@ This specification implements the [Notary Project signature specification](signa
 CBOR Object Signing and Encryption (COSE). COSE ([RFC8152](https://datatracker.ietf.org/doc/html/rfc8152)) is a CBOR based envelope format for digital signatures over any type of payload (e.g. CBOR, JSON, binary).
 Notary Project specifically supports [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) as a signature envelope.
 
-## OCI Signature Storage
+## Signature Storage
 
 A COSE signature envelope will be stored in an OCI registry as a blob, and referenced in the signature manifest as a layer blob with `mediaType` of `"application/cose"`.
 
@@ -36,15 +36,12 @@ Signature Manifest Example
     }
 }
 ```
-## Blob Signature Storage
-
-For detached signatures associated with arbitrary blobs, a COSE signature envelope will be stored on the file system as a binary file with `cose` as the file extension.
 
 ## COSE Payload
 
 The COSE envelope contains the [Notary Project signature Payload](./signature-specification.md#payload).
 
-Example of the Notary Project OCI signature payload:
+Example
 
 ```jsonc
 {
@@ -52,21 +49,6 @@ Example of the Notary Project OCI signature payload:
     "mediaType": "application/vnd.oci.image.manifest.v1+json",
     "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
     "size": 16724,
-    "annotations": {
-        "io.wabbit-networks.buildId": "123"  // user defined metadata
-    }
-  }
-}
-```
-
-Example of the Notary Project blob signature payload:
-
-```jsonc
-{
-  "targetArtifact": {
-    "mediaType": "application/octet-stream",
-    "digest": "sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345",
-    "size": 1024,
     "annotations": {
         "io.wabbit-networks.buildId": "123"  // user defined metadata
     }
