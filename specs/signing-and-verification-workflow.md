@@ -50,7 +50,7 @@ The user wants to pull an OCI artifact only if they are signed by a trusted publ
     1. **Filter signature artifact manifest:**
         1. Filter out the unsupported signature formats by comparing the signature envelope format type (`[descriptors].descriptor.mediaType`) in the signature manifest, with the supported formats defined in [signature specification](./signature-specification.md#storage).
         1. Depending upon the trust-store and trust-policy configuration, further filter out signature manifests.
-            1. Using the `scopes` configured in trust policies, get the applicable trust policy.
+            1. Using the `registryScopes` configured in trust policies, get the applicable trust policy.
             1. Get the list of trusted certificates from the trust stores specified in the applicable trust policy.
                If the trust policy contains multiple trust stores, create a list of trusted certificates by merging the trusted certificate list of each trust store.
                 1. Calculate the SHA-256 fingerprint of all the trusted certificates and compare them against the list of SHA-256 certificate fingerprints present in  `io.cncf.notary.x509certs.fingerprint.sha256` annotation of artifact manifest.
