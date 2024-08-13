@@ -2,9 +2,9 @@
 
 This specification implements the [Notary Project signature specification](./signature-specification.md) using JSON Web Signature (JWS). JWS ([RFC7515](https://datatracker.ietf.org/doc/html/rfc7515)) is a JSON based envelope format for digital signatures over any type of payload (e.g. JSON, binary). JWS is the Notary Project supported signature format and specifically uses the *JWS JSON Serialization* representation.
 
-## OCI Signature Storage
+## Signature Storage
 
-A JWS signature envelope will be stored in an OCI registry as a layer, and referenced in the signature manifest as a layer blob with `mediaType` of `"application/jose+json"`.
+A JWS signature envelope will be stored in an OCI registry as a blob, and referenced in the signature manifest as a layer blob with `mediaType` of `"application/jose+json"`.
 
 Signature Manifest Example
 
@@ -35,15 +35,11 @@ Signature Manifest Example
 }
 ```
 
-## Blob Signature Storage
-
-For detached signatures associated with blobs, a JWS signature envelope will be stored on the file system with `jws` as the file extension.
-
 ## JWS Payload
 
 The JWS envelope contains the [Notary Project signature payload](./signature-specification.md#payload).
 
-Example of the Notary Project OCI signature payload
+Example
 
 ```jsonc
 {
@@ -51,21 +47,6 @@ Example of the Notary Project OCI signature payload
     "mediaType": "application/vnd.oci.image.manifest.v1+json",
     "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
     "size": 16724,
-    "annotations": {
-        "io.wabbit-networks.buildId": "123"  // user defined metadata
-    }
-  }
-}
-```
-
-Example of the Notary Project blob signature payload:
-
-```jsonc
-{
-  "targetArtifact": {
-    "mediaType": "application/octet-stream",
-    "digest": "sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345",
-    "size": 1024,
     "annotations": {
         "io.wabbit-networks.buildId": "123"  // user defined metadata
     }
