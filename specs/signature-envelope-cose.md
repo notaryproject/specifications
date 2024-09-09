@@ -4,7 +4,7 @@ This specification implements the [Notary Project signature specification](signa
 CBOR Object Signing and Encryption (COSE). COSE ([RFC8152](https://datatracker.ietf.org/doc/html/rfc8152)) is a CBOR based envelope format for digital signatures over any type of payload (e.g. CBOR, JSON, binary).
 Notary Project specifically supports [COSE_Sign1_Tagged](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2) as a signature envelope.
 
-## Storage
+## OCI Signature Storage
 
 A COSE signature envelope will be stored in an OCI registry as a blob, and referenced in the signature manifest as a layer blob with `mediaType` of `"application/cose"`.
 
@@ -36,12 +36,15 @@ Signature Manifest Example
     }
 }
 ```
+## Blob Signature Storage
+
+For detached signatures associated with arbitrary blobs, a COSE signature envelope will be stored on the file system as a binary file with `cose` as the file extension.
 
 ## COSE Payload
 
 The COSE envelope contains the [Notary Project signature Payload](./signature-specification.md#payload).
 
-Example of the Notary Project signature payload:
+Example of the Notary Project OCI signature payload:
 
 ```jsonc
 {
@@ -49,6 +52,21 @@ Example of the Notary Project signature payload:
     "mediaType": "application/vnd.oci.image.manifest.v1+json",
     "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
     "size": 16724,
+    "annotations": {
+        "io.wabbit-networks.buildId": "123"  // user defined metadata
+    }
+  }
+}
+```
+
+Example of the Notary Project blob signature payload:
+
+```jsonc
+{
+  "targetArtifact": {
+    "mediaType": "application/octet-stream",
+    "digest": "sha256:2f3a23b6373afb134ddcd864be8e037e34a662d090d33ee849471ff73c873345",
+    "size": 1024,
     "annotations": {
         "io.wabbit-networks.buildId": "123"  // user defined metadata
     }
@@ -110,7 +128,7 @@ Note: The above examples are represented using the [extended CBOR diagnostic not
 - **[`content type`](https://datatracker.ietf.org/doc/html/rfc8152#section-3.1)** (*tstr*): The REQUIRED parameter content type (label `3`) is used to declare the media type of the secured content (the payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`.
 - **`io.cncf.notary.signingScheme`** (*tstr*, critical): This REQUIRED header specifies the [Notary Project signing scheme](./signing-scheme.md) used by the signature. Supported values are `notary.x509` and `notary.x509.signingAuthority`.
 - **`io.cncf.notary.signingTime`** (*date/time*): This header specifies the time at which the signature was generated. This is an untrusted date/time, and therefore not used in trust decisions. Its value is an Epoch-Based Date/Time defined in [RFC 8949](https://datatracker.ietf.org/doc/html/rfc8949#section-3.4.2). The optional fractional seconds SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509`.
-- **`io.cncf.notary.authenticSigningTime`** (*date/time*, critical): This header specifies the authenticated time at which the signature was generated. Its value is an Epoch-Based Date/Time defined in [RFC 8949](https://datatracker.ietf.org/doc/html/rfc8949#section-3.4.2). The optional fractional seconds SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority` .
+- **`io.cncf.notary.authenticSigningTime`** (*date/time*, critical): This header specifies the authenticated time at which the signature was generated. Its value is an Epoch-Based Date/Time defined in [RFC 8949](https://datatracker.ietf.org/doc/html/rfc8949#section-3.4.2). The optional fractional seconds SHOULD NOT be used. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority`.
 - **`io.cncf.notary.expiry`** (*date/time*, critical): This OPTIONAL header provides a "best by use" time for the artifact, as defined by the signer. Its value is an Epoch-Based Date/Time defined in [RFC 8949](https://datatracker.ietf.org/doc/html/rfc8949#section-3.4.2). The optional fractional seconds SHOULD NOT be used.
 
 ## Unprotected Headers
@@ -136,8 +154,7 @@ The Notary Project signature supports the following unprotected header parameter
 Note: `<<` and `>>` are used to notate the CBOR byte string resulting from encoding the data item.
 
 - **[`x5chain`](https://datatracker.ietf.org/doc/html/draft-ietf-cose-x509-08#section-2)** (*array of bstr*): This REQUIRED parameter (label `33` by [IANA](https://www.iana.org/assignments/cose/cose.xhtml#header-parameters)) contains the ordered list of X.509 certificate or certificate chain ([RFC5280](https://datatracker.ietf.org/doc/html/rfc5280)) corresponding to the key used to digitally sign the COSE. The certificate chain is represented as an array of certificate, each certificate in the array is DER encoded and then wrapped in a CBOR byte string. The certificate containing the public key corresponding to the key used to digitally sign the COSE MUST be the first certificate, followed by the intermediate and root certificates in the correct order. Refer [*Certificate Chain* unsigned attribute](signature-specification.md#unsigned-attributes) for more details. Optionally, this header can be presented in the protected header.
-- **`io.cncf.notary.timestampSignature`** (*bstr*): This OPTIONAL header is used to store countersignature that provides authentic signing time. Only [RFC3161]([rfc3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2)) compliant `TimeStampToken` are supported.
-  - **TODO** Define the opaque datum (hash of envelope) that is sent to TSA, and how TSA response (time stamp token) is represented in this header.
+- **`io.cncf.notary.timestampSignature`** (*bstr*): This OPTIONAL header is used to store a countersignature that proves the signature was generated before the timestamp. Only [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2) compliant `TimeStampToken` are supported. If present, this header is validated and used solely under the [`notary.x509`](./signing-scheme.md/#notaryx509) signing scheme. Refer [*Timestamp Signature* unsigned attribute](signature-specification.md#unsigned-attributes) for more details.
 - **`io.cncf.notary.signingAgent`** (*tstr*): This OPTIONAL header provides the identifier of a client (e.g. Notation) that produced the signature. E.g. `notation/1.0.0`. Refer [*Signing Agent* unsigned attribute](signature-specification.md#unsigned-attributes) for more details.
 
 ## Signature

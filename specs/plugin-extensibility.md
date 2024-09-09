@@ -5,7 +5,7 @@ Keys and associated certificates used for signing artifacts using Notation could
 ## Terminology
 
 * **Plugin Publisher** - A user, organization, open source project or 3rd party vendor that creates a Notation plugin for internal or public distribution.
-* **Plugin** - A component external to Notation that can integrate as one of the steps in Notation’s workflow for signature generation or verification.
+* **Plugin** - A component external to Notation that can integrate as one of the steps in Notation’s workflow for signature generation or verification. A Notation plugin can be distributed as a single executable file, or an archive file (`zip` or `tar.gz`).
 * **Default provider** - Signing and verification mechanisms built into Notation itself to provide default experience without requiring to install/configure additional plugins. ***[We are yet to define what is included in the default experience]***.
 
 ## Plugin mechanism
@@ -22,13 +22,37 @@ Keys and associated certificates used for signing artifacts using Notation could
 
 Notation will invoke plugins as executable, pass parameters using command line arguments, and use standard IO streams to pass request/response payloads. This mechanism is used as Go language (used to develop [Notation Go library](https://github.com/notaryproject/notation-go)) does not have a [in built support](https://github.com/golang/go/issues/19282) to load and execute plugins that works across OS platforms. Other mechanisms like gRPC require every plugin to be implemented as a service/daemon.
 
+### Package and release a plugin
+
+Notation supports the installation of a plugin from an `https` URL or from a file in the filesystem. To support the plugin installation and management using `notation plugin` commands, the plugin publisher must adhere to the following conventions:
+
+* Plugin executable file MUST follow the naming convention `notation-{plugin-name}`. On `windows` OS, the file extension `.exe` is REQUIRED.
+* The plugin distribution format MUST be either .zip, .tar.gz, or a single plugin executable file. If the release format is _single plugin executable file_, it is highly recommended to compress it into an archive for installation efficiency consideration.
+* If the archive format is `.zip` or `.tar.gz`, there MUST be one and only one plugin executable file within each archive.
+* Plugin publisher MUST provide SHA256 checksum for each released archive or _single plugin executable file_ if they want to enable users to install a plugin from an `https` URL.
+* The plugin archive MAY contain License files. Also, it's recommended to include licenses in the archive.
+* Currently, Notation facilitates the installation of plugin executable files and archives, with a size limit of less than 256 MiB. Consequently, the plugin executable file and archive size MUST be less than 256 MiB. Note: Although users have the option to install plugins larger than 256 MiB, they will be unable to utilize the `notation plugin install` command in such cases.
+
+For example, an archive of a Notation plugin `helloworld` for Linux AMD64 machine `notation-helloworld_1.0.1_linux_amd64.tar.gz` includes these files:
+
+```
+notation-helloworld_1.0.1_linux_amd64.tar.gz
+├── notation-helloworld (required)
+├── LICENSE (optional)
+└── Dependencies (required if present)
+```
+
 ### Plugin lifecycle management
 
 #### Installation
 
 Plugin publisher will provide instructions to download and install the plugin. Plugins intended for public distribution should also include instructions for users to verify the authenticity of the plugin.
 
-**Open Item** : [Plugin install paths](https://github.com/notaryproject/notation/issues/167)
+##### Plugin installation methods
+
+Notation offers [plugin management](https://github.com/notaryproject/notation/blob/v1.1.0/specs/commandline/plugin.md) commands that allow users to install plugins from various sources, including `https` URL and filesystem.
+
+##### Plugin installation path
 
 To enumerate all available plugins the `PLUGIN_DIRECTORY` is scanned based on per OS:
 | OS      | PLUGIN_DIRECTORY                                     |
@@ -49,13 +73,9 @@ To be considered a valid plugin a candidate must pass each of these "plugin cand
 * Must, where relevant, have appropriate OS "execute" permissions (e.g. Unix x bit set) for the current user.
 * Must actually be executed successfully and when executed with the subcommand `get-plugin-metadata` must produce a valid JSON metadata (and nothing else) on its standard output (schema to be discussed later).
 
-#### Commands
+### Commands
 
-* List
-
-`notation plugin list`
-
-List all valid plugins.
+Notation provides various commands, including `install`, `list`, and `uninstall`, to manage plugin lifecycle. For more information, please refer to the [`notation plugin` CLI specification](https://github.com/notaryproject/notation/blob/v1.1.0/specs/commandline/plugin.md).
 
 ### Using a plugin for signing
 
@@ -212,7 +232,7 @@ This interface targets plugins that integrate with providers of basic cryptograp
            1. Check if `response.signingAlgorithm` is one of [supported signing algorithms](./signature-specification.md#algorithm-selection).
            2. Check that the plugin did not modify `request.payload` before generating the signature, and the signature is valid for the given payload. Verify the hash of the `request.payload` against `response.signature`, using the public key of signing certificate (leaf certificate) in `response.certificateChain` along with the `response.signingAlgorithm`. This step does not include certificate chain validation (certificate chain leads to a trusted root configured in Notation's Trust Store), or revocation check.
            3. Check that the `response.certificateChain` conforms to [Certificate Requirements](./signature-specification.md#certificate-requirements).
-        5. Assemble the JWS Signature envelope using `response.signature`, `response.signingAlgorithm` and `response.certificateChain`. Notation may also generate and include timestamp signature in this step.
+        5. Assemble the signature envelope using `response.signature`, `response.signingAlgorithm` and `response.certificateChain`. If the signing scheme is [`notary.x509`](./signing-scheme.md/#notaryx509), implementations SHOULD also request and include TSA timestamp countersignature in this step. The `certReq` field in the [timestamping request](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.1) MUST be set to true.
         6. Generate a signature manifest for the given signature envelope.
     2. Else if, plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE` *(covered in next section)*
     3. Return an error
@@ -335,7 +355,7 @@ All response attributes are required.
 
 ### Signature Envelope Generator
 
-This interface targets plugins that in addition to signature generation want to generate the complete signature envelope. This interface allows plugins to have full control over the generated signature envelope, and can append additional signed and unsigned metadata, including timestamp signatures. The plugin must be signature envelope format aware, and implement new formats when Notary Project adopts new formats.
+This interface targets plugins that in addition to signature generation want to generate the complete signature envelope. This interface allows plugins to have full control over the generated signature envelope, and can append additional signed and unsigned metadata, including timestamp countersignatures. The plugin must be signature envelope format aware, and implement new formats when Notary Project adopts new formats.
 
 #### Signing workflow using plugin
 
@@ -346,14 +366,15 @@ This interface targets plugins that in addition to signature generation want to 
 1. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE`
         1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded the [Notary Project signature Payload](./signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/jose+json` for JWS).
-        2. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match `request.signatureEnvelopeType`.
-        3. Validate the generated signature, return an error if of the checks fails.
+        2. If plugin supports timestamping under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509), the plugin SHOULD request and include TSA timestamp countersignature in the signature envelope at this step. The timestamp countersignature MUST be [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2) compliant. The `certReq` field in the [timestamping request](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.1) MUST be set to true.
+        3. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match `request.signatureEnvelopeType`.
+        4. Validate the generated signature envelope, return an error if any of the checks fails.
            1. Check if `response.signatureEnvelopeType` is a supported envelope type and `response.signatureEnvelope`'s format matches `response.signatureEnvelopeType`.
            2. Check if the signing algorithm in the signature envelope is one of [supported signing algorithms](./signature-specification.md#algorithm-selection).
            3. Check that the [`targetArtifact` descriptor](./signature-specification.md#payload) in JWSPayload in `response.signatureEnvelope` matches `request.payload`. Plugins MAY append additional annotations but MUST NOT replace/override existing descriptor attributes and annotations.
-           4. Check that `response.signatureEnvelope` can be verified using the public key and signing algorithm specified in the signing certificate, which is embedded as part of certificate chain in `response.signatureEnvelope` . This step does not include certificate chain validation (certificate chain leads to a trusted root configure in Notation), or revocation check.
-           5. Check that the certificate chain in `response.signatureEnvelope` confirm to [Certificate Requirements].
-        4. Generate a signature manifest for the given signature envelope, and append `response.annotations` to manifest annotations.
+           4. Check that `response.signatureEnvelope` can be verified using the public key and signing algorithm specified in the signing certificate, which is embedded as part of certificate chain in `response.signatureEnvelope`. This step does not include certificate chain validation (certificate chain leads to a trusted root configured in Notation), or revocation check.
+           5. Check that the certificate chain in `response.signatureEnvelope` and [timestamp countersignature](./signature-specification.md#unsigned-attributes) confirm to [certificate requirements](./signature-specification.md#certificate-requirements).
+        5. Generate a signature manifest for the given signature envelope, and append `response.annotations` to manifest annotations.
     2. Else if plugin supports capability `SIGNATURE_GENERATOR.RAW` *(covered in previous section)*
     3. Return an error
 
@@ -490,11 +511,11 @@ This allows implementations of the [Notary Project signature specification](./si
     "criticalAttributes" : 
     { 
        "contentType" : "application/vnd.cncf.notary.payload.v1+json",
-       // One of notary.default.x509 or notary.signingAuthority.x509
-       "signingScheme" : "notary.default.x509" | "notary.signingAuthority.x509",
+       // One of notary.x509 or notary.x509.signingAuthority
+       "signingScheme" : "notary.x509" | "notary.x509.signingAuthority",
        // Value is always RFC 3339 formatted date time string
        "expiry": "2022-10-06T07:01:20Z", 
-       // if signingScheme is notary.signingAuthority.x509.
+       // if signingScheme is notary.x509.signingAuthority
        "authenticSigningTime": "2022-04-06T07:01:20Z",
        // Name of the verification plugin
        "verificationPlugin": "com.example.nv2plugin",
@@ -584,6 +605,6 @@ All response attributes are required.
 
 ## FAQ
 
-**Q: Will Notation generate timestamp signature for Signature Envelope Generator plugin or its responsibility of plugin publisher?**
+**Q: Will Notation generate timestamp countersignature for Signature Envelope Generator plugin or its responsibility of plugin publisher?**
 
-**A :** If the envelope generated by a Signature Envelope Generator plugin contains timestamp signature, Notation will not append additional timestamp signature, else it will generate the timestamp signature and append it to the envelope as an unsigned attribute.
+**A :** The Signature Envelope Generator plugin has full control over the generated signature envelope including any timestamp countersignature. Notation will NOT add/update/delete any timestamp countersignature in an envelope that's generated by a Signature Envelope Generator plugin.
