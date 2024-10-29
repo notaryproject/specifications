@@ -564,7 +564,7 @@ Implementations MAY add support for caching CRLs and OCSP response to improve av
 ##### CRL Download
 
 CRL download location (URL) can be obtained from the certificate's CRL Distribution Point (CDP) extension.
-If the certificate contains multiple CDP locations then each location download is attempted in sequential order, until a 2xx response is received for any of the location.
+If the certificate contains multiple CDP locations then each location download is attempted in sequential order, until a 200 response is received for any of the location.
 For each CDP location, [Notary Project verification workflow](./signing-and-verification-workflow.md) will try to download the CRL for the default threshold of 5 seconds.
 The user may be able to configure this threshold.
 If the CRL cannot be downloaded within the timeout threshold the revocation result will be "revocation unavailable".
@@ -602,7 +602,7 @@ When delta CRLs are implemented, the following results can occur during revocati
 ##### OCSP Download
 
 OCSP URLs can be obtained from the certificate's authority information access (AIA) extension as defined in [RFC 6960](https://www.rfc-editor.org/rfc/rfc6960).
-If the certificate contains multiple OCSP URLs, then each URL is invoked in sequential order, until a 2xx response is received for any of the URL.
+If the certificate contains multiple OCSP URLs, then each URL is invoked in sequential order, until a 200 response is received for any of the URL.
 For each OCSP URL, wait for a default threshold of 2 seconds to receive an OCSP response.
 The user may be able to configure this threshold.
 If OCSP response is not available within the timeout threshold the revocation result will be "revocation unavailable".
