@@ -91,7 +91,7 @@ The user wants to sign an arbitrary blob with a detached signature.
             1. Verify that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
             1. Verify that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
             1. On success, embed the timestamp countersignature into the *Timestamp Signature* unsigned attribute of the signature envelope. If any of the above timestamping step failed, implementations MUST fail the signing process.
-1. **Save the signature envelope:** Save the signature envelope generated in the previous step to a file. File extension should be the original blob file name plus `.sig.jws` for JWS signatures and `.sig.cose` for COSE signatures.
+1. **Save the signature envelope:** Save the signature envelope generated in the previous step to a file. File extension should be the original blob file name plus `.jws.sig` for JWS signatures and `.cose.sig` for COSE signatures.
 
 ## Arbitrary blob verification workflow
 
