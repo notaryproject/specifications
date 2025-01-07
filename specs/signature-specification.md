@@ -221,7 +221,7 @@ The Notary Project signature manifest's `io.cncf.notary.x509chain.thumbprint#S25
 
 ## Blob Signatures
 
-The Notary Project facilitates signing arbitrary blobs using detached signatures. These detached signatures can be transported via any preferred medium and verified on the receiving end. A detached signature refers to a signature that is not embedded within (and therefore does not modify) the original blob, instead it consists of a detached signature envelope with a signature over the unique representation of the blob (i.e. blob's digest). The file extension can either be 'jws' or 'cose', indicating the signature envelope format.
+The Notary Project facilitates signing arbitrary blobs using detached signatures. These detached signatures can be transported via any preferred medium and verified on the receiving end. A detached signature refers to a signature that is not embedded within (and therefore does not modify) the original blob, instead it consists of a detached signature envelope with a signature over the unique representation of the blob (i.e. blob's digest). The signature file extensions MUST be '.jws.sig' or '.cose.sig', indicating the signature envelope format.
 
 ![Signature storage inside file system](../media/blob-signature-specification.svg)
 
