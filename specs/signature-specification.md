@@ -230,6 +230,83 @@ The Notary Project facilitates signing arbitrary blobs using detached signatures
 1. Apart from the `payload` field, all other fields of a signature envelope are identical between OCI and blob signatures.
 1. OCI signatures have signature manifest files, containing the mediaType of the signature envelope (application/jose+json or application/cose). However, blob signatures lack such manifest file and this mediaType information is instead found in the signature file extension.
 
+### Distribute arbitrary blob and blob signature with an OCI conformant registry
+Besides local file system, an arbitrary blob and its blob signature can also be stored in an OCI conformant registry.
+
+Notary Project client supports discover and verify such blob signatures with following requirements:
+1. The target arbitrary blob MUST be stored in the OCI registry as an OCI image. This [OCI image's manifest](https://github.com/opencontainers/image-spec/blob/v1.1.0/manifest.md) MUST have `"mediaType": "application/vnd.oci.image.manifest.v1+json"`. 
+2. This OCI image manifest MUST have one and only one layer, which describes the target arbitrary blob. 
+
+    Example of the OCI image manifest:
+    ```jsonc
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",  // REQUIRED
+      "artifactType": "application/vnd.unknown.artifact.v1",
+      "config": {
+        "mediaType": "application/vnd.oci.empty.v1+json",
+        "digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "size": 2,
+        "data": "e30="
+      },
+      "layers": [
+        { // REQUIRED: Descriptor of the target arbitrary blob
+          "mediaType": "application/octet-stream",
+          "digest": "sha256:1e73547d0530231d4b9c4b7975cdad8b37d6fd24fd8718f0296111afbcedf5a6",
+          "size": 100,
+          "annotations": {
+            "org.opencontainers.image.title": "blob"
+          }
+        }
+      ],
+      "annotations": {
+        "org.opencontainers.image.created": "2025-02-07T08:08:18Z"
+      }
+    }
+    ```
+3. The blob signature MUST be stored as a [referrer](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers) of the OCI image. 
+
+    A blob signature in an OCI registry vs. a regular [OCI signature](#oci-signatures):
+
+    i. Unlike an OCI signature, the blob signature signs the arbitrary blob instead of the OCI image manifest. Therefore, to denote such a blob signature, the blob signature manifest MUST contain an extra annotation: `"io.cncf.notary.blob.signature": "true"`. Signature with manifest that does not contain annotation `"io.cncf.notary.blob.signature": "true"` will be deemed as a regular OCI signature.
+
+    ii. Since the blob signature is a referrer of the OCI image, the blob signature manifest `subject` describes the OCI image manifest instead of the target arbitrary blob. Therefore, rules stated under [OCI Signature Discovery](signature-specification.md#oci-signature-discovery) still apply to blob signatures.
+
+    Example of a blob signature manifest:
+    ```jsonc
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "artifactType": "application/vnd.cncf.notary.signature",
+      "config": {
+        "mediaType": "application/vnd.oci.empty.v1+json",
+        "digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "size": 2,
+        "data": "e30="
+      },
+      "layers": [
+        {
+          "mediaType": "application/cose",
+          "digest": "sha256:347be3c8ac2d14ffa636bffde8d71ed9732eb193a5e73f7996fbe68d4ec6cb37",
+          "size": 4013,
+          "annotations": {
+            "org.opencontainers.image.title": "blob.cose.sig"
+          }
+        }
+      ],
+      "subject": { // Descriptor of the OCI image manifest
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:cec0d6f4d0f6b586365a91fd8c169f3d6ffb72f81aec743e6cfeb7c85a048e1a",
+        "size": 575
+      },
+      "annotations": {
+        "io.cncf.notary.blob.signature": "true", // REQUIRED extra annotation
+        "io.cncf.notary.x509chain.thumbprint#S256": "[\"d3affc7970b08bfa9b9b45c4c12a495a8c8c841c2e15f65c5690bc673825d26c\"]",
+        "org.opencontainers.image.created": "2025-02-07T08:08:38Z"
+      }
+    }
+    ```
+
 ## Signature Algorithm Requirements
 
 The implementation MUST support the following set of algorithms:
