@@ -264,7 +264,7 @@ Notary Project client supports discover and verify such blob signatures with fol
       }
     }
     ```
-3. The blob signature MUST be stored as a [referrer](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers) of the OCI image. 
+3. The blob signature MUST be stored as a [referrer](https://github.com/opencontainers/distribution-spec/blob/v1.1.1/spec.md#listing-referrers) of the OCI image. 
 
     A blob signature in an OCI registry vs. a regular [OCI signature](#oci-signatures):
 
