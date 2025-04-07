@@ -209,10 +209,15 @@ Besides the [image manifest property requirements][image-manifest-property-descr
   Keys using the `io.cncf.notary` namespace are reserved for use in the Notary Project signature specification and MUST NOT be used by other specifications.
   - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprints of signing certificate and certificate chain (including root) used for signature generation. The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
 
-#### OCI Signature Verification Backward Compatibility  
+For OCI v1.0 compliant registries, the `subject` and `artifactType` fileds in the signature manifest are ignored by the registry. Notation v2.x SHOULD fall back to use OCI referrers tag schema to push and store the signature in the registry.
+
+#### OCI Signature Verification Forward and Backward Compatibility  
 
 The Notary Project signature uses the `artifactType` property to indicate its type starting from `notation` v2.0.0, whereas older versions rely on `config.mediatype`.  
-To minimize the impact of breaking changes in the signature manifest, `notation` v2.x SHOULD ensure backward compatibility with older OCI signatures.
+
+To minimize the impact of breaking changes in the signature manifest, `notation` v2.x SHOULD be able to list, inspect, and verify the signature produced by `notation` v1.x. It ensures backward compatibility with older OCI signatures.
+
+Forward compatibility SHOULD also be considered in `notation` v1.x since it reduces friction in updrades and won't make older workflows suddenly fail when verifying a newer signature. `notation` v1.x SHOULD be able to list, inspect, and verify the signature produced by `notation` v2.0. 
 
 ### OCI Signature Discovery
 
