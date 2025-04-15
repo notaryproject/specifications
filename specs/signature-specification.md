@@ -194,7 +194,7 @@ Signature manifest example per OCI image manifest:
 Besides the [image manifest property requirements][image-manifest-property-descriptions], the properties have the following additional restrictions:
 
 - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.oci.image.manifest.v1+json`.
-- **`artifactType`** (*string*): This REQUIRED property MUST be `application/vnd.cncf.notary.signature`.
+- **`artifactType`** (*string*): This OPTIONAL property MUST be `application/vnd.cncf.notary.signature`.
 - **`config`** (*descriptor*): This property is REQUIRED to be compatible with [OCI image specification][oci-image-manifest]. The Notary Project signature specification doesn't require any configuration for a signature, and the configuration content is not consumed by implementations of the Notary Project signature specification.
   - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.oci.empty.v1+json`.
   - **`digest`** (*string*): This REQUIRED property is the digest of the config content.
@@ -213,11 +213,9 @@ For OCI v1.0 compliant registries, the `subject` and `artifactType` fileds in th
 
 #### OCI Signature Verification Forward and Backward Compatibility  
 
-The Notary Project signature uses the `artifactType` property to indicate its type starting from `notation` v2.0.0, whereas older versions rely on `config.mediatype`.  
+When signing an artifact, the Notary Project signature uses the `artifactType` property to indicate its type, whereas older versions rely on `config.mediatype`.  
 
-To minimize the impact of breaking changes in the signature manifest, `notation` v2.x SHOULD be able to list, inspect, and verify the signature produced by `notation` v1.x. It ensures backward compatibility with older OCI signatures.
-
-Forward compatibility SHOULD also be considered in `notation` v1.x since it reduces friction in updrades and won't make older workflows suddenly fail when verifying a newer signature. `notation` v1.x SHOULD be able to list, inspect, and verify the signature produced by `notation` v2.0. 
+To minimize the impact of breaking changes in the signature manifest, verifier SHOULD be able to list, inspect, and verify the Notary Project signatures contain either `config.mediaType` or `artifactType`. It ensures forward and backward compatibility with OCI signatures. It reduces friction in updrades and won't make older workflows suddenly fail when verifying a newer signature. 
 
 ### OCI Signature Discovery
 
