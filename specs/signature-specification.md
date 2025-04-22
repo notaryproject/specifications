@@ -194,7 +194,7 @@ A sample signature manifest is as follows:
 }
 ```
 
-- For registries support OCI Image Spec v1.0, the `subject` and `artifactType` fields in the signature manifest are ignored by the registry. The signing agent SHOULD fall back to use OCI referrers tag schema to produce a Notary Project signature using a legacy format which does not contain `artifactType` property as follows::
+- For registries support OCI Image Spec v1.0 only, the `artifactType` field in the signature manifest is ignored by the registry. The required property `config.mediaType: "application/vnd.cncf.notary.signature"` is used to indicate Notary Project signature:
 
 ```jsonc
 {
@@ -223,8 +223,6 @@ A sample signature manifest is as follows:
     }
 }
 ```
-
-In former versions of Notary Project signature specification, the legacy Notary Project signature manifest uses the required property `config.mediaType: "application/vnd.cncf.notary.signature"` to indicate it's a Notary Project signature when `artifactType` does not exist, OR its value is not `application/vnd.cncf.notary.signature`.  
 
 Besides the [image manifest property requirements][image-manifest-property-descriptions], the properties have the following additional restrictions:
 
