@@ -157,7 +157,7 @@ These attributes are considered unsigned with respect to the signing key that ge
 This section describes how a Notary Project signature is stored in an OCI Distribution conformant registry.
 OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.1.1][oci-image-manifest] for details. 
 
-The signature manifest uses either the `artifactType` property or `config.mediaType` to indicate it's a Notary Project signature, a subject referencing the manifest of the artifact being signed, a layer referencing the signature, and a collection of annotations.
+The signature manifest uses either the `artifactType` property or `config.mediaType` to indicate it's a Notary Project signature. It also contains a subject to reference the manifest of the artifact being signed, a layer to reference the signature, and a collection of annotations.
 
 ![Signature storage inside registry](../media/new-oci-signature-specification.svg)
 
@@ -250,7 +250,7 @@ Besides the [image manifest property requirements][image-manifest-property-descr
 
 #### OCI Signature Verification Forward and Backward Compatibility  
 
-When signing an artifact, the Notary Project signature uses the `artifactType` property to indicate its type, whereas older versions rely on `config.mediatype`.  
+When signing an artifact, the Notary Project signature uses the `artifactType` property by default to indicate the artifact's type, whereas older versions rely on `config.mediatype`.  
 
 To minimize the impact of breaking changes in the signature manifest, verifier SHOULD be able to list, inspect, and verify either the new or legacy format of Notary Project signature. It ensures forward and backward compatibility with OCI signatures. It reduces friction in upgrades and won't make older workflows suddenly fail when verifying a newer signature. 
 
