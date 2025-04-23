@@ -159,7 +159,7 @@ OCI image manifest is used to store signatures in the registry, see [OCI image s
 
 The signature manifest uses either the `artifactType` property or `config.mediaType` to indicate it's a Notary Project signature. It also contains a subject to reference the manifest of the artifact being signed, a layer to reference the signature, and a collection of annotations.
 
-![Signature storage inside registry](../media/new-oci-signature-specification.svg)
+![Signature storage inside registry](../media/new-oci-signature-manifest.svg)
 
 - For registries support the OCI Image Spec v1.1, the Notary Project signature manifest uses the `artifactType: "application/vnd.cncf.notary.signature"` property by default to indicate that it is a Notary Project signature. In this case, the `config.mediaType` MUST be set to `application/vnd.oci.empty.v1+json`. The signing agent is recommended to use the `artifactType` property by default when producing signatures. If the `artifactType property` is not used, then `config.mediaType` MUST be set to `application/vnd.cncf.notary.signature`. 
 
@@ -194,7 +194,7 @@ A sample signature manifest is as follows:
 }
 ```
 
-- For registries support OCI Image Spec v1.0 only, the `artifactType` field in the signature manifest is ignored by the registry. The required property `config.mediaType: "application/vnd.cncf.notary.signature"` is used to indicate Notary Project signature:
+- For registries support OCI Image Spec v1.0 only, the `artifactType` field in the signature manifest might be ignored or rejected by the registry. The required property `config.mediaType: "application/vnd.cncf.notary.signature"` is used to indicate Notary Project signature:
 
 ```jsonc
 {
@@ -246,7 +246,7 @@ Besides the [image manifest property requirements][image-manifest-property-descr
 
 #### OCI Signature Verification Forward and Backward Compatibility  
 
-When signing an artifact, the Notary Project signature uses the `artifactType` property by default to indicate the artifact's type, whereas older versions rely on `config.mediatype`.  
+When signing an artifact, the Notary Project signature uses the `artifactType` property by default to specify the artifact's type. In contrast, older versions (implementations of Notary Project specifications v1.1.0 or earlier) rely on the `config.mediaType` field for this purpose.
 
 To minimize the impact of breaking changes in the signature manifest, verifier SHOULD be able to list, inspect, and verify either the new or legacy format of Notary Project signature. It ensures forward and backward compatibility with OCI signatures. It reduces friction in upgrades and won't make older workflows suddenly fail when verifying a newer signature. 
 
