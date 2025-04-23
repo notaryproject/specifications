@@ -159,7 +159,7 @@ OCI image manifest is used to store signatures in the registry, see [OCI image s
 
 The signature manifest uses either the `artifactType` property or `config.mediaType` to indicate it's a Notary Project signature. It also contains a subject to reference the manifest of the artifact being signed, a layer to reference the signature, and a collection of annotations.
 
-![Signature storage inside registry](../media/new-oci-signature-manifest.svg)
+![Signature storage inside registry](../media/new-oci-signature-manifest-diagram.svg)
 
 - For registries support the OCI Image Spec v1.1, the Notary Project signature manifest uses the `artifactType: "application/vnd.cncf.notary.signature"` property by default to indicate that it is a Notary Project signature. In this case, the `config.mediaType` MUST be set to `application/vnd.oci.empty.v1+json`. The signing agent is recommended to use the `artifactType` property by default when producing signatures. If the `artifactType property` is not used, then `config.mediaType` MUST be set to `application/vnd.cncf.notary.signature`. 
 
