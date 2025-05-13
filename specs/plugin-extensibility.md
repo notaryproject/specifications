@@ -175,20 +175,8 @@ All response attributes are required.
   // List of contract versions supported by the plugin, one per major version
   "supportedContractVersions" : [ ],
   
-  // List of one or more capabilities supported by plugin.
-  // Valid values are:
-  //    SIGNATURE_GENERATOR.RAW
-  //    SIGNATURE_GENERATOR.ENVELOPE
-  //    SIGNATURE_GENERATOR.BLOB_ENVELOPE
-  //    SIGNATURE_VERIFIER.TRUSTED_IDENTITY
-  //    SIGNATURE_VERIFIER.REVOCATION_CHECK
-  //
-  // A signing plugin implements one or more of:
-  //   SIGNATURE_GENERATOR.RAW (raw signature for OCI or blob)
-  //   SIGNATURE_GENERATOR.ENVELOPE (envelope for OCI)
-  //   SIGNATURE_GENERATOR.BLOB_ENVELOPE (envelope for blob, requires describe-key to get hash algorithm for digest)
-  //
-  // A verification plugin implements one or more SIGNATURE_VERIFIER capabilities.
+  // List of one or more capabilities supported by the plugin.
+  // See the 'capabilities' section below for valid values and details.
   "capabilities" : [
     
   ]
@@ -199,17 +187,19 @@ All response attributes are required.
 
 *supported-contract-versions* - The list of contract versions supported by the plugin. Currently this list must include only one version, per major version. Post initial release, Notation may add new features through plugins, in the form of new commands (e.g. tsa-sign for timestamping), or additional request and response parameters. Notation will publish updates to plugin interface along with appropriate contract version update. Backwards compatible changes (changes for which older version of plugin continue to work with versions of Notation using newer contract version) like new optional parameters on existing contracts, and new commands will be supported through minor version contract updates, breaking changes through major version updates. To maintain forward compatibility plugin implementors MUST ignore unrecognized attributes in command request which are introduced in minor version updates of the plugin contract. Plugin `get-plugin-metadata` command returns the contract version a plugin supports. Notation will evaluate the minimum plugin version required to satisfy a user's request, and reject the request if the plugin does not support the required version.
 
+*capabilities* - A non-empty list of features supported by the plugin. Each capability requires the plugin to implement specific commands. Notation will evaluate the required capability for a user's request and will reject the request if the plugin does not support it.
 
-*capabilities* - Non empty list of features supported by a plugin. Each capability such as `SIGNATURE_GENERATOR.RAW` requires one or more commands to be implemented by the plugin. Notation will evaluate the capability required to satisfy a user’s request, and reject the request if the plugin does not support the required capability.
-
-Valid values are:
-  - `SIGNATURE_GENERATOR.RAW`
-  - `SIGNATURE_GENERATOR.ENVELOPE`
-  - `SIGNATURE_GENERATOR.BLOB_ENVELOPE`
-  - `SIGNATURE_VERIFIER.TRUSTED_IDENTITY`
-  - `SIGNATURE_VERIFIER.REVOCATION_CHECK`
-
-**SIGNATURE_GENERATOR.BLOB_ENVELOPE**: The plugin generates the complete signature envelope for a blob (local file) payload. The plugin must support the `describe-key` command to provide key metadata, and use the returned keySpec to determine the hash algorithm for generating the digest of the blob file. The plugin then generates the envelope using the blob descriptor as payload. This enables plugins to support blob signing with full control over the envelope format and content.
+Valid values and required commands:
+  - `SIGNATURE_GENERATOR.RAW`: Generates a raw signature for OCI or blob payloads.
+    - Required commands: `describe-key`, `generate-signature`
+  - `SIGNATURE_GENERATOR.ENVELOPE`: Generates a complete signature envelope for OCI payloads.
+    - Required command: `generate-envelope`
+  - `SIGNATURE_GENERATOR.BLOB_ENVELOPE`: Generates a complete signature envelope for blob (local file) payloads.
+    - Required commands: `describe-key`, `generate-envelope`
+  - `SIGNATURE_VERIFIER.TRUSTED_IDENTITY`: Performs trusted identity verification.
+    - Required command: `verify-signature`
+  - `SIGNATURE_VERIFIER.REVOCATION_CHECK`: Performs revocation check verification.
+    - Required command: `verify-signature`
 
 ## Signing interfaces
 
