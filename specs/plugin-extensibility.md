@@ -243,7 +243,6 @@ This interface targets plugins that integrate with providers of basic cryptograp
 **Blob signing:**
 1. Given a user request to sign a local file (blob), with signing key `keyName`
 2. Determine if the registered key uses a plugin
-
 3. Execute the plugin with the `get-plugin-metadata` command and check its capabilities:
     1. **If the plugin supports `SIGNATURE_GENERATOR.RAW`:**
         1. Execute the plugin with the `describe-key` command, setting `request.keyId` and the optional `request.pluginConfig` to the values associated with signing key `keyName` in `config.json`.
