@@ -256,7 +256,7 @@ This interface targets plugins that integrate with providers of basic cryptograp
 3. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR.RAW`
         1. Execute the plugin with `describe-key` command, set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
-        2. Construct a payload to be signed for the local file as described in the [signature specification](signature-specification.md#payload) by generate the digest with the **hash algorithm** extracted from `keySpec` of the `describe-key`command reponse. 
+        2. Construct a payload to be signed for the local file as described in the [signature specification](signature-specification.md#payload) by generating the digest with the **hash algorithm** extracted from `keySpec` of the `describe-key` command response.
         3. follow steps are the same as above of OCI signing.
         4. Generate the signature file for the given signature envelope.
     2. Else if, plugin supports capability `SIGNATURE_GENERATOR.BLOB_ENVELOPE` *(covered in next section)*
@@ -412,7 +412,7 @@ This interface targets plugins that, in addition to signature generation, want t
 3. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR.BLOB_ENVELOPE`
         1. Execute the plugin with `describe-key` command, set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
-        2. Construct a payload to be signed for the local file as described in the [signature specification](signature-specification.md#payload) by generate the digest with the **hash algorithm** extracted from `keySpec` of the `describe-key`command reponse. 
+        2. Construct a payload to be signed for the local file as described in the [signature specification](signature-specification.md#payload) by generating the digest with the **hash algorithm** extracted from `keySpec` of the `describe-key` command response.
         3. Follow 1-4 steps as above of OCI Signing
         6. Generate a signature file for the given signature envelope
     3. Return an error
