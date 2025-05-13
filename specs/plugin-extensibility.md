@@ -253,16 +253,17 @@ This interface targets plugins that integrate with providers of basic cryptograp
 **Blob signing:**
 1. Given a user request to sign a local file (blob), with signing key `keyName`
 2. Determine if the registered key uses a plugin
-3. Execute the plugin with `get-plugin-metadata` command
-    1. If plugin supports capability `SIGNATURE_GENERATOR.RAW`
-        1. Execute the plugin with `describe-key` command, set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
-        2. Construct a payload to be signed for the local file as described in the [signature specification](signature-specification.md#payload) by generating the digest with the **hash algorithm** extracted from `keySpec` of the `describe-key` command response.
-        3. follow steps are the same as above of OCI signing.
-        4. Generate the signature file for the given signature envelope.
-    2. Else if, plugin supports capability `SIGNATURE_GENERATOR.BLOB_ENVELOPE` *(covered in next section)*
-    3. Return an error
 
-> Note: The plugin does not need to be aware of the signature envelope format or the distinction between OCI and blob signing; it only receives the payload to sign.
+3. Execute the plugin with the `get-plugin-metadata` command and check its capabilities:
+    1. **If the plugin supports `SIGNATURE_GENERATOR.RAW`:**
+        1. Execute the plugin with the `describe-key` command, setting `request.keyId` and the optional `request.pluginConfig` to the values associated with signing key `keyName` in `config.json`.
+        2. Generate the digest of the local file using the **hash algorithm** specified in the `keySpec` from the `describe-key` response. Construct the payload to be signed using this digest, as described in the [signature specification](signature-specification.md#payload).
+        3. Follow the same signing steps as in the OCI signing workflow above (i.e., generate the signature, validate it, and assemble the signature envelope).
+        4. Generate the signature file for the resulting signature envelope.
+    2. **Else if** plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE` *(covered in next section)*
+    3. **Else** return an error indicating that the plugin does not support the required signing capability.
+
+> Note: The plugin does not need to be aware of the signature envelope format or whether it is signing an OCI artifact or a blob; it only receives the payload to sign.
 
 #### describe-key
 
