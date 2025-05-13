@@ -406,7 +406,6 @@ This interface targets plugins that, in addition to signature generation, want t
         2. Generate the digest of the local file using the **hash algorithm** specified in the `keySpec` from the `describe-key` response. Construct the payload to be signed using this digest, as described in the [signature specification](signature-specification.md#payload).
         3. Follow the same envelope generation steps as in the OCI signing workflow above (i.e., generate the envelope and validate it).
         4. Generate the signature file for the resulting signature envelope.
-    2. **Else if** the plugin supports `SIGNATURE_GENERATOR.RAW` *(covered in previous section)*
     3. **Else** return an error indicating that the plugin does not support the required signing capability.
 
 > Note: The plugin does not need to be aware of whether it is signing an OCI artifact or a blob; however, the plugin must provide an additional `describe-key` command for `SIGNATURE_GENERATOR.BLOB_ENVELOPE` capability compared to `SIGNATURE_GENERATOR.ENVELOPE` capability.
