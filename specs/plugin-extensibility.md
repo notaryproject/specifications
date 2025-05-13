@@ -176,17 +176,19 @@ All response attributes are required.
   "supportedContractVersions" : [ ],
   
   // List of one or more capabilities supported by plugin.
-  // Valid values are 
+  // Valid values are:
   //    SIGNATURE_GENERATOR.RAW
   //    SIGNATURE_GENERATOR.ENVELOPE
+  //    SIGNATURE_GENERATOR.BLOB_ENVELOPE
   //    SIGNATURE_VERIFIER.TRUSTED_IDENTITY
   //    SIGNATURE_VERIFIER.REVOCATION_CHECK
   //
-  // A signing plugin implements either SIGNATURE_GENERATOR.RAW
-  // or SIGNATURE_GENERATOR.ENVELOPE capability.
+  // A signing plugin implements one or more of:
+  //   SIGNATURE_GENERATOR.RAW (raw signature for OCI or blob)
+  //   SIGNATURE_GENERATOR.ENVELOPE (envelope for OCI)
+  //   SIGNATURE_GENERATOR.BLOB_ENVELOPE (envelope for blob, requires describe-key to get hash algorithm for digest)
   //
-  // A verification plugin implements 
-  // one or more of SIGNATURE_VERIFIER capabilities.
+  // A verification plugin implements one or more SIGNATURE_VERIFIER capabilities.
   "capabilities" : [
     
   ]
@@ -197,7 +199,17 @@ All response attributes are required.
 
 *supported-contract-versions* - The list of contract versions supported by the plugin. Currently this list must include only one version, per major version. Post initial release, Notation may add new features through plugins, in the form of new commands (e.g. tsa-sign for timestamping), or additional request and response parameters. Notation will publish updates to plugin interface along with appropriate contract version update. Backwards compatible changes (changes for which older version of plugin continue to work with versions of Notation using newer contract version) like new optional parameters on existing contracts, and new commands will be supported through minor version contract updates, breaking changes through major version updates. To maintain forward compatibility plugin implementors MUST ignore unrecognized attributes in command request which are introduced in minor version updates of the plugin contract. Plugin `get-plugin-metadata` command returns the contract version a plugin supports. Notation will evaluate the minimum plugin version required to satisfy a user's request, and reject the request if the plugin does not support the required version.
 
-*capabilities* - Non empty list of features supported by a plugin. Each capability such as `SIGNATURE_GENERATOR.RAW` requires one of more commands to be implemented by the plugin. When new features are available for plugins to implement, an implementation may choose to not implement it, and therefore will not include the feature in capabilities. Notation will evaluate the capability required to satisfy a user’s request, and reject the request if the plugin does not support the required capability.
+
+*capabilities* - Non empty list of features supported by a plugin. Each capability such as `SIGNATURE_GENERATOR.RAW` requires one or more commands to be implemented by the plugin. Notation will evaluate the capability required to satisfy a user’s request, and reject the request if the plugin does not support the required capability.
+
+Valid values are:
+  - `SIGNATURE_GENERATOR.RAW`
+  - `SIGNATURE_GENERATOR.ENVELOPE`
+  - `SIGNATURE_GENERATOR.BLOB_ENVELOPE`
+  - `SIGNATURE_VERIFIER.TRUSTED_IDENTITY`
+  - `SIGNATURE_VERIFIER.REVOCATION_CHECK`
+
+**SIGNATURE_GENERATOR.BLOB_ENVELOPE**: The plugin generates the complete signature envelope for a blob (local file) payload. The plugin must support the `describe-key` command to provide key metadata, and use the returned keySpec to determine the hash algorithm for generating the digest of the blob file. The plugin then generates the envelope using the blob descriptor as payload. This enables plugins to support blob signing with full control over the envelope format and content.
 
 ## Signing interfaces
 
@@ -209,12 +221,13 @@ Notation will support plugins to be developed against the following interfaces -
 
 ### Signature Generator
 
-This interface targets plugins that integrate with providers of basic cryptographic operations. E.g. Local PIV/PKCS#11 hardware tokens, remote KMS, or key vault services. Plugins that target this interface will only generate a raw signature given a payload to sign. Notation will package this signature into a signature envelope, and generate the signature manifest. Notation will also generate the TSA signature if indicated by the user. The plugin does not need to be signature envelope format aware, and will continue to work if Notary Project adopts additional signature formats.
+This interface targets plugins that integrate with providers of basic cryptographic operations (e.g., Local PIV/PKCS#11 hardware tokens, remote KMS, or key vault services). Plugins that target this interface will only generate a raw signature given a payload to sign. Notation will package this signature into a signature envelope, and generate the signature manifest or signature file. Notation will also generate the TSA signature if indicated by the user. The plugin does not need to be signature envelope format aware, and will continue to work if Notary Project adopts additional signature formats.
 
 #### Signing workflow using plugin
 
-1. Given a user request to sign `oci-artifact`, with signing key `keyName` (the friendly key name)
-2. Pull the image manifest using `oci-artifact` url, and construct a descriptor
+**OCI signing:**
+1. Given a user request to sign an OCI artifact, with signing key `keyName` (the friendly key name)
+2. Pull the image manifest using the `oci-artifact` URL, and construct a descriptor
 3. Append any user provided metadata and metadata defined in [Notary Project signature specification](signature-specification.md) as descriptor annotations.
 4. Determine if the registered key uses a plugin
 5. Execute the plugin with `get-plugin-metadata` command
@@ -237,9 +250,23 @@ This interface targets plugins that integrate with providers of basic cryptograp
     2. Else if, plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE` *(covered in next section)*
     3. Return an error
 
+**Blob signing:**
+1. Given a user request to sign a local file (blob), with signing key `keyName`
+2. Determine if the registered key uses a plugin
+3. Execute the plugin with `get-plugin-metadata` command
+    1. If plugin supports capability `SIGNATURE_GENERATOR.RAW`
+        1. Execute the plugin with `describe-key` command, set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
+        2. Construct a payload to be signed for the local file as described in the [signature specification](signature-specification.md#payload) by generate the digest with the **hash algorithm** extracted from `keySpec` of the `describe-key`command reponse. 
+        3. follow steps are the same as above of OCI signing.
+        4. Generate the signature file for the given signature envelope.
+    2. Else if, plugin supports capability `SIGNATURE_GENERATOR.BLOB_ENVELOPE` *(covered in next section)*
+    3. Return an error
+
+> Note: The plugin does not need to be aware of the signature envelope format or the distinction between OCI and blob signing; it only receives the payload to sign.
+
 #### describe-key
 
-This command is used to get metadata for a given key.
+This command is used to get metadata for a given key. The command is required for `SIGNATURE_GENERATOR.RAW` and `SIGNATURE_GENERATOR.BLOB_ENVELOPE` capabilities.
 
 *Request*
 
@@ -355,17 +382,18 @@ All response attributes are required.
 
 ### Signature Envelope Generator
 
-This interface targets plugins that in addition to signature generation want to generate the complete signature envelope. This interface allows plugins to have full control over the generated signature envelope, and can append additional signed and unsigned metadata, including timestamp countersignatures. The plugin must be signature envelope format aware, and implement new formats when Notary Project adopts new formats.
+This interface targets plugins that, in addition to signature generation, want to generate the complete signature envelope. This interface allows plugins to have full control over the generated signature envelope, and can append additional signed and unsigned metadata, including timestamp countersignatures. The plugin must be signature envelope format aware, and implement new formats when Notary Project adopts new formats.
 
 #### Signing workflow using plugin
 
-1. Given a user request to sign `image`, with `keyName` (friendly key name)
-1. Pull the image manifest using `image` url, and construct a descriptor
-1. Append any user provided metadata and metadata defined in [Notary Project signature specification](signature-specification.md) as descriptor annotations.
-1. Determine if the registered key uses a plugin
-1. Execute the plugin with `get-plugin-metadata` command
+**OCI signing:**
+1. Given a user request to sign an OCI artifact, with `keyName` (friendly key name)
+2. Pull the image manifest using the `image` URL, and construct a descriptor
+3. Append any user provided metadata and metadata defined in [Notary Project signature specification](signature-specification.md) as descriptor annotations.
+4. Determine if the registered key uses a plugin
+5. Execute the plugin with `get-plugin-metadata` command
     1. If plugin supports capability `SIGNATURE_GENERATOR.ENVELOPE`
-        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded the [Notary Project signature Payload](./signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/jose+json` for JWS).
+        1. Execute the plugin with `generate-envelope` command. Set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`. Set `request.payload` to base64 encoded [Notary Project signature Payload](./signature-specification.md#payload), `request.payloadType` to `application/vnd.cncf.notary.payload.v1+json` and `request.signatureEnvelopeType` to a pre-defined type (`application/jose+json` for JWS).
         2. If plugin supports timestamping under signing scheme [`notary.x509`](./signing-scheme.md/#notaryx509), the plugin SHOULD request and include TSA timestamp countersignature in the signature envelope at this step. The timestamp countersignature MUST be [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2) compliant. The `certReq` field in the [timestamping request](https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.1) MUST be set to true.
         3. `response.signatureEnvelope` contains the base64 encoded signature envelope, value of `response.signatureEnvelopeType` MUST match `request.signatureEnvelopeType`.
         4. Validate the generated signature envelope, return an error if any of the checks fails.
@@ -376,6 +404,17 @@ This interface targets plugins that in addition to signature generation want to 
            5. Check that the certificate chain in `response.signatureEnvelope` and [timestamp countersignature](./signature-specification.md#unsigned-attributes) confirm to [certificate requirements](./signature-specification.md#certificate-requirements).
         5. Generate a signature manifest for the given signature envelope, and append `response.annotations` to manifest annotations.
     2. Else if plugin supports capability `SIGNATURE_GENERATOR.RAW` *(covered in previous section)*
+    3. Return an error
+
+**Blob signing:**
+1. Given a user request to sign a local file (blob), with `keyName` (friendly key name)
+2. Determine if the registered key uses a plugin
+3. Execute the plugin with `get-plugin-metadata` command
+    1. If plugin supports capability `SIGNATURE_GENERATOR.BLOB_ENVELOPE`
+        1. Execute the plugin with `describe-key` command, set `request.keyId` and the optional `request.pluginConfig` to corresponding values associated with signing key `keyName` in `config.json`.
+        2. Construct a payload to be signed for the local file as described in the [signature specification](signature-specification.md#payload) by generate the digest with the **hash algorithm** extracted from `keySpec` of the `describe-key`command reponse. 
+        3. Follow 1-4 steps as above of OCI Signing
+        6. Generate a signature file for the given signature envelope
     3. Return an error
 
 #### generate-envelope
