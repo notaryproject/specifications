@@ -155,12 +155,46 @@ These attributes are considered unsigned with respect to the signing key that ge
 ## OCI Signatures
 
 This section describes how a Notary Project signature is stored in an OCI Distribution conformant registry.
-OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.1.0-rc3][oci-image-manifest] for details.
-The signature manifest has a configuration media type that specifies it's a Notary Project signature, a subject referencing the manifest of the artifact being signed, a layer referencing the signature, and a collection of annotations.
+OCI image manifest is used to store signatures in the registry, see [OCI image spec v1.1.1][oci-image-manifest] for details. 
 
-![Signature storage inside registry](../media/oci-signature-specification.svg)
+The signature manifest uses either the `artifactType` property or `config.mediaType` to indicate it's a Notary Project signature. It also contains a subject to reference the manifest of the artifact being signed, a layer to reference the signature, and a collection of annotations.
 
-Signature manifest example per OCI image manifest:
+![Signature storage inside registry](../media/new-oci-signature-manifest-diagram.svg)
+
+- For registries support the OCI Image Spec v1.1, the Notary Project signature manifest uses the `artifactType: "application/vnd.cncf.notary.signature"` property by default to indicate that it is a Notary Project signature. In this case, the `config.mediaType` MUST be set to `application/vnd.oci.empty.v1+json`. The signing agent is recommended to use the `artifactType` property by default when producing signatures. If the `artifactType` property is not used, then `config.mediaType` MUST be set to `application/vnd.cncf.notary.signature`. 
+
+A sample signature manifest is as follows:
+
+```jsonc
+{
+    "schemaVersion": 2,
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "artifactType": "application/vnd.cncf.notary.signature",
+    "config": {
+        "mediaType": "application/vnd.oci.empty.v1+json",
+        "size": 2,
+        "digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "layers": [
+        {
+            "mediaType": "application/jose+json",
+            "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+            "size": 32654
+        }
+    ],
+    "subject": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+        "size": 16724
+    },
+    "annotations": {
+        "io.cncf.notary.x509chain.thumbprint#S256": 
+        "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\",\"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+    }
+}
+```
+
+- For registries support OCI Image Spec v1.0 only, the `artifactType` field in the signature manifest might be ignored or rejected by the registry. The required property `config.mediaType: "application/vnd.cncf.notary.signature"` is used to indicate Notary Project signature:
 
 ```jsonc
 {
@@ -193,8 +227,9 @@ Signature manifest example per OCI image manifest:
 Besides the [image manifest property requirements][image-manifest-property-descriptions], the properties have the following additional restrictions:
 
 - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.oci.image.manifest.v1+json`.
+- **`artifactType`** (*string*): This OPTIONAL property, if present, MUST be `application/vnd.cncf.notary.signature`.
 - **`config`** (*descriptor*): This property is REQUIRED to be compatible with [OCI image specification][oci-image-manifest]. The Notary Project signature specification doesn't require any configuration for a signature, and the configuration content is not consumed by implementations of the Notary Project signature specification.
-  - **`mediaType`** (*string*): This REQUIRED property MUST be `application/vnd.cncf.notary.signature`.
+  - **`mediaType`** (*string*): This property is REQUIRED. Its value MUST be `application/vnd.cncf.notary.signature` when `artifactType` does not exist. When `artifactType` exists, `mediaType` MUST be `application/vnd.oci.empty.v1+json`.
   - **`digest`** (*string*): This REQUIRED property is the digest of the config content.
   - **`size`** (*int64*): This REQUIRED property specifies the size, in bytes, of the raw config content.
 - **`layers`** (*array of objects*): This REQUIRED property contains collection of only one [OCI descriptor][oci-descriptor] referencing the signature envelope.
@@ -206,6 +241,14 @@ Besides the [image manifest property requirements][image-manifest-property-descr
   It is being used to store information about the signature.
   Keys using the `io.cncf.notary` namespace are reserved for use in the Notary Project signature specification and MUST NOT be used by other specifications.
   - **`io.cncf.notary.x509chain.thumbprint#S256`**: A REQUIRED annotation whose value contains the list of SHA-256 fingerprints of signing certificate and certificate chain (including root) used for signature generation. The list of fingerprints is present as a JSON array string, corresponding to ordered certificates in [*Certificate Chain* unsigned attribute](#unsigned-attributes) in the signature envelope. The annotation name contains the hash algorithm as a suffix (`#S256`) and can be extended to support other hashing algorithms in future.
+
+![Signature storage inside registry](../media/oci-signature-specification.svg)
+
+#### OCI Signature Verification Forward and Backward Compatibility  
+
+When signing an artifact, the Notary Project signature uses the `artifactType` property by default to specify the artifact's type. In contrast, older versions (implementations of Notary Project specifications v1.1.0 or earlier) rely on the `config.mediaType` field for this purpose.
+
+To minimize the impact of breaking changes in the signature manifest, verifier SHOULD be able to list, inspect, and verify either the new or legacy format of Notary Project signature. It ensures forward and backward compatibility with OCI signatures. It reduces friction in upgrades and won't make older workflows suddenly fail when verifying a newer signature. 
 
 ### OCI Signature Discovery
 
@@ -386,5 +429,5 @@ Alternatively, an implementation of the Notary Project signature specification c
 [oci-descriptor]: https://github.com/opencontainers/image-spec/blob/v1.0.0/descriptor.md
 [ietf-rfc3161]: https://datatracker.ietf.org/doc/html/rfc3161#section-2.4.2
 [oci-distribution-referrers]: https://github.com/opencontainers/distribution-spec/blob/v1.0.0/spec.md#listing-referrers
-[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc3/manifest.md
+[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.1/manifest.md
 [image-manifest-property-descriptions]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc3/manifest.md#image-manifest-property-descriptions
