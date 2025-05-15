@@ -6,7 +6,36 @@ This specification implements the [Notary Project signature specification](./sig
 
 A JWS signature envelope will be stored in an OCI registry as a layer, and referenced in the signature manifest as a layer blob with `mediaType` of `"application/jose+json"`.
 
-Signature Manifest Example
+Signature Manifest Examples
+```jsonc
+{
+    "schemaVersion": 2,
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "artifactType": "application/vnd.cncf.notary.signature",
+    "config": {
+      "mediaType": "application/vnd.oci.empty.v1+json",
+      "digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "size": 2,
+      "data": "e30="
+    },
+    "layers": [
+        {
+            "mediaType": "application/jose+json",
+            "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+            "size": 32654
+        }
+    ],
+    "subject": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
+        "size": 16724
+    },
+    "annotations": {
+        "io.cncf.notary.x509chain.thumbprint#S256": 
+        "[\"B7A69A70992AE4F9FF103EBE04A2C3BA6C777E439253CE36562E6E98375068C3\",\"932EB6F5598435D4EF23F97B0B5ACB515FAE2B8D8FAC046AB813DDC419DD5E89\"]"
+    }
+}
+```
 
 ```jsonc
 {
