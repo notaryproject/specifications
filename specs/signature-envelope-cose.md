@@ -210,6 +210,12 @@ The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of Payl
 )
 ```
 
+## COSE Hash Envelope
+Notary Project also supports [COSE Hash Envelope](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/). COSE Hash Envelope is essentially another format of [COSE Sign1 signature structure](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2). 
+The differences between a `COSE Hash Envelope` and the signature envelope defined under [Signature Envelope](./signature-envelope-cose.md/#signature-envelope) are as follows:
+1. Instead of `targetArtifact` as shown under [COSE Payload](./signature-envelope-cose.md/#cose-payload), the payload of a `COSE Hash Envelope` is the hash of the original content bytes that is being signed.
+2. 
+
 ## Implementation Constraints
 
 ### Supported `alg` header values
