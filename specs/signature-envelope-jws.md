@@ -39,7 +39,7 @@ Signature Manifest Examples
 
 ```jsonc
 {
-    "mediaType": "application/vnd.oci.artifact.manifest.v1+json",
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
     "config": {
         "mediaType": "application/vnd.cncf.notary.signature",
         "size": 2,
