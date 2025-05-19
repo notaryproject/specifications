@@ -211,7 +211,7 @@ Notation will support plugins to be developed against the following interfaces -
 
 ### Signature Generator
 
-This interface targets plugins that integrate with providers of basic cryptographic operations (e.g., Local PIV/PKCS#11 hardware tokens, remote KMS, or key vault services). Plugins that target this interface will only generate a raw signature given a payload to sign. Implementations of the Notary Project spec is responsible for packaging this signature into a signature envelope along with a signature manifest (OCI) or a signature file (blob). Implementations of the Notary Project spec is also responsible for generating the TSA signature if indicated by the user. The plugin does not need to be signature envelope format aware and will continue to work if Notary Project adopts additional signature formats.
+This interface targets plugins that integrate with providers of basic cryptographic operations (e.g., Local PIV/PKCS#11 hardware tokens, remote KMS, or key vault services). Plugins that target this interface will only generate a raw signature given a payload to sign. Plugin developers who implement the Notary Project specification are responsible for packaging this signature into a signature envelope along with a signature manifest (OCI) or a signature file (blob). Plugin developers are also responsible for generating the TSA signature if indicated by the user. The plugin does not need to be signature envelope format aware and will continue to work if Notary Project adopts additional signature formats.
 
 #### Signing workflow using plugin
 
