@@ -117,12 +117,14 @@ The Notary Project signature specification requires the signature envelope to su
 - **Authentic Signing Time** (critical): The authenticated time at which the signature was generated. This claim allows a verifier to determine if the signature was generated when the certificate was valid. This claim is REQUIRED and only valid when signing scheme is `notary.x509.signingAuthority`. More details [here](#signing-time--authentic-signing-time).
 - **Expiry** (critical): An OPTIONAL claim that provides a "best by use" time for the artifact, as defined by the signer. More details [here](#expiry).
 - **Content Type** (critical): A REQUIRED claim that indicates the content type of the [payload](#payload). The supported value is `application/vnd.cncf.notary.payload.v1+json`. Other payload types MAY be supported in future.
+  > [!NOTE]
+  > `Content Type` MUST not be present when signature envelope is [`COSE Hash Envelope`](./signature-envelope-cose.md/#cose-hash-envelope).
 
 #### Extended attributes
 
 Implementations of the Notary Project signature specification MAY include additional signed attributes in the signature envelope.
 These attributes MAY be marked critical, i.e. the attribute MUST be understood and processed by a verifier, unknown critical attributes MUST cause signature verification to fail.
-Usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature, these are discussed in [Signature Portability](#signature-portability) section.
+Usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature, these are discussed in [Signature Portability](#oci-signature-portability) section.
 
 #### Extended attributes for *Notation* Plugins
 

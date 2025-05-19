@@ -82,11 +82,27 @@ The user wants to sign an arbitrary blob with a detached signature.
 ### Signing Steps
 
 1. **Generate signature:** Using notation CLI or any other compliant signing tool, sign the blob. The signing tool should follow the following guideline.
-    1. Construct the blob payload as defined in [`signature specification`](./signature-specification.md#payload)
+    1. Construct the blob payload:
+       - For [`COSE Hash Envelope`](./signature-envelope-cose.md/#cose-hash-envelope): 
+
+         Calculate the hash of the blob using the hash algorithm deduced from signing certificate's public key (see [Algorithm Selection](./signature-specification.md#algorithm-selection)).
+
+       - Signature envelope other than `COSE Hash Envelope`: 
+       
+         Construct the blob payload as defined in [`signature specification`](./signature-specification.md#payload)
     1. Verify that the signing certificate is valid and satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
     1. Verify that the signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
-    1. Generate signature.
-        1. Generate signature using a signature format specified in [supported signature envelopes](./signature-specification.md#supported-signature-envelopes). Also, as part of this step, the user-defined/supplied custom attributes should be added to the annotations of the signature payload.
+    1. Generate signature:
+        1. Generate signature using a signature format specified in [supported signature envelopes](./signature-specification.md#supported-signature-envelopes):
+           - For [`COSE Hash Envelope`](./signature-envelope-cose.md/#cose-hash-envelope):
+
+               If provided by the user, the blob's media type MUST be placed at `protectedHeader.preimage-content-type (label 259)`.
+
+               Any user-defined/supplied custom attributes should be added to the [`Extended attributes`](./signature-specification.md/#extended-attributes).
+           
+           - Signature envelope other than `COSE Hash Envelope`:
+
+             Any user-defined/supplied custom attributes should be added to the annotations of the signature payload.
         1. If signing scheme is [`notary.x509`](./signing-scheme.md/#notaryx509) and timestamp countersignature is demanded, extract the [primitive signature](./signature-specification.md#signature-envelope) (the digital signature computed on payload and signed attributes) from the signature envelope generated in the previous step. Compute hash of the signature (the hash algorithm SHOULD be deduced from signing certificate's public key) and send it to a [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161.html) compliant *Timestamp Authority (TSA)* for timestamping. Otherwise, continue to the next step. 
             1. Verify that the timestamp signing certificate satisfies [certificate requirements](./signature-specification.md#certificate-requirements).
             1. Verify that the timestamp signing algorithm satisfies [algorithm requirements](./signature-specification.md#signature-algorithm-requirements).
@@ -110,7 +126,14 @@ The user wants to consume an arbitrary blob only if it was signed by a trusted p
     1. Parse and validate the signature envelope using the detached signature's file extension as the envelope type.
     1. Verify the signature envelope using trust-store and trust-policy as mentioned in [signature evaluation](./trust-store-trust-policy.md#signature-evaluation) section.
     1. If the signature verification fails, exit.
-1. Calculate the blob's size and verify that it matches the size present in `targetArtifact.size`. Fail signature verification if there is a mismatch.
-1. If provided by the user, verify blob's media type to the one present in `targetArtifact.mediaType`. Fail signature verification if there is a mismatch.
-1. Calculate the digest of the blob using the digest algorithm deduced from signing certificate's public key (see [Algorithm Selection](./signature-specification.md#algorithm-selection)) and match it with the digest specified at `targetArtifact.digest`.  Fail signature verification if there is a mismatch.
-1. If there any user-defined/supplied custom annotations, match them against the ones present in `targetArtifact.annotations`. If they match, signature verification is considered successful.
+1. **Verify the payload:**
+    1. For [`COSE Hash Envelope`](./signature-envelope-cose.md/#cose-hash-envelope):
+       1. Deduce payload hash algorithm from signing certificate's public key (see [Algorithm Selection](./signature-specification.md#algorithm-selection)) and match it with the value specified in `protectedHeader.payload-hash-alg (label 258)`. Fail signature verification if there is a mismatch. 
+       1. Calculate the hash of the blob using the hash algorithm from step above, and match it with the value specified at signature envelope `payload`. Fail signature verification if there is a mismatch.
+       1. If provided by the user, verify blob's media type to the one present in `protectedHeader.preimage-content -type (label 259)`. Fail signature verification if there is a mismatch.       
+       1. If there is any user-defined/supplied custom metadata, match them against the ones present in [`Extended attributes`](./signature-specification.md/#extended-attributes). If they match, signature verification is considered successful.
+   1. Signature envelope other than `COSE Hash Envelope`: 
+      1. Calculate the blob's size and verify that it matches the size present in `targetArtifact.size`. Fail signature verification if there is a mismatch.
+      1. If provided by the user, verify blob's media type to the one present in `targetArtifact.mediaType`. Fail signature verification if there is a mismatch.
+      1. Calculate the digest of the blob using the digest algorithm deduced from signing certificate's public key (see [Algorithm Selection](./signature-specification.md#algorithm-selection)) and match it with the digest specified at `targetArtifact.digest`.  Fail signature verification if there is a mismatch.
+      1. If there is any user-defined/supplied custom annotations, match them against the ones present in `targetArtifact.annotations`. If they match, signature verification is considered successful.

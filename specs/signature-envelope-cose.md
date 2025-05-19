@@ -280,7 +280,7 @@ The final signature envelope is still a `COSE_Sign1_Tagged` object, consisting o
       'io.cncf.notary.timestampSignature': << TimeStampToken >>,
       'io.cncf.notary.signingAgent': 'notation/2.0.0'
     },
-    / payload / << descriptor >>,
+    / payload / h'935b5a91...e18a588a',
     / signature / << sign( << Sig_structure >> ) >>
   ]
 )
