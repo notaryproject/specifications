@@ -264,7 +264,7 @@ The final signature envelope is still a `COSE_Sign1_Tagged` object, consisting o
         'io.cncf.notary.expiry'
       ],
       / payload hash alg / 258: / SHA256 / -16,
-      / preimage content type / 259: 'application/vnd.cncf.notary.payload.v1+json',
+      / preimage content type / 259: 'application/octet-stream',
       / payload location / 260: 'urn:example:location',
       'io.cncf.notary.signingScheme': 'notary.x509.signingAuthority',
       'io.cncf.notary.authenticSigningTime': 1(1667411812),
