@@ -216,11 +216,46 @@ The differences between a `COSE Hash Envelope` and the signature envelope define
 1. Instead of `targetArtifact` as shown under [COSE Payload](./signature-envelope-cose.md/#cose-payload), the payload of a `COSE Hash Envelope` is the hash of the original content bytes that is being signed.
 2. New protected headers applied to `COSE Hash Envelope` only:
     - **[`payload hash alg`](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/)** (*int*): REQUIRED protected header payload hash alg (label `258`) specifies the hash algorithm used to produce the payload.
-    - **[`content type of the preimage of the payload`](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/)** (*uint/tstr*): OPTIONAL protected header content type of the preimage of the payload (label `259`) specifies the content type of the bytes that were hashed (preimage) to produce the payload, given as a content-format number (Section 12.3 of [RFC7252]) or as a media-type name optionally with parameters (Section 8.3 of [RFC9110]).
+    - **[`preimage content type`](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/)** (*uint/tstr*): OPTIONAL protected header preimage content type (label `259`) specifies the content type of the bytes that were hashed (preimage) to produce the payload, given as a content-format number (Section 12.3 of [RFC7252]) or as a media-type name optionally with parameters (Section 8.3 of [RFC9110]).
     - **[`payload location`](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/)** (*tstr*): OPTIONAL protected header payload location (label `260`) is an identifier enabling retrieval of the original resource (preimage) identified by the payload.
 3. Headers MUST not present in `COSE Hash Envelope`:
     - Label 3 (content_type) MUST NOT be present in the protected or
       unprotected headers. (Section 4 of [draft-ietf-cose-hash-envelope/05])
+
+## COSE Hash Envelope example
+The final signature envelope is still a `COSE_Sign1_Tagged` object, consisting of Payload, ProtectedHeaders, UnprotectedHeaders, and Signature.
+
+```yaml
+18(
+  [
+    / protected / << {
+      / alg / 1: / PS384 / -38,
+      / crit / 2: [
+        'io.cncf.notary.signingScheme',
+        'io.cncf.notary.authenticSigningTime',
+        'io.cncf.notary.expiry'
+      ],
+      / payload hash alg / 258: / SHA256 / -16,
+      / preimage content type / 259: 'application/vnd.cncf.notary.payload.v1+json',
+      / payload location / 260: 'urn:example:location',
+      'io.cncf.notary.signingScheme': 'notary.x509.signingAuthority',
+      'io.cncf.notary.authenticSigningTime': 1(1667411812),
+      'io.cncf.notary.expiry': 1(1667415412)
+    } >>,
+    / unprotected / {
+      / x5chain / 33: [
+        << DER(leafCert) >>,
+        << DER(intermediate CACert) >>,
+        << DER(rootCert) >>
+      ],
+      'io.cncf.notary.timestampSignature': << TimeStampToken >>,
+      'io.cncf.notary.signingAgent': 'notation/2.0.0'
+    },
+    / payload / << descriptor >>,
+    / signature / << sign( << Sig_structure >> ) >>
+  ]
+)
+```
 
 ## Implementation Constraints
 
