@@ -214,7 +214,13 @@ The final signature envelope is a `COSE_Sign1_Tagged` object, consisting of Payl
 Notary Project also supports [COSE Hash Envelope](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/). COSE Hash Envelope is essentially another format of [COSE Sign1 signature structure](https://datatracker.ietf.org/doc/html/rfc8152#section-4.2). 
 The differences between a `COSE Hash Envelope` and the signature envelope defined under [Signature Envelope](./signature-envelope-cose.md/#signature-envelope) are as follows:
 1. Instead of `targetArtifact` as shown under [COSE Payload](./signature-envelope-cose.md/#cose-payload), the payload of a `COSE Hash Envelope` is the hash of the original content bytes that is being signed.
-2. 
+2. New protected headers applied to `COSE Hash Envelope` only:
+    - **[`payload hash alg`](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/)** (*int*): REQUIRED protected header payload hash alg (label `258`) specifies the hash algorithm used to produce the payload.
+    - **[`content type of the preimage of the payload`](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/)** (*uint/tstr*): OPTIONAL protected header content type of the preimage of the payload (label `259`) specifies the content type of the bytes that were hashed (preimage) to produce the payload, given as a content-format number (Section 12.3 of [RFC7252]) or as a media-type name optionally with parameters (Section 8.3 of [RFC9110]).
+    - **[`payload location`](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/)** (*tstr*): OPTIONAL protected header payload location (label `260`) is an identifier enabling retrieval of the original resource (preimage) identified by the payload.
+3. Headers MUST not present in `COSE Hash Envelope`:
+    - Label 3 (content_type) MUST NOT be present in the protected or
+      unprotected headers. (Section 4 of [draft-ietf-cose-hash-envelope/05])
 
 ## Implementation Constraints
 
