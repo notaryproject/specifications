@@ -247,7 +247,7 @@ The differences between a `COSE Hash Envelope` and the signature envelope define
     - **[`payload hash alg`](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/)** (*int*): REQUIRED protected header payload hash alg (label `258`) specifies the hash algorithm used to produce the payload.
     - **[`preimage content type`](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/)** (*uint/tstr*): OPTIONAL protected header preimage content type (label `259`) specifies the content type of the bytes that were hashed (preimage) to produce the payload, given as a content-format number (Section 12.3 of [RFC7252]) or as a media-type name optionally with parameters (Section 8.3 of [RFC9110]).
     - **[`payload location`](https://datatracker.ietf.org/doc/draft-ietf-cose-hash-envelope/05/)** (*tstr*): OPTIONAL protected header payload location (label `260`) is an identifier enabling retrieval of the original resource (preimage) identified by the payload.
-3. Headers MUST not present in `COSE Hash Envelope`:
+3. Header parameters that MUST not present in `COSE Hash Envelope`:
     - Label 3 (content_type) MUST NOT be present in the protected or
       unprotected headers. (Section 4 of [draft-ietf-cose-hash-envelope/05])
 
