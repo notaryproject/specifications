@@ -130,7 +130,7 @@ The user wants to consume an arbitrary blob only if it was signed by a trusted p
     1. For [`COSE Hash Envelope`](./signature-envelope-cose.md/#cose-hash-envelope):
        1. Deduce payload hash algorithm from signing certificate's public key (see [Algorithm Selection](./signature-specification.md#algorithm-selection)) and match it with the value specified in `protectedHeader.payload-hash-alg (label 258)`. Fail signature verification if there is a mismatch. 
        1. Calculate the hash of the blob using the hash algorithm from step above, and match it with the value specified at signature envelope `payload`. Fail signature verification if there is a mismatch.
-       1. If provided by the user, verify blob's media type to the one present in `protectedHeader.preimage-content -type (label 259)`. Fail signature verification if there is a mismatch.       
+       1. If provided by the user, verify blob's media type to the one present in `protectedHeader.preimage-content-type (label 259)`. Fail signature verification if there is a mismatch.       
        1. If there is any user-defined/supplied custom metadata, match them against the ones present in [`Extended attributes`](./signature-specification.md/#extended-attributes). If they match, signature verification is considered successful.
    1. Signature envelope other than `COSE Hash Envelope`: 
       1. Calculate the blob's size and verify that it matches the size present in `targetArtifact.size`. Fail signature verification if there is a mismatch.
