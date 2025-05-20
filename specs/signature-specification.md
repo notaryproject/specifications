@@ -122,7 +122,7 @@ The Notary Project signature specification requires the signature envelope to su
 
 Implementations of the Notary Project signature specification MAY include additional signed attributes in the signature envelope.
 These attributes MAY be marked critical, i.e. the attribute MUST be understood and processed by a verifier, unknown critical attributes MUST cause signature verification to fail.
-Usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature, these are discussed in [Signature Portability](#signature-portability) section.
+Usage of extended signed attributes which are marked critical in signature will have implications on portability of the signature, these are discussed in [Signature Portability](#oci-signature-portability) section.
 
 #### Extended attributes for *Notation* Plugins
 
